@@ -24,6 +24,7 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
 import com.google.gerrit.plugins.checks.api.CheckerInput;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
@@ -265,6 +266,23 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     checkerOperations.checker(checkerUuid).forUpdate().enable().update();
     assertThat(checkerOperations.checker(checkerUuid).asInfo().status)
         .isEqualTo(CheckerStatus.ENABLED);
+  }
+
+  @Test
+  public void blockingConditionsCanBeUpdated() throws Exception {
+    String checkerUuid =
+        checkerOperations.newChecker().description("original description").create();
+    assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking).isEmpty();
+
+    checkerOperations
+        .checker(checkerUuid)
+        .forUpdate()
+        .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+        .update();
+    assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking)
+        .containsExactly(BlockingCondition.STATE_NOT_PASSING);
+    checkerOperations.checker(checkerUuid).forUpdate().clearBlockingConditions().update();
+    assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking).isEmpty();
   }
 
   @Test
