@@ -14,11 +14,14 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import static com.google.gerrit.plugins.checks.api.CheckResource.CHECK_KIND;
 import static com.google.gerrit.plugins.checks.api.CheckerResource.CHECKER_KIND;
+import static com.google.gerrit.server.change.RevisionResource.REVISION_KIND;
 
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
+import com.google.gerrit.plugins.checks.CreateCheck;
 import com.google.inject.servlet.ServletModule;
 
 public class HttpModule extends ServletModule {
@@ -35,10 +38,18 @@ public class HttpModule extends ServletModule {
         new RestApiModule() {
           @Override
           public void configure() {
+            // Checkers
             DynamicMap.mapOf(binder(), CHECKER_KIND);
             postOnCollection(CHECKER_KIND).to(CreateChecker.class);
             get(CHECKER_KIND).to(GetChecker.class);
             post(CHECKER_KIND).to(UpdateChecker.class);
+
+            // Checks
+            // TODO(gerrit-team): add tests in CheckersRestApiBindingsIT
+            DynamicMap.mapOf(binder(), CHECK_KIND);
+            child(REVISION_KIND, "checks").to(ChecksCollection.class);
+            postOnCollection(CHECK_KIND).to(CreateCheck.class);
+            get(CHECK_KIND, "get").to(GetCheck.class);
           }
         });
 
@@ -47,6 +58,8 @@ public class HttpModule extends ServletModule {
           @Override
           public void configure() {
             factory(CheckerApiImpl.Factory.class);
+            factory(ChecksImpl.Factory.class);
+            factory(CheckApiImpl.Factory.class);
           }
         });
   }
