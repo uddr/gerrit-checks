@@ -14,12 +14,10 @@
 
 package com.google.gerrit.plugins.checks;
 
-import static com.google.gerrit.plugins.checks.AdministrateCheckersCapability.NAME;
-
-import com.google.gerrit.extensions.annotations.Export;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
+import com.google.inject.Singleton;
 
-@Export(NAME)
+@Singleton
 public class AdministrateCheckersCapability extends CapabilityDefinition {
   public static final String NAME = "administrateCheckers";
 

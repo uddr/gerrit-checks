@@ -21,11 +21,16 @@ import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
+import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.restapi.config.ListCapabilities;
+import com.google.gerrit.server.restapi.config.ListCapabilities.CapabilityInfo;
 import com.google.inject.Inject;
+import java.util.Map;
 import org.junit.Test;
 
 public class GetCheckerIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
+  @Inject private ListCapabilities listCapabilities;
 
   @Test
   public void getChecker() throws Exception {
@@ -81,5 +86,15 @@ public class GetCheckerIT extends AbstractCheckersTest {
     exception.expect(AuthException.class);
     exception.expectMessage("administrateCheckers for plugin checks not permitted");
     checkersApi.id(uuid);
+  }
+
+  @Test
+  public void administrateCheckersCapabilityIsAdvertised() throws Exception {
+    Map<String, CapabilityInfo> capabilities = listCapabilities.apply(new ConfigResource());
+    String capability = "checks-administrateCheckers";
+    assertThat(capabilities).containsKey(capability);
+    CapabilityInfo info = capabilities.get(capability);
+    assertThat(info.id).isEqualTo(capability);
+    assertThat(info.name).isEqualTo("Administrate Checkers");
   }
 }

@@ -16,6 +16,8 @@ package com.google.gerrit.plugins.checks;
 
 import static com.google.inject.Scopes.SINGLETON;
 
+import com.google.gerrit.extensions.annotations.Exports;
+import com.google.gerrit.extensions.config.CapabilityDefinition;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
@@ -27,6 +29,10 @@ public class Module extends FactoryModule {
   @Override
   protected void configure() {
     install(new NoteDbCheckersModule());
+
+    bind(CapabilityDefinition.class)
+        .annotatedWith(Exports.named(AdministrateCheckersCapability.NAME))
+        .to(AdministrateCheckersCapability.class);
 
     DynamicSet.bind(binder(), CommitValidationListener.class)
         .to(CheckerCommitValidator.class)
