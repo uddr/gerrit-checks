@@ -8,7 +8,7 @@ acceptance_tests(
         "noci",
     ],
     deps = [
-        "//java/com/google/gerrit/server/testing",
+        "//java/com/google/gerrit/git/testing",
         "//java/com/google/gerrit/server/util/time",
         "//plugins/checks:checks__plugin",
         "//plugins/checks/java/com/google/gerrit/plugins/checks/acceptance",
