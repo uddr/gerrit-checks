@@ -21,7 +21,6 @@ import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS
 
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
-import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -46,7 +45,6 @@ import org.junit.Test;
 
 @SkipProjectClone
 public class CheckerRefsIT extends AbstractCheckersTest {
-  @Inject private RequestScopeOperations requestScopeOperations;
   @Inject private Sequences seq;
   @Inject private ChangeInserter.Factory changeInserterFactory;
   @Inject private BatchUpdate.Factory updateFactory;
