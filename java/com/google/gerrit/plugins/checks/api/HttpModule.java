@@ -19,9 +19,10 @@ import static com.google.gerrit.plugins.checks.api.CheckerResource.CHECKER_KIND;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
-import com.google.gerrit.httpd.plugins.HttpPluginModule;
+import com.google.inject.servlet.ServletModule;
 
-public class HttpModule extends HttpPluginModule {
+public class HttpModule extends ServletModule {
+
   @Override
   protected void configureServlets() {
     bind(CheckersCollection.class);
