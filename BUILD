@@ -18,6 +18,7 @@ gerrit_plugin(
         "Gerrit-Module: com.google.gerrit.plugins.checks.Module",
         "Gerrit-HttpModule: com.google.gerrit.plugins.checks.api.HttpModule",
     ],
+    resources = glob(["src/main/resources/**/*"]),
     deps = [":checks-deps-neverlink"],
 )
 
