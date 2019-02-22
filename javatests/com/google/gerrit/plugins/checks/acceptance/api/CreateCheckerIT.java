@@ -67,6 +67,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     assertThat(info.repository).isEqualTo(input.repository);
     assertThat(info.status).isEqualTo(CheckerStatus.ENABLED);
     assertThat(info.blocking).isEmpty();
+    assertThat(info.query).isEqualTo("status:open");
     assertThat(info.createdOn).isNotNull();
     assertThat(info.updatedOn).isEqualTo(info.createdOn);
 
@@ -302,6 +303,53 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     CheckerInfo info = checkersApi.create(input).get();
     assertThat(info.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
+  }
+
+  @Test
+  public void createCheckerWithQuery() throws Exception {
+    CheckerInput input = new CheckerInput();
+    input.name = "my-checker";
+    input.repository = allProjects.get();
+    input.query = "f:foo";
+
+    CheckerInfo info = checkersApi.create(input).get();
+    assertThat(info.query).isEqualTo("f:foo");
+  }
+
+  @Test
+  public void createCheckerWithEmptyQuery() throws Exception {
+    CheckerInput input = new CheckerInput();
+    input.name = "my-checker";
+    input.repository = allProjects.get();
+    input.query = "";
+
+    CheckerInfo info = checkersApi.create(input).get();
+    assertThat(info.query).isNull();
+  }
+
+  @Test
+  public void createCheckerWithEmptyQueryAfterTrim() throws Exception {
+    CheckerInput input = new CheckerInput();
+    input.name = "my-checker";
+    input.repository = allProjects.get();
+    input.query = " ";
+
+    CheckerInfo info = checkersApi.create(input).get();
+    assertThat(info.query).isNull();
+  }
+
+  @Test
+  public void createCheckerWithInvalidQueryFails() throws Exception {
+    CheckerInput input = new CheckerInput();
+    input.name = "my-checker";
+    input.repository = allProjects.get();
+    input.query = "project:foo";
+
+    try {
+      checkersApi.create(input).get();
+    } catch (BadRequestException e) {
+      assertThat(e).hasMessageThat().isEqualTo("Unsupported operator: project");
+    }
   }
 
   @Test

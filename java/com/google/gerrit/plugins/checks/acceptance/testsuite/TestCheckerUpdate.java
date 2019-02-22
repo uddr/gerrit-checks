@@ -41,6 +41,8 @@ public abstract class TestCheckerUpdate {
 
   public abstract Optional<ImmutableSortedSet<BlockingCondition>> blockingConditions();
 
+  public abstract Optional<String> query();
+
   abstract ThrowingConsumer<TestCheckerUpdate> checkerUpdater();
 
   public static Builder builder(ThrowingConsumer<TestCheckerUpdate> checkerUpdater) {
@@ -87,6 +89,12 @@ public abstract class TestCheckerUpdate {
 
     public Builder clearBlockingConditions() {
       return blockingConditions(ImmutableSortedSet.of());
+    }
+
+    public abstract Builder query(String query);
+
+    public Builder clearQuery() {
+      return query("");
     }
 
     abstract Builder checkerUpdater(ThrowingConsumer<TestCheckerUpdate> checkerUpdater);

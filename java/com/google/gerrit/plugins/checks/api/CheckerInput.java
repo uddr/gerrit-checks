@@ -24,4 +24,5 @@ public class CheckerInput {
   public String repository;
   public CheckerStatus status;
   public Set<BlockingCondition> blockingConditions;
+  public String query;
 }

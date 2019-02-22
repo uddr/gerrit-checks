@@ -57,6 +57,9 @@ public abstract class CheckerUpdate {
    */
   public abstract Optional<ImmutableSortedSet<BlockingCondition>> getBlockingConditions();
 
+  /** Defines the new query for the checker. If not specified, the query remains unchanged. */
+  public abstract Optional<String> getQuery();
+
   /**
    * Defines the {@code Timestamp} to be used for the NoteDb commits of the update. If not
    * specified, the current {@code Timestamp} when creating the commit will be used.
@@ -87,6 +90,8 @@ public abstract class CheckerUpdate {
 
     public abstract Builder setBlockingConditions(
         ImmutableSortedSet<BlockingCondition> blockingConditions);
+
+    public abstract Builder setQuery(String query);
 
     public abstract Builder setUpdatedOn(Timestamp timestamp);
 

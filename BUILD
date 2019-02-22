@@ -28,6 +28,7 @@ java_library(
     visibility = ["//visibility:private"],
     exports = [
         "//java/com/google/gerrit/server/api",
+        "//lib/antlr:java-runtime",
         "//lib/auto:auto-value",
         "//lib/auto:auto-value-annotations",
     ],

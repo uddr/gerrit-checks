@@ -30,6 +30,8 @@ public abstract class TestCheckerCreation {
 
   public abstract Optional<Project.NameKey> repository();
 
+  public abstract Optional<String> query();
+
   abstract ThrowingFunction<TestCheckerCreation, String> checkerCreator();
 
   public static Builder builder(ThrowingFunction<TestCheckerCreation, String> checkerCreator) {
@@ -54,6 +56,8 @@ public abstract class TestCheckerCreation {
     }
 
     public abstract Builder repository(Project.NameKey repository);
+
+    public abstract Builder query(String query);
 
     abstract Builder checkerCreator(ThrowingFunction<TestCheckerCreation, String> checkerCreator);
 

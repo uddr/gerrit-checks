@@ -70,6 +70,17 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
     return Truth.assertThat(checker().getBlockingConditions());
   }
 
+  public void hasQuery(String expectedQuery) {
+    OptionalSubject.assertThat(checker().getQuery())
+        .named("query")
+        .value()
+        .isEqualTo(expectedQuery);
+  }
+
+  public void hasNoQuery() {
+    OptionalSubject.assertThat(checker().getQuery()).named("query").isEmpty();
+  }
+
   public ComparableSubject<?, Timestamp> hasCreatedOnThat() {
     return Truth.assertThat(checker().getCreatedOn()).named("createdOn");
   }

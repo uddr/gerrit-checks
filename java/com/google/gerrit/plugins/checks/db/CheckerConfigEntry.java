@@ -222,6 +222,35 @@ enum CheckerConfigEntry {
               blockingConditions ->
                   setEnumList(config, SECTION_NAME, null, super.keyName, blockingConditions));
     }
+  },
+
+  QUERY("query") {
+    @Override
+    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config) {
+      String value = config.getString(SECTION_NAME, null, super.keyName);
+      if (value != null) {
+        checker.setQuery(value);
+      }
+    }
+
+    @Override
+    void initNewConfig(Config config, CheckerCreation checkerCreation) {
+      config.setString(SECTION_NAME, null, super.keyName, "status:open");
+    }
+
+    @Override
+    void updateConfigValue(Config config, CheckerUpdate checkerUpdate) {
+      checkerUpdate
+          .getQuery()
+          .ifPresent(
+              query -> {
+                if (!Strings.isNullOrEmpty(query)) {
+                  config.setString(SECTION_NAME, null, super.keyName, query);
+                } else {
+                  config.unset(SECTION_NAME, null, super.keyName);
+                }
+              });
+    }
   };
 
   private static <T extends Enum<T>> ImmutableSortedSet<T> getEnumSet(

@@ -8,9 +8,12 @@ junit_tests(
     deps = [
         "//java/com/google/gerrit/common:annotations",
         "//java/com/google/gerrit/extensions:api",
+        "//java/com/google/gerrit/index:query_exception",
         "//java/com/google/gerrit/reviewdb:server",
+        "//java/com/google/gerrit/server",
         "//java/com/google/gerrit/testing:gerrit-test-util",
         "//lib:guava",
+        "//lib/guice",
         "//lib/jgit/org.eclipse.jgit:jgit",
         "//lib/truth",
         "//lib/truth:truth-java8-extension",

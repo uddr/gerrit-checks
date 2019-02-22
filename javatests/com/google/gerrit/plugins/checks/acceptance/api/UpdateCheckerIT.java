@@ -15,6 +15,8 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
+import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.git.testing.CommitSubject.assertCommit;
 
 import com.google.common.collect.ImmutableSet;
@@ -36,6 +38,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.testing.ConfigSuite;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Config;
 import org.junit.After;
@@ -462,6 +465,60 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     CheckerInfo info = checkersApi.id(checkerUuid).update(input);
     assertThat(info.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
+  }
+
+  @Test
+  public void updateQuery() throws Exception {
+    String checkerUuid =
+        checkerOperations.newChecker().name("my-checker").repository(allProjects).create();
+
+    CheckerInput input = new CheckerInput();
+    input.query = "f:foo";
+
+    CheckerInfo info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.query).isEqualTo("f:foo");
+
+    input = new CheckerInput();
+    input.query = "";
+
+    info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.query).isNull();
+  }
+
+  @Test
+  public void updateWithEmptyQueryAfterTrimClearsQuery() throws Exception {
+    String checkerUuid =
+        checkerOperations.newChecker().name("my-checker").repository(allProjects).create();
+
+    CheckerInput input = new CheckerInput();
+    input.query = "f:foo";
+
+    CheckerInfo info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.query).isEqualTo("f:foo");
+
+    input = new CheckerInput();
+    input.query = " ";
+
+    info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.query).isNull();
+  }
+
+  @Test
+  public void updateWithInvalidQuery() throws Exception {
+    String checkerUuid =
+        checkerOperations.newChecker().name("my-checker").repository(allProjects).create();
+    Optional<String> oldQuery = checkerOperations.checker(checkerUuid).get().getQuery();
+
+    CheckerInput input = new CheckerInput();
+    input.query = "project:foo";
+    try {
+      checkersApi.id(checkerUuid).update(input);
+      assert_().fail("expected BadRequestException");
+    } catch (BadRequestException e) {
+      assertThat(e).hasMessageThat().isEqualTo("Unsupported operator: project");
+    }
+
+    assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
   }
 
   @Test

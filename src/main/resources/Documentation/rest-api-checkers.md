@@ -110,6 +110,8 @@ Unsetting properties:
   or a string that is empty after trim is rejected as `400 Bad Request`.
 * `status`: Cannot be unset.
 * `blocking`: Can be unset by setting an empty list (\[\]) for it.
+* `query`: Can be unset by setting an empty string ("") for it. Note that the
+  default for newly-created checkers is not empty; see [below](#query).
 
 Note that only users with the [Administrate
 Checkers](access-control.md#capability_administrateCheckers) global capability
@@ -169,6 +171,7 @@ The `CheckerInfo` entity describes a checker.
 | `repository`    |          | The (exact) name of the repository for which the checker applies.
 | `status`        |          | The status of the checker; one of `ENABLED` or `DISABLED`.
 | `blocking`      |          | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
+| `query`         | optional | A [query](#query) that limits changes for which the checker is relevant.
 | `created_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
 | `updated_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
 
@@ -183,6 +186,7 @@ The `CheckerInput` entity contains information for creating a checker.
 | `repository`    | optional | The (exact) name of the repository for which the checker applies.
 | `status`        | optional | The status of the checker; one of `ENABLED` or `DISABLED`.
 | `blocking`      | optional | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
+| `query`         | optional | A [query](#query) that limits changes for which the checker is relevant.
 
 ## <a id="blocking-conditions"> Blocking Conditions
 
@@ -200,6 +204,34 @@ is _required_.
 
 Technically, `STATE_NOT_PASSING` requires the combined check state on the change
 to be either `SUCCESSFUL` or `NOT_RELEVANT`.
+
+## <a id="query"> Query
+
+If the `query` field is specified in the checker config, then the checker is
+only considered relevant for changes matching that query. The query field is
+interpreted as a [change query](../../../Documentation/user-search.html), with a
+limited subset of supported operators. By default, the query for newly-created
+checkers is `status:open`. An empty query matches all changes.
+
+In order to determine the relevant checkers for a given change, Gerrit first
+looks up all enabled checkers matching that change's repository, then executes
+the query for each checker in sequence. Because of this algorithm, there are
+restrictions on which operators can be supported in checker queries:
+
+* Operators related to projects are not supported, since the algorithm already
+  only considers checkers with a matching repository.
+* Full-text operators (e.g. `message`) are not supported, since these cannot be
+  efficiently evaluated sequentially.
+* Operators with an explicit or implied `self` user are not supported, since the
+  algorithm must return the same set of relevant checkers regardless of the end
+  user looking at the change.
+
+Currently, the set of allowed query operators is:
+
+`added, after, age, assignee, author, before, branch, committer, deleted, delta,
+destination, dir, directory, ext, extension, f, file, footer, hashtag, intopic,
+label, onlyextensions, onlyexts, ownerin, path, r, ref, reviewer, reviewerin,
+size, status, submittable, topic, unresolved, wip`
 
 ---
 

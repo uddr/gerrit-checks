@@ -26,6 +26,7 @@ import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerJson;
 import com.google.gerrit.plugins.checks.CheckerName;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
 import com.google.gerrit.plugins.checks.CheckerUrl;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -101,6 +102,9 @@ public class CreateChecker
     if (input.blockingConditions != null) {
       checkerUpdateBuilder.setBlockingConditions(
           ImmutableSortedSet.copyOf(input.blockingConditions));
+    }
+    if (input.query != null) {
+      checkerUpdateBuilder.setQuery(CheckerQuery.clean(input.query));
     }
     Checker checker =
         checkersUpdate

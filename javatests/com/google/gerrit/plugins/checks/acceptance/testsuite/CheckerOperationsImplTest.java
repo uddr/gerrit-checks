@@ -287,6 +287,26 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void queryCanBeUpdated() throws Exception {
+    String checkerUuid = checkerOperations.newChecker().query("f:foo").create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().query("f:bar").update();
+
+    Optional<String> currentQuery = checkerOperations.checker(checkerUuid).get().getQuery();
+    assertThat(currentQuery).hasValue("f:bar");
+  }
+
+  @Test
+  public void queryCanBeCleared() throws Exception {
+    String checkerUuid = checkerOperations.newChecker().query("f:foo").create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().clearQuery().update();
+
+    Optional<String> currentQuery = checkerOperations.checker(checkerUuid).get().getQuery();
+    assertThat(currentQuery).isEmpty();
+  }
+
+  @Test
   public void getCommit() throws Exception {
     CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
 

@@ -87,6 +87,15 @@ public abstract class Checker {
   public abstract ImmutableSortedSet<BlockingCondition> getBlockingConditions();
 
   /**
+   * Returns the query for the checker.
+   *
+   * <p>If set, represents a limited change query that all relevant changes will match.
+   *
+   * @return the query for the checker.
+   */
+  public abstract Optional<String> getQuery();
+
+  /**
    * Returns the creation timestamp of the checker.
    *
    * @return the creation timestamp
@@ -129,6 +138,8 @@ public abstract class Checker {
     public abstract Builder setStatus(CheckerStatus status);
 
     public abstract Builder setBlockingConditions(Iterable<BlockingCondition> enumList);
+
+    public abstract Builder setQuery(String query);
 
     public abstract Builder setCreatedOn(Timestamp createdOn);
 

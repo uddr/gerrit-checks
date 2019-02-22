@@ -15,12 +15,15 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.plugins.checks.testing.CheckerConfigSubject.assertThat;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.truth.StringSubject;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckerCreation;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -482,6 +485,53 @@ public class CheckerConfigTest extends GerritBaseTests {
         .hasBlockingConditionSetThat()
         .containsExactly(BlockingCondition.STATE_NOT_PASSING);
     assertThat(checker).configStringList("blocking").containsExactly("state not passing");
+  }
+
+  @Test
+  public void setQuery() throws Exception {
+    CheckerConfig checker = createArbitraryChecker(checkerUuid);
+    String expectedQuery = "status:open";
+    assertThat(checker).hasQuery(expectedQuery);
+    // Default query must be a valid query.
+    assertThat(CheckerQuery.clean(expectedQuery)).isEqualTo(expectedQuery);
+
+    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setQuery("f:foo").build();
+    checker = updateChecker(checkerUuid, checkerUpdate);
+    assertThat(checker).hasQuery("f:foo");
+    assertThat(checker).configStringList("query").containsExactly("f:foo");
+
+    checkerUpdate = CheckerUpdate.builder().setQuery("").build();
+    checker = updateChecker(checkerUuid, checkerUpdate);
+    assertThat(checker).hasNoQuery();
+    assertThat(checker).configStringList("query").isEmpty();
+  }
+
+  @Test
+  public void setQueryDuringCreate() throws Exception {
+    CheckerCreation checkerCreation = getPrefilledCheckerCreationBuilder().build();
+    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setQuery("f:foo").build();
+    CheckerConfig checker = createChecker(checkerCreation, checkerUpdate);
+
+    assertThat(checker).hasQuery("f:foo");
+    assertThat(checker).configStringList("query").containsExactly("f:foo");
+  }
+
+  @Test
+  public void setQueryDoesNotValidateQuery() throws Exception {
+    String query = "foo:bar";
+    try {
+      CheckerQuery.clean(query);
+      assert_().fail("expected BadRequestException");
+    } catch (BadRequestException e) {
+      // Expected.
+    }
+
+    createArbitraryChecker(checkerUuid);
+
+    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setQuery("f:foo").build();
+    CheckerConfig checker = updateChecker(checkerUuid, checkerUpdate);
+    assertThat(checker).hasQuery("f:foo");
+    assertThat(checker).configStringList("query").containsExactly("f:foo");
   }
 
   @Test
