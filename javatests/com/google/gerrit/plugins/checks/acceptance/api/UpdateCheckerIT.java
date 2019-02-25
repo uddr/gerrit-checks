@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.gerrit.server.testing.CommitSubject.assertCommit;
+import static com.google.gerrit.git.testing.CommitSubject.assertCommit;
 
 import com.google.gerrit.acceptance.SkipProjectClone;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
