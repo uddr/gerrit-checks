@@ -37,6 +37,7 @@ checker.
     "uuid": "e1f530851409c89dbba927efd0fbbaf270bfaeae",
     "name": "MyChecker",
     "repository": "examples/Foo",
+    "blocking": [],
     "description": "A simple checker.",
     "created_on": "2019-01-31 09:59:32.126000000"
   }
@@ -108,6 +109,7 @@ Unsetting properties:
 * '`repository`: Cannot be unset. Attempting to set it to an empty string ("")
   or a string that is empty after trim is rejected as `400 Bad Request`.
 * `status`: Cannot be unset.
+* `blocking`: Can be unset by setting an empty list (\[\]) for it.
 
 Note that only users with the [Administrate
 Checkers](access-control.md#capability_administrateCheckers) global capability
@@ -166,6 +168,7 @@ The `CheckerInfo` entity describes a checker.
 | `url`           | optional | The URL of the checker.
 | `repository`    |          | The (exact) name of the repository for which the checker applies.
 | `status`        |          | The status of the checker; one of `ENABLED` or `DISABLED`.
+| `blocking`      |          | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
 | `created_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
 | `updated_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
 
@@ -179,6 +182,24 @@ The `CheckerInput` entity contains information for creating a checker.
 | `url`           | optional | The URL of the checker.
 | `repository`    | optional | The (exact) name of the repository for which the checker applies.
 | `status`        | optional | The status of the checker; one of `ENABLED` or `DISABLED`.
+| `blocking`      | optional | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
+
+## <a id="blocking-conditions"> Blocking Conditions
+
+Blocking conditions allow checkers to specify the conditions under which checks
+will block change submission. The conditions configured for a checker are
+represented as a list of enum values. When there are multiple blocking
+conditions, any one of them is sufficient to block submission; in other words,
+conditions are ORed together.
+
+There is currently only a single type of blocking condition:
+`STATE_NOT_PASSING`. Intuitively, if a checker sets this blocking condition,
+that means that users need to wait for all checks, for example build and test,
+to pass before submitting the change. In other words, we might say the checker
+is _required_.
+
+Technically, `STATE_NOT_PASSING` requires the combined check state on the change
+to be either `SUCCESSFUL` or `NOT_RELEVANT`.
 
 ---
 
