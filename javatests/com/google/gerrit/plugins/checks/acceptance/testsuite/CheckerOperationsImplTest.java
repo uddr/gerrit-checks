@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.gerrit.plugins.checks.acceptance;
+package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
@@ -23,8 +23,7 @@ import com.google.common.base.Joiner;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperationsImpl;
-import com.google.gerrit.plugins.checks.acceptance.testsuite.TestChecker;
+import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
 import com.google.gerrit.plugins.checks.api.CheckerInput;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
