@@ -21,6 +21,7 @@ import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
 import com.google.common.base.Joiner;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -70,9 +71,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     String checkerUuid1 = checkerOperations.newChecker().create();
     String checkerUuid2 = checkerOperations.newChecker().create();
 
-    TestChecker checker1 = checkerOperations.checker(checkerUuid1).get();
-    TestChecker checker2 = checkerOperations.checker(checkerUuid2).get();
-    assertThat(checker1.uuid()).isNotEqualTo(checker2.uuid());
+    Checker checker1 = checkerOperations.checker(checkerUuid1).get();
+    Checker checker2 = checkerOperations.checker(checkerUuid2).get();
+    assertThat(checker1.getUuid()).isNotEqualTo(checker2.getUuid());
   }
 
   @Test
@@ -140,17 +141,17 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     input.name = "unique checker not created via test API";
     String checkerUuid = createCheckerInServer(input);
 
-    TestChecker foundChecker = checkerOperations.checker(checkerUuid).get();
+    Checker foundChecker = checkerOperations.checker(checkerUuid).get();
 
-    assertThat(foundChecker.uuid()).isEqualTo(checkerUuid);
-    assertThat(foundChecker.name()).isEqualTo("unique checker not created via test API");
+    assertThat(foundChecker.getUuid()).isEqualTo(checkerUuid);
+    assertThat(foundChecker.getName()).isEqualTo("unique checker not created via test API");
   }
 
   @Test
   public void uuidOfExistingCheckerCanBeRetrieved() throws Exception {
     String checkerUuid = checkerOperations.newChecker().create();
 
-    String foundCheckerUuid = checkerOperations.checker(checkerUuid).get().uuid();
+    String foundCheckerUuid = checkerOperations.checker(checkerUuid).get().getUuid();
 
     assertThat(foundCheckerUuid).isEqualTo(checkerUuid);
   }
@@ -160,7 +161,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     String checkerUuid =
         checkerOperations.newChecker().name("ABC-789-this-name-must-be-unique").create();
 
-    String checkerName = checkerOperations.checker(checkerUuid).get().name();
+    String checkerName = checkerOperations.checker(checkerUuid).get().getName();
 
     assertThat(checkerName).isEqualTo("ABC-789-this-name-must-be-unique");
   }
@@ -173,7 +174,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
             .description("This is a very detailed description of this checker.")
             .create();
 
-    Optional<String> description = checkerOperations.checker(checkerUuid).get().description();
+    Optional<String> description = checkerOperations.checker(checkerUuid).get().getDescription();
 
     assertThat(description).hasValue("This is a very detailed description of this checker.");
   }
@@ -182,7 +183,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   public void emptyDescriptionOfExistingCheckerCanBeRetrieved() throws Exception {
     String checkerUuid = checkerOperations.newChecker().clearDescription().create();
 
-    Optional<String> description = checkerOperations.checker(checkerUuid).get().description();
+    Optional<String> description = checkerOperations.checker(checkerUuid).get().getDescription();
 
     assertThat(description).isEmpty();
   }
@@ -191,7 +192,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   public void createdOnOfExistingCheckerCanBeRetrieved() throws Exception {
     CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
 
-    Timestamp createdOn = checkerOperations.checker(checker.uuid).get().createdOn();
+    Timestamp createdOn = checkerOperations.checker(checker.uuid).get().getCreatedOn();
 
     assertThat(createdOn).isEqualTo(checker.createdOn);
   }
@@ -199,11 +200,11 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   @Test
   public void updateWithoutAnyParametersIsANoop() throws Exception {
     String checkerUuid = checkerOperations.newChecker().create();
-    TestChecker originalChecker = checkerOperations.checker(checkerUuid).get();
+    Checker originalChecker = checkerOperations.checker(checkerUuid).get();
 
     checkerOperations.checker(checkerUuid).forUpdate().update();
 
-    TestChecker updatedChecker = checkerOperations.checker(checkerUuid).get();
+    Checker updatedChecker = checkerOperations.checker(checkerUuid).get();
     assertThat(updatedChecker).isEqualTo(originalChecker);
   }
 
@@ -224,7 +225,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forUpdate().name("updated name").update();
 
-    String currentName = checkerOperations.checker(checkerUuid).get().name();
+    String currentName = checkerOperations.checker(checkerUuid).get().getName();
     assertThat(currentName).isEqualTo("updated name");
   }
 
@@ -236,7 +237,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     checkerOperations.checker(checkerUuid).forUpdate().description("updated description").update();
 
     Optional<String> currentDescription =
-        checkerOperations.checker(checkerUuid).get().description();
+        checkerOperations.checker(checkerUuid).get().getDescription();
     assertThat(currentDescription).hasValue("updated description");
   }
 
@@ -248,7 +249,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     checkerOperations.checker(checkerUuid).forUpdate().clearDescription().update();
 
     Optional<String> currentDescription =
-        checkerOperations.checker(checkerUuid).get().description();
+        checkerOperations.checker(checkerUuid).get().getDescription();
     assertThat(currentDescription).isEmpty();
   }
 
@@ -329,14 +330,14 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
             .description("A description.")
             .url("http://example.com/my-checker")
             .create();
-    TestChecker checker = checkerOperations.checker(checkerUuid).get();
+    Checker checker = checkerOperations.checker(checkerUuid).get();
     CheckerInfo checkerInfo = checkerOperations.checker(checkerUuid).asInfo();
-    assertThat(checkerInfo.uuid).isEqualTo(checker.uuid());
-    assertThat(checkerInfo.name).isEqualTo(checker.name());
-    assertThat(checkerInfo.description).isEqualTo(checker.description().get());
-    assertThat(checkerInfo.url).isEqualTo(checker.url().get());
-    assertThat(checkerInfo.createdOn).isEqualTo(checker.createdOn());
-    assertThat(checkerInfo.updatedOn).isEqualTo(checker.updatedOn());
+    assertThat(checkerInfo.uuid).isEqualTo(checker.getUuid());
+    assertThat(checkerInfo.name).isEqualTo(checker.getName());
+    assertThat(checkerInfo.description).isEqualTo(checker.getDescription().get());
+    assertThat(checkerInfo.url).isEqualTo(checker.getUrl().get());
+    assertThat(checkerInfo.createdOn).isEqualTo(checker.getCreatedOn());
+    assertThat(checkerInfo.updatedOn).isEqualTo(checker.getUpdatedOn());
   }
 
   @Test

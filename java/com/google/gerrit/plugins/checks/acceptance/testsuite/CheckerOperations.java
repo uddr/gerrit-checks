@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
 import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
@@ -97,9 +98,9 @@ public interface CheckerOperations {
      * doesn't exist. If you want to check for the existence of a checker, use {@link #exists()}
      * instead.
      *
-     * @return the corresponding {@code TestChecker}
+     * @return the corresponding {@code Checker}
      */
-    TestChecker get();
+    Checker get();
 
     /**
      * Retrieves the tip commit of the checker ref.

@@ -72,7 +72,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
     assertThat(checkerOperations.sha1sOfRepositoriesWithCheckers())
         .containsExactly(CheckersByRepositoryNotes.computeRepositorySha1(repositoryName));
     assertThat(checkerOperations.checkersOf(repositoryName)).containsExactly(info.uuid);
@@ -89,7 +92,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -103,7 +109,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -116,7 +125,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -130,7 +142,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -144,7 +159,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -157,7 +175,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
-        perCheckerOps.commit(), "Create checker", info.createdOn, perCheckerOps.get().refState());
+        perCheckerOps.commit(),
+        "Create checker",
+        info.createdOn,
+        perCheckerOps.get().getRefState());
   }
 
   @Test

@@ -173,10 +173,9 @@ public class CheckerOperationsImpl implements CheckerOperations {
     }
 
     @Override
-    public TestChecker get() {
-      Optional<Checker> checker = getChecker(checkerUuid);
-      checkState(checker.isPresent(), "Tried to get non-existing test checker");
-      return toTestChecker(checker.get());
+    public Checker get() {
+      return getChecker(checkerUuid)
+          .orElseThrow(() -> new IllegalStateException("Tried to get non-existing test checker"));
     }
 
     private Optional<Checker> getChecker(String checkerUuid) {
@@ -185,19 +184,6 @@ public class CheckerOperationsImpl implements CheckerOperations {
       } catch (IOException | ConfigInvalidException e) {
         throw new IllegalStateException(e);
       }
-    }
-
-    private TestChecker toTestChecker(Checker checker) {
-      return TestChecker.builder()
-          .uuid(checker.getUuid())
-          .name(checker.getName())
-          .description(checker.getDescription())
-          .url(checker.getUrl())
-          .repository(checker.getRepository())
-          .createdOn(checker.getCreatedOn())
-          .updatedOn(checker.getUpdatedOn())
-          .refState(checker.getRefState())
-          .build();
     }
 
     @Override
