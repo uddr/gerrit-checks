@@ -15,95 +15,96 @@
 package com.google.gerrit.plugins.checks;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.testing.GerritBaseTests;
-import org.eclipse.jgit.lib.Ref;
 import org.junit.Test;
 
 public class CheckerUuidTest extends GerritBaseTests {
+
+  private static final ImmutableSet<String> VALID_CHECKER_UUIDS =
+      ImmutableSet.of("test:my-checker-123", "TEST:MY-checker", "-t-e.s_t-:m.y-ch_ecker");
+
   private static final ImmutableSet<String> INVALID_CHECKER_UUIDS =
       ImmutableSet.of(
           "",
-          "437ee3",
-          "Id852b02b44d3148de21603fecbc817d03d6899fe",
-          "foo",
-          "437ee373885fbc47b103dc722800448320e8bc61-foo",
-          "437ee373885fbc47b103dc722800448320e8bc61 foo");
-
-  @Test
-  public void createdUuidsForSameInputShouldBeDifferent() {
-    String checkerName = "my-checker";
-    String uuid1 = CheckerUuid.make(checkerName);
-    String uuid2 = CheckerUuid.make(checkerName);
-    assertThat(uuid2).isNotEqualTo(uuid1);
-  }
+          "test",
+          ":",
+          "test:",
+          ":my-checker",
+          " test:my-checker",
+          "test:my-checker ",
+          "test:my checker",
+          "test:my!checker",
+          "test:my\nchecker",
+          "test:my\\nchecker",
+          "test:my%0Achecker",
+          "test:my\0checker",
+          "test:my\\0checker",
+          "test:my%00checker");
 
   @Test
   public void isUuid() {
-    // valid UUIDs
-    assertThat(CheckerUuid.isUuid("437ee373885fbc47b103dc722800448320e8bc61")).isTrue();
-    assertThat(CheckerUuid.isUuid(CheckerUuid.make("my-checker"))).isTrue();
+    for (String checkerUuid : VALID_CHECKER_UUIDS) {
+      assertThat(CheckerUuid.isUuid(checkerUuid)).named(checkerUuid).isTrue();
+    }
 
-    // invalid UUIDs
     assertThat(CheckerUuid.isUuid(null)).isFalse();
     for (String invalidCheckerUuid : INVALID_CHECKER_UUIDS) {
-      assertThat(CheckerUuid.isUuid(invalidCheckerUuid)).isFalse();
+      assertThat(CheckerUuid.isUuid(invalidCheckerUuid)).named(invalidCheckerUuid).isFalse();
     }
   }
 
   @Test
-  public void checkUuid() {
-    // valid UUIDs
-    assertThat(CheckerUuid.checkUuid("437ee373885fbc47b103dc722800448320e8bc61"))
-        .isEqualTo("437ee373885fbc47b103dc722800448320e8bc61");
-
-    String checkerUuid = CheckerUuid.make("my-checker");
-    assertThat(CheckerUuid.checkUuid(checkerUuid)).isEqualTo(checkerUuid);
-
-    // invalid UUIDs
-    assertThatCheckUuidThrowsIllegalStateExceptionFor(null);
-    for (String invalidCheckerUuid : INVALID_CHECKER_UUIDS) {
-      assertThatCheckUuidThrowsIllegalStateExceptionFor(invalidCheckerUuid);
-    }
-  }
-
-  private void assertThatCheckUuidThrowsIllegalStateExceptionFor(@Nullable String checkerUuid) {
-    try {
-      CheckerUuid.checkUuid(checkerUuid);
-      assert_()
-          .fail("expected IllegalStateException when checking checker UUID \"%s\"", checkerUuid);
-    } catch (IllegalStateException e) {
-      assertThat(e.getMessage()).isEqualTo(String.format("invalid checker UUID: %s", checkerUuid));
+  public void parseValidUuids() {
+    for (String uuidString : VALID_CHECKER_UUIDS) {
+      assertThat(CheckerUuid.tryParse(uuidString).map(CheckerUuid::toString))
+          .named(uuidString)
+          .hasValue(uuidString);
+      CheckerUuid checkerUuid;
+      try {
+        checkerUuid = CheckerUuid.parse(uuidString);
+      } catch (RuntimeException e) {
+        throw new AssertionError("failed to parse " + uuidString, e);
+      }
+      assertThat(checkerUuid.toString()).named(uuidString).isEqualTo(uuidString);
     }
   }
 
   @Test
-  public void fromRef() throws Exception {
-    // valid checker refs
-    assertThat(CheckerUuid.fromRef("refs/checkers/43/437ee373885fbc47b103dc722800448320e8bc61"))
-        .hasValue("437ee373885fbc47b103dc722800448320e8bc61");
+  public void parseInvalidUuids() {
+    assertInvalid(null);
+    for (String uuidString : INVALID_CHECKER_UUIDS) {
+      assertInvalid(uuidString);
+    }
+  }
 
-    String checkerUuid = CheckerUuid.make("my-checker");
-    assertThat(CheckerUuid.fromRef(CheckerRef.refsCheckers(checkerUuid))).hasValue(checkerUuid);
+  @Test
+  public void getters() {
+    CheckerUuid checkerUuid = CheckerUuid.parse("test:my-checker");
+    assertThat(checkerUuid.scheme()).isEqualTo("test");
+    assertThat(checkerUuid.id()).isEqualTo("my-checker");
+    assertThat(checkerUuid.toString()).isEqualTo("test:my-checker");
 
-    // invalid checker refs
-    assertThat(CheckerUuid.fromRef((Ref) null)).isEmpty();
-    assertThat(CheckerUuid.fromRef((String) null)).isEmpty();
-    assertThat(CheckerUuid.fromRef("")).isEmpty();
-    assertThat(CheckerUuid.fromRef("refs/checkers/437ee373885fbc47b103dc722800448320e8bc61"))
-        .isEmpty();
-    assertThat(CheckerUuid.fromRef("refs/checkers/61/437ee373885fbc47b103dc722800448320e8bc61"))
-        .isEmpty();
-    assertThat(CheckerUuid.fromRef("refs/checker/43/437ee373885fbc47b103dc722800448320e8bc61"))
-        .isEmpty();
-    assertThat(CheckerUuid.fromRef("refs/checker/43/7ee373885fbc47b103dc722800448320e8bc61"))
-        .isEmpty();
-    assertThat(CheckerUuid.fromRef("refs/checkers/foo")).isEmpty();
-    assertThat(CheckerUuid.fromRef("refs/groups/43/437ee373885fbc47b103dc722800448320e8bc61"))
-        .isEmpty();
+    // $ echo -n test:my-checker | sha1sum
+    // 4ff2f443e66636c68b554b5dbb09c90475ae7147  -
+    assertThat(checkerUuid.sha1()).isEqualTo("4ff2f443e66636c68b554b5dbb09c90475ae7147");
+  }
+
+  @Test
+  public void sort() {
+    assertThat(
+            ImmutableSortedSet.of(
+                CheckerUuid.parse("fo:a"), CheckerUuid.parse("foo:a"), CheckerUuid.parse("fo-o:a")))
+        .containsExactly(
+            CheckerUuid.parse("fo-o:a"), CheckerUuid.parse("fo:a"), CheckerUuid.parse("foo:a"))
+        .inOrder();
+  }
+
+  private static void assertInvalid(@Nullable String uuidString) {
+    assertThat(CheckerUuid.tryParse(uuidString)).named(String.valueOf(uuidString)).isEmpty();
   }
 }

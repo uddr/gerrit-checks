@@ -59,6 +59,6 @@ public interface CheckersUpdate {
    * @throws ConfigInvalidException if the existing checker config is invalid
    * @return the updated {@code Checker}
    */
-  Checker updateChecker(String checkerUuid, CheckerUpdate checkerUpdate)
+  Checker updateChecker(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws NoSuchCheckerException, IOException, ConfigInvalidException;
 }

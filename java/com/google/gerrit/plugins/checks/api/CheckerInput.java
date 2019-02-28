@@ -14,11 +14,11 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.gerrit.extensions.restapi.DefaultInput;
 import java.util.Set;
 
 public class CheckerInput {
-  @DefaultInput public String name;
+  public String uuid;
+  public String name;
   public String description;
   public String url;
   public String repository;

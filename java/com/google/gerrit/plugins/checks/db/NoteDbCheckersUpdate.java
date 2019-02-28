@@ -20,6 +20,7 @@ import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.plugins.checks.NoSuchCheckerException;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
@@ -219,7 +220,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
   }
 
   @Override
-  public Checker updateChecker(String checkerUuid, CheckerUpdate checkerUpdate)
+  public Checker updateChecker(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws NoSuchCheckerException, IOException, ConfigInvalidException {
     Optional<Timestamp> updatedOn = checkerUpdate.getUpdatedOn();
     if (!updatedOn.isPresent()) {
@@ -229,7 +230,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
     return updateCheckerWithRetry(checkerUuid, checkerUpdate);
   }
 
-  private Checker updateCheckerWithRetry(String checkerUuid, CheckerUpdate checkerUpdate)
+  private Checker updateCheckerWithRetry(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws NoSuchCheckerException, IOException, ConfigInvalidException {
     try {
       return retryHelper.execute(
@@ -245,7 +246,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
     }
   }
 
-  private Checker updateCheckerInNoteDb(String checkerUuid, CheckerUpdate checkerUpdate)
+  private Checker updateCheckerInNoteDb(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws IOException, ConfigInvalidException, NoSuchCheckerException {
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
       CheckerConfig checkerConfig =

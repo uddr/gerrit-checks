@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
 import java.util.Optional;
@@ -40,7 +40,27 @@ public interface Checkers {
    * @throws IOException if the checker couldn't be retrieved from the storage
    * @throws ConfigInvalidException if the checker in the storage is invalid
    */
-  Optional<Checker> getChecker(String checkerUuid) throws IOException, ConfigInvalidException;
+  Optional<Checker> getChecker(CheckerUuid checkerUuid) throws IOException, ConfigInvalidException;
+
+  /**
+   * Returns the checker for the given UUID string.
+   *
+   * <p>If no checker with the given UUID exists, or the input is an invalid UUID, {@link
+   * Optional#empty()} is returned.
+   *
+   * @param uuidString the checker UUID string
+   * @return the checker, {@link Optional#empty()} if no checker with the given UUID exists
+   * @throws IOException if the checker couldn't be retrieved from the storage
+   * @throws ConfigInvalidException if the checker in the storage is invalid
+   */
+  default Optional<Checker> getChecker(String uuidString)
+      throws IOException, ConfigInvalidException {
+    Optional<CheckerUuid> checkerUuid = CheckerUuid.tryParse(uuidString);
+    if (!checkerUuid.isPresent()) {
+      return Optional.empty();
+    }
+    return getChecker(checkerUuid.get());
+  }
 
   /**
    * Returns a list with all checkers.
@@ -59,11 +79,11 @@ public interface Checkers {
    *
    * @param repositoryName the name of the repository for which the applying checkers should be
    *     returned
-   * @return the checkers that apply that apply to the given repository
+   * @return the checkers that apply that apply to the given repository, sorted by UUID
    * @throws IOException if reading the checker list fails or if any checker couldn't be retrieved
    *     from the storage
    * @throws ConfigInvalidException if reading the checker list fails
    */
-  ImmutableSet<Checker> checkersOf(Project.NameKey repositoryName)
+  ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName)
       throws IOException, ConfigInvalidException;
 }

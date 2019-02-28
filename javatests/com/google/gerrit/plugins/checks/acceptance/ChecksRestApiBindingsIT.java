@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Test;
@@ -36,8 +37,8 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
 
   @Test
   public void checkerEndpoints() throws Exception {
-    String checkerUuid = checkerOperations.newChecker().create();
-    RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid);
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid.toString());
   }
 
   @Test
@@ -47,8 +48,8 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
 
   @Test
   public void checkEndpoints() throws Exception {
-    String checkerUuid = checkerOperations.newChecker().create();
-    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid.toString());
     checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
 
     RestApiCallHelper.execute(
@@ -60,15 +61,15 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
 
   @Test
   public void scopedCheckEndpoints() throws Exception {
-    String checkerUuid = checkerOperations.newChecker().create();
-    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid.toString());
     checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
     RestApiCallHelper.execute(
         adminRestSession,
         SCOPED_CHECK_ENDPOINTS,
         String.valueOf(key.patchSet().changeId.id),
         String.valueOf(key.patchSet().patchSetId),
-        checkerUuid);
+        checkerUuid.toString());
   }
 
   @Test

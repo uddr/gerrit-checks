@@ -37,14 +37,15 @@ public class ListCheckersIT extends AbstractCheckersTest {
 
   @Test
   public void listAll() throws Exception {
-    String checkerUuid1 = checkerOperations.newChecker().name("checker-with-name-only").create();
-    String checkerUuid2 =
+    CheckerUuid checkerUuid1 =
+        checkerOperations.newChecker().name("checker-with-name-only").create();
+    CheckerUuid checkerUuid2 =
         checkerOperations
             .newChecker()
             .name("checker-with-description")
             .description("A description.")
             .create();
-    String checkerUuid3 =
+    CheckerUuid checkerUuid3 =
         checkerOperations
             .newChecker()
             .name("checker-with-url")
@@ -77,7 +78,8 @@ public class ListCheckersIT extends AbstractCheckersTest {
 
   @Test
   public void listIgnoresInvalidCheckers() throws Exception {
-    String checkerUuid = checkerOperations.newChecker().name("checker-with-name-only").create();
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().name("checker-with-name-only").create();
     createInvalidChecker();
 
     List<CheckerInfo> allCheckers = checkersApi.all();
@@ -87,7 +89,7 @@ public class ListCheckersIT extends AbstractCheckersTest {
   private void createInvalidChecker() throws Exception {
     try (Repository repo = repoManager.openRepository(allProjects)) {
       new TestRepository<>(repo)
-          .branch(CheckerRef.refsCheckers(CheckerUuid.make("my-checker")))
+          .branch(CheckerRef.refsCheckers(CheckerUuid.parse("test:checker")))
           .commit()
           .add(CheckerConfig.CHECKER_CONFIG_FILE, "invalid-config")
           .create();

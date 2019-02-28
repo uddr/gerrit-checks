@@ -39,6 +39,7 @@ import com.google.gerrit.server.git.meta.VersionedMetaData;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.CommitBuilder;
 import org.eclipse.jgit.lib.ObjectId;
@@ -159,7 +160,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    *     for this repository
    * @throws IOException if reading the note with the checker UUID list fails
    */
-  public ImmutableSortedSet<String> get(Project.NameKey repositoryName) throws IOException {
+  public ImmutableSortedSet<CheckerUuid> get(Project.NameKey repositoryName) throws IOException {
     checkLoaded();
     ObjectId noteId = computeRepositorySha1(repositoryName);
     if (!noteMap.contains(noteId)) {
@@ -183,7 +184,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    * @param checkerUuid the UUID of the checker that should be inserted for the given repository
    * @param repositoryName the name of the repository for which the checker should be inserted
    */
-  public void insert(String checkerUuid, Project.NameKey repositoryName) {
+  public void insert(CheckerUuid checkerUuid, Project.NameKey repositoryName) {
     checkLoaded();
 
     noteMapUpdates.add(
@@ -202,7 +203,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    * @param checkerUuid the UUID of the checker that should be removed from the given repository
    * @param repositoryName the name of the repository for which the checker should be removed
    */
-  public void remove(String checkerUuid, Project.NameKey repositoryName) {
+  public void remove(CheckerUuid checkerUuid, Project.NameKey repositoryName) {
     checkLoaded();
 
     noteMapUpdates.add(
@@ -223,7 +224,9 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    * @param newRepositoryName the name of the repository for which the checker should be inserted
    */
   public void update(
-      String checkerUuid, Project.NameKey oldRepositoryName, Project.NameKey newRepositoryName) {
+      CheckerUuid checkerUuid,
+      Project.NameKey oldRepositoryName,
+      Project.NameKey newRepositoryName) {
     checkLoaded();
 
     if (oldRepositoryName.equals(newRepositoryName)) {
@@ -249,7 +252,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
   }
 
   @Override
-  protected boolean onSave(CommitBuilder commit) throws IOException, ConfigInvalidException {
+  protected boolean onSave(CommitBuilder commit) throws IOException {
     if (noteMapUpdates.isEmpty()) {
       return false;
     }
@@ -299,14 +302,15 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    *
    * <p>Invalid checker UUIDs are silently ignored.
    */
-  private static ImmutableSortedSet<String> parseCheckerUuidsFromNote(
+  private static ImmutableSortedSet<CheckerUuid> parseCheckerUuidsFromNote(
       ObjectId noteId, byte[] raw, ObjectId blobId) {
     ImmutableSortedSet<String> lines = parseNote(raw);
-    ImmutableSortedSet.Builder<String> checkerUuids = ImmutableSortedSet.naturalOrder();
+    ImmutableSortedSet.Builder<CheckerUuid> checkerUuids = ImmutableSortedSet.naturalOrder();
     lines.forEach(
         line -> {
-          if (CheckerUuid.isUuid(line)) {
-            checkerUuids.add(line);
+          Optional<CheckerUuid> checkerUuid = CheckerUuid.tryParse(line);
+          if (checkerUuid.isPresent()) {
+            checkerUuids.add(checkerUuid.get());
           } else {
             logger.atWarning().log(
                 "Ignoring invalid checker UUID %s in note %s with blob ID %s.",
@@ -338,22 +342,23 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
       ObjectInserter ins,
       NoteMap noteMap,
       ImmutableSortedSet.Builder<String> footers,
-      String checkerUuid,
+      CheckerUuid checkerUuid,
       Project.NameKey repositoryName)
       throws IOException {
+    String checkerUuidStr = checkerUuid.toString();
     ObjectId noteId = computeRepositorySha1(repositoryName);
     ImmutableSortedSet.Builder<String> newLinesBuilder = ImmutableSortedSet.naturalOrder();
     if (noteMap.contains(noteId)) {
       ObjectId noteDataId = noteMap.get(noteId);
       byte[] raw = readNoteData(rw, noteDataId);
       ImmutableSortedSet<String> oldLines = parseNote(raw);
-      if (oldLines.contains(checkerUuid)) {
+      if (oldLines.contains(checkerUuidStr)) {
         return;
       }
       newLinesBuilder.addAll(oldLines);
     }
 
-    newLinesBuilder.add(checkerUuid);
+    newLinesBuilder.add(checkerUuidStr);
     byte[] raw = Joiner.on("\n").join(newLinesBuilder.build()).getBytes(UTF_8);
     ObjectId noteData = ins.insert(OBJ_BLOB, raw);
     noteMap.set(noteId, noteData);
@@ -370,19 +375,20 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
       ObjectInserter ins,
       NoteMap noteMap,
       ImmutableSortedSet.Builder<String> footers,
-      String checkerUuid,
+      CheckerUuid checkerUuid,
       Project.NameKey repositoryName)
       throws IOException {
+    String checkerUuidStr = checkerUuid.toString();
     ObjectId noteId = computeRepositorySha1(repositoryName);
     ImmutableSortedSet.Builder<String> newLinesBuilder = ImmutableSortedSet.naturalOrder();
     if (noteMap.contains(noteId)) {
       ObjectId noteDataId = noteMap.get(noteId);
       byte[] raw = readNoteData(rw, noteDataId);
       ImmutableSortedSet<String> oldLines = parseNote(raw);
-      if (!oldLines.contains(checkerUuid)) {
+      if (!oldLines.contains(checkerUuidStr)) {
         return;
       }
-      oldLines.stream().filter(line -> !line.equals(checkerUuid)).forEach(newLinesBuilder::add);
+      oldLines.stream().filter(line -> !line.equals(checkerUuidStr)).forEach(newLinesBuilder::add);
     }
 
     ImmutableSortedSet<String> newLines = newLinesBuilder.build();
@@ -399,7 +405,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
 
   private static void addFooters(
       ImmutableSortedSet.Builder<String> footers,
-      String checkerUuid,
+      CheckerUuid checkerUuid,
       Project.NameKey repositoryName) {
     footers.add("Repository: " + repositoryName.get());
     footers.add("Checker: " + checkerUuid);

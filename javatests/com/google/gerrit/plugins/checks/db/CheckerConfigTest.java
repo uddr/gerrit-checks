@@ -58,8 +58,7 @@ public class CheckerConfigTest extends GerritBaseTests {
   private Repository repository;
   private TestRepository<?> testRepository;
 
-  private final String checkerName = "my-checker";
-  private final String checkerUuid = CheckerUuid.make(checkerName);
+  private final CheckerUuid checkerUuid = CheckerUuid.parse("test:my-checker");
   private final Project.NameKey checkerRepository = new Project.NameKey("my-repo");
   private final TimeZone timeZone = TimeZone.getTimeZone("America/Los_Angeles");
 
@@ -86,54 +85,20 @@ public class CheckerConfigTest extends GerritBaseTests {
 
     CheckerConfig checkerConfig = loadChecker(checkerUuid);
     assertThat(checkerConfig).hasUuid(checkerUuid);
+    assertThat(checkerConfig).configStringList("uuid").containsExactly("test:my-checker");
   }
 
   @Test
-  public void invalidCheckerUuidIsRejectedForNewChecker() throws Exception {
-    CheckerCreation checkerCreation =
-        getPrefilledCheckerCreationBuilder().setCheckerUuid("not-a-SHA1").build();
-
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("invalid checker UUID");
-    createChecker(checkerCreation);
-  }
-
-  @Test
-  public void specifiedNameIsRespectedForNewChecker() throws Exception {
-    CheckerCreation checkerCreation =
-        getPrefilledCheckerCreationBuilder().setName(checkerName).build();
-    createChecker(checkerCreation);
-
-    CheckerConfig checkerConfig = loadChecker(checkerCreation.getCheckerUuid());
-    assertThat(checkerConfig).hasName(checkerName);
-    assertThat(checkerConfig).configStringList("name").containsExactly(checkerName);
-  }
-
-  @Test
-  public void nameOfCheckerUpdateOverridesCheckerCreation() throws Exception {
+  public void setNameDuringCreation() throws Exception {
     String anotherName = "another-name";
 
-    CheckerCreation checkerCreation =
-        getPrefilledCheckerCreationBuilder().setName(checkerName).build();
+    CheckerCreation checkerCreation = getPrefilledCheckerCreationBuilder().build();
     CheckerUpdate checkerUpdate = CheckerUpdate.builder().setName(anotherName).build();
     createChecker(checkerCreation, checkerUpdate);
 
     CheckerConfig checkerConfig = loadChecker(checkerCreation.getCheckerUuid());
-    assertThat(checkerConfig).hasName(anotherName);
+    assertThat(checkerConfig).hasNameThat().value().isEqualTo(anotherName);
     assertThat(checkerConfig).configStringList("name").containsExactly(anotherName);
-  }
-
-  @Test
-  public void nameOfNewCheckerMustNotBeEmpty() throws Exception {
-    CheckerCreation checkerCreation = getPrefilledCheckerCreationBuilder().setName("").build();
-    CheckerConfig checkerConfig =
-        CheckerConfig.createForNewChecker(projectName, repository, checkerCreation);
-
-    try (MetaDataUpdate metaDataUpdate = createMetaDataUpdate()) {
-      exception.expectCause(instanceOf(ConfigInvalidException.class));
-      exception.expectMessage(String.format("Name of the checker %s must be defined", checkerUuid));
-      checkerConfig.commit(metaDataUpdate);
-    }
   }
 
   @Test
@@ -141,7 +106,6 @@ public class CheckerConfigTest extends GerritBaseTests {
     CheckerCreation checkerCreation =
         CheckerCreation.builder()
             .setCheckerUuid(checkerUuid)
-            .setName(checkerName)
             .setRepository(checkerRepository)
             .build();
     createChecker(checkerCreation);
@@ -180,7 +144,6 @@ public class CheckerConfigTest extends GerritBaseTests {
     CheckerCreation checkerCreation =
         CheckerCreation.builder()
             .setCheckerUuid(checkerUuid)
-            .setName(checkerName)
             .setRepository(checkerRepository)
             .build();
     createChecker(checkerCreation);
@@ -281,11 +244,11 @@ public class CheckerConfigTest extends GerritBaseTests {
   }
 
   @Test
-  public void nameInConfigMayNotBeUndefined() throws Exception {
+  public void uuidInConfigMayNotBeUndefined() throws Exception {
     populateCheckerConfig(checkerUuid, "[checker]");
 
     exception.expect(ConfigInvalidException.class);
-    exception.expectMessage(String.format("name of checker %s not set", checkerUuid));
+    exception.expectMessage("checker.uuid is not set in config file for checker " + checkerUuid);
     loadChecker(checkerUuid);
   }
 
@@ -300,36 +263,31 @@ public class CheckerConfigTest extends GerritBaseTests {
   }
 
   @Test
-  public void nameCanBeUpdated() throws Exception {
+  public void nameCanBeUpdatedAndRemoved() throws Exception {
     CheckerCreation checkerCreation =
         CheckerCreation.builder()
             .setCheckerUuid(checkerUuid)
-            .setName(checkerName)
             .setRepository(checkerRepository)
             .build();
     createChecker(checkerCreation);
+
+    CheckerConfig checkerConfig = loadChecker(checkerUuid);
+    assertThat(checkerConfig).hasNameThat().isAbsent();
 
     String newName = "new-name";
     CheckerUpdate checkerUpdate = CheckerUpdate.builder().setName(newName).build();
     updateChecker(checkerUuid, checkerUpdate);
 
-    CheckerConfig checkerConfig = loadChecker(checkerUuid);
-    assertThat(checkerConfig).hasName(newName);
+    checkerConfig = loadChecker(checkerUuid);
+    assertThat(checkerConfig).hasNameThat().value().isEqualTo(newName);
     assertThat(checkerConfig).configStringList("name").containsExactly(newName);
 
-    assertThatCommitMessage(checkerUuid)
-        .isEqualTo("Update checker\n\nRename from " + checkerName + " to " + newName);
-  }
-
-  @Test
-  public void nameCannotBeRemoved() throws Exception {
-    createArbitraryChecker(checkerUuid);
-
-    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setName("").build();
-
-    exception.expect(IOException.class);
-    exception.expectMessage(String.format("Name of the checker %s must be defined", checkerUuid));
+    checkerUpdate = CheckerUpdate.builder().setName("").build();
     updateChecker(checkerUuid, checkerUpdate);
+
+    checkerConfig = loadChecker(checkerUuid);
+    assertThat(checkerConfig).hasNameThat().isAbsent();
+    assertThat(checkerConfig).configStringList("name").isEmpty();
   }
 
   @Test
@@ -383,7 +341,6 @@ public class CheckerConfigTest extends GerritBaseTests {
     CheckerCreation checkerCreation =
         CheckerCreation.builder()
             .setCheckerUuid(checkerUuid)
-            .setName(checkerName)
             .setRepository(checkerRepository)
             .build();
     createChecker(checkerCreation);
@@ -552,17 +509,14 @@ public class CheckerConfigTest extends GerritBaseTests {
     assertThat(updatedChecker).hasRefStateThat().isEqualTo(expectedRefStateAfterUpdate);
   }
 
-  private CheckerConfig createArbitraryChecker(String checkerUuid) throws Exception {
+  private CheckerConfig createArbitraryChecker(CheckerUuid checkerUuid) throws Exception {
     CheckerCreation checkerCreation =
         getPrefilledCheckerCreationBuilder().setCheckerUuid(checkerUuid).build();
     return createChecker(checkerCreation);
   }
 
   private CheckerCreation.Builder getPrefilledCheckerCreationBuilder() {
-    return CheckerCreation.builder()
-        .setCheckerUuid(checkerUuid)
-        .setName(checkerName)
-        .setRepository(checkerRepository);
+    return CheckerCreation.builder().setCheckerUuid(checkerUuid).setRepository(checkerRepository);
   }
 
   private CheckerConfig createChecker(CheckerCreation checkerCreation) throws Exception {
@@ -581,7 +535,7 @@ public class CheckerConfigTest extends GerritBaseTests {
     return loadChecker(checkerCreation.getCheckerUuid());
   }
 
-  private CheckerConfig updateChecker(String checkerUuid, CheckerUpdate checkerUpdate)
+  private CheckerConfig updateChecker(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws Exception {
     CheckerConfig checkerConfig =
         CheckerConfig.loadForChecker(projectName, repository, checkerUuid);
@@ -590,8 +544,8 @@ public class CheckerConfigTest extends GerritBaseTests {
     return loadChecker(checkerUuid);
   }
 
-  private CheckerConfig loadChecker(String uuid) throws Exception {
-    return CheckerConfig.loadForChecker(projectName, repository, uuid);
+  private CheckerConfig loadChecker(CheckerUuid checkerUuid) throws Exception {
+    return CheckerConfig.loadForChecker(projectName, repository, checkerUuid);
   }
 
   private void commit(CheckerConfig checkerConfig) throws IOException {
@@ -613,20 +567,20 @@ public class CheckerConfigTest extends GerritBaseTests {
     return metaDataUpdate;
   }
 
-  private void populateCheckerConfig(String uuid, String fileContent) throws Exception {
+  private void populateCheckerConfig(CheckerUuid checkerUuid, String fileContent) throws Exception {
     testRepository
-        .branch(CheckerRef.refsCheckers(uuid))
+        .branch(CheckerRef.refsCheckers(checkerUuid))
         .commit()
         .message("Prepopulate checker.config")
         .add(CheckerConfig.CHECKER_CONFIG_FILE, fileContent)
         .create();
   }
 
-  private ObjectId getCheckerRefState(String checkerUuid) throws IOException {
+  private ObjectId getCheckerRefState(CheckerUuid checkerUuid) throws IOException {
     return repository.exactRef(CheckerRef.refsCheckers(checkerUuid)).getObjectId();
   }
 
-  private StringSubject assertThatCommitMessage(String checkerUuid) throws IOException {
+  private StringSubject assertThatCommitMessage(CheckerUuid checkerUuid) throws IOException {
     try (RevWalk rw = new RevWalk(repository)) {
       RevCommit commit = rw.parseCommit(getCheckerRefState(checkerUuid));
       return assertThat(commit.getFullMessage()).named("commit message");

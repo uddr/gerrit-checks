@@ -35,10 +35,10 @@ public class GetCheckerIT extends AbstractCheckersTest {
   @Test
   public void getChecker() throws Exception {
     String name = "my-checker";
-    String uuid = checkerOperations.newChecker().name(name).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().name(name).create();
 
-    CheckerInfo info = checkersApi.id(uuid).get();
-    assertThat(info.uuid).isEqualTo(uuid);
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.uuid).isEqualTo(checkerUuid.toString());
     assertThat(info.name).isEqualTo(name);
     assertThat(info.description).isNull();
     assertThat(info.createdOn).isNotNull();
@@ -48,10 +48,11 @@ public class GetCheckerIT extends AbstractCheckersTest {
   public void getCheckerWithDescription() throws Exception {
     String name = "my-checker";
     String description = "some description";
-    String uuid = checkerOperations.newChecker().name(name).description(description).create();
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().name(name).description(description).create();
 
-    CheckerInfo info = checkersApi.id(uuid).get();
-    assertThat(info.uuid).isEqualTo(uuid);
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.uuid).isEqualTo(checkerUuid.toString());
     assertThat(info.name).isEqualTo(name);
     assertThat(info.description).isEqualTo(description);
     assertThat(info.createdOn).isNotNull();
@@ -59,7 +60,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getNonExistingCheckerFails() throws Exception {
-    String checkerUuid = CheckerUuid.make("non-existing");
+    CheckerUuid checkerUuid = CheckerUuid.parse("test:non-existing");
 
     exception.expect(ResourceNotFoundException.class);
     exception.expectMessage("Not found: " + checkerUuid);
@@ -79,13 +80,13 @@ public class GetCheckerIT extends AbstractCheckersTest {
   @Test
   public void getCheckerWithoutAdministrateCheckersCapabilityFails() throws Exception {
     String name = "my-checker";
-    String uuid = checkerOperations.newChecker().name(name).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().name(name).create();
 
     requestScopeOperations.setApiUser(user.getId());
 
     exception.expect(AuthException.class);
     exception.expectMessage("administrateCheckers for plugin checks not permitted");
-    checkersApi.id(uuid);
+    checkersApi.id(checkerUuid);
   }
 
   @Test

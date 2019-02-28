@@ -16,11 +16,13 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import com.google.auto.value.AutoValue;
 import com.google.gerrit.acceptance.testsuite.ThrowingFunction;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.reviewdb.client.Project;
 import java.util.Optional;
 
 @AutoValue
 public abstract class TestCheckerCreation {
+  public abstract Optional<CheckerUuid> uuid();
 
   public abstract Optional<String> name();
 
@@ -32,14 +34,15 @@ public abstract class TestCheckerCreation {
 
   public abstract Optional<String> query();
 
-  abstract ThrowingFunction<TestCheckerCreation, String> checkerCreator();
+  abstract ThrowingFunction<TestCheckerCreation, CheckerUuid> checkerCreator();
 
-  public static Builder builder(ThrowingFunction<TestCheckerCreation, String> checkerCreator) {
+  public static Builder builder(ThrowingFunction<TestCheckerCreation, CheckerUuid> checkerCreator) {
     return new AutoValue_TestCheckerCreation.Builder().checkerCreator(checkerCreator);
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder uuid(CheckerUuid uuid);
 
     public abstract Builder name(String name);
 
@@ -59,7 +62,8 @@ public abstract class TestCheckerCreation {
 
     public abstract Builder query(String query);
 
-    abstract Builder checkerCreator(ThrowingFunction<TestCheckerCreation, String> checkerCreator);
+    abstract Builder checkerCreator(
+        ThrowingFunction<TestCheckerCreation, CheckerUuid> checkerCreator);
 
     abstract TestCheckerCreation autoBuild();
 
@@ -68,7 +72,7 @@ public abstract class TestCheckerCreation {
      *
      * @return the UUID of the created checker
      */
-    public String create() {
+    public CheckerUuid create() {
       TestCheckerCreation checkerCreation = autoBuild();
       return checkerCreation.checkerCreator().applyAndThrowSilently(checkerCreation);
     }

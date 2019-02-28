@@ -25,6 +25,7 @@ import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
 import com.google.gerrit.git.testing.ObjectIdSubject;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.db.CheckerConfig;
 import com.google.gerrit.reviewdb.client.Project;
@@ -41,12 +42,12 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
     super(metadata, actual);
   }
 
-  public void hasUuid(String expectedUuid) {
+  public void hasUuid(CheckerUuid expectedUuid) {
     Truth.assertThat(checker().getUuid()).named("uuid").isEqualTo(expectedUuid);
   }
 
-  public void hasName(String expectedName) {
-    Truth.assertThat(checker().getName()).named("name").isEqualTo(expectedName);
+  public OptionalSubject<StringSubject, String> hasNameThat() {
+    return OptionalSubject.assertThat(checker().getName(), Truth::assertThat).named("name");
   }
 
   public OptionalSubject<StringSubject, String> hasDescriptionThat() {

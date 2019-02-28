@@ -22,12 +22,9 @@ public abstract class CheckerCreation {
   /**
    * Defines the UUID the checker should have.
    *
-   * <p>Must be a SHA-1 that is unique across all checkers.
+   * <p>Must be a unique across all checkers.
    */
-  public abstract String getCheckerUuid();
-
-  /** Defines the name the checker should have. */
-  public abstract String getName();
+  public abstract CheckerUuid getCheckerUuid();
 
   /** Defines the repository for which the checker applies. */
   public abstract Project.NameKey getRepository();
@@ -38,9 +35,7 @@ public abstract class CheckerCreation {
 
   @AutoValue.Builder
   public abstract static class Builder {
-    public abstract Builder setCheckerUuid(String checkerUuid);
-
-    public abstract Builder setName(String name);
+    public abstract Builder setCheckerUuid(CheckerUuid checkerUuid);
 
     public abstract Builder setRepository(Project.NameKey repository);
 

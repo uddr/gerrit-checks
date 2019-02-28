@@ -26,6 +26,7 @@ import com.google.gerrit.common.Nullable;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
@@ -44,33 +45,80 @@ import org.eclipse.jgit.util.StringUtils;
  */
 enum CheckerConfigEntry {
   /**
-   * The name of a checker. This property is equivalent to {@link Checker#getName()}.
+   * The UUID of a checker. This property is equivalent to {@link Checker#getUuid()}.
    *
    * <p>This is a mandatory property.
    */
-  NAME("name") {
+  UUID("uuid") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config)
+    void readFromConfig(@Nullable CheckerUuid checkerUuid, Checker.Builder checker, Config config)
         throws ConfigInvalidException {
-      String name = config.getString(SECTION_NAME, null, super.keyName);
-      // An empty name is invalid in NoteDb; CheckerConfig will refuse to store it
-      if (name == null) {
-        throw new ConfigInvalidException(String.format("name of checker %s not set", checkerUuid));
+      String configUuid = config.getString(SECTION_NAME, null, super.keyName);
+      if (configUuid == null) {
+        throw new ConfigInvalidException(
+            String.format(
+                "%s.%s is not set in config file for checker %s",
+                SECTION_NAME, super.keyName, checkerUuid));
       }
-      checker.setName(name);
+      if (checkerUuid != null && !configUuid.equals(checkerUuid.toString())) {
+        throw new ConfigInvalidException(
+            String.format(
+                "value of %s.%s=%s does not match expected checker UUID %s",
+                SECTION_NAME, super.keyName, configUuid, checkerUuid));
+      }
+      checker.setUuid(
+          CheckerUuid.tryParse(configUuid)
+              .orElseThrow(
+                  () ->
+                      new ConfigInvalidException(
+                          String.format(
+                              "invalid UUID in %s.%s=%s",
+                              SECTION_NAME, super.keyName, configUuid))));
     }
 
     @Override
     void initNewConfig(Config config, CheckerCreation checkerCreation) {
-      String name = checkerCreation.getName();
-      config.setString(SECTION_NAME, null, super.keyName, name);
+      config.setString(
+          SECTION_NAME, null, super.keyName, checkerCreation.getCheckerUuid().toString());
+    }
+
+    @Override
+    void updateConfigValue(Config config, CheckerUpdate checkerUpdate) {
+      // Do nothing. UUID is immutable.
+    }
+  },
+
+  /**
+   * The name of a checker. This property is equivalent to {@link Checker#getName()}.
+   *
+   * <p>It defaults to {@code null} if not set.
+   */
+  NAME("name") {
+    @Override
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
+      String name = config.getString(SECTION_NAME, null, super.keyName);
+      if (name != null) {
+        checker.setName(name);
+      }
+    }
+
+    @Override
+    void initNewConfig(Config config, CheckerCreation checkerCreation) {
+      // Do nothing. Name key will be set by updateConfigValue.
     }
 
     @Override
     void updateConfigValue(Config config, CheckerUpdate checkerUpdate) {
       checkerUpdate
           .getName()
-          .ifPresent(name -> config.setString(SECTION_NAME, null, super.keyName, name));
+          .ifPresent(
+              name -> {
+                if (!Strings.isNullOrEmpty(name)) {
+                  config.setString(SECTION_NAME, null, super.keyName, name);
+                } else {
+                  config.unset(SECTION_NAME, null, super.keyName);
+                }
+              });
     }
   },
 
@@ -81,7 +129,7 @@ enum CheckerConfigEntry {
    */
   DESCRIPTION("description") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config) {
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
       String description = config.getString(SECTION_NAME, null, super.keyName);
       if (!Strings.isNullOrEmpty(description)) {
         checker.setDescription(description);
@@ -115,7 +163,7 @@ enum CheckerConfigEntry {
    */
   URL("url") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config) {
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
       String url = config.getString(SECTION_NAME, null, super.keyName);
       if (!Strings.isNullOrEmpty(url)) {
         checker.setUrl(url);
@@ -150,7 +198,7 @@ enum CheckerConfigEntry {
    */
   REPOSITORY("repository") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config)
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config)
         throws ConfigInvalidException {
       String repository = config.getString(SECTION_NAME, null, super.keyName);
       // An empty repository is invalid in NoteDb; CheckerConfig will refuse to store it
@@ -178,7 +226,7 @@ enum CheckerConfigEntry {
 
   STATUS("status") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config)
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config)
         throws ConfigInvalidException {
       String value = config.getString(SECTION_NAME, null, super.keyName);
       if (value == null) {
@@ -204,7 +252,7 @@ enum CheckerConfigEntry {
 
   BLOCKING_CONDITIONS("blocking") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config) {
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
       checker.setBlockingConditions(
           getEnumSet(config, SECTION_NAME, null, super.keyName, BlockingCondition.values()));
     }
@@ -226,7 +274,7 @@ enum CheckerConfigEntry {
 
   QUERY("query") {
     @Override
-    void readFromConfig(String checkerUuid, Checker.Builder checker, Config config) {
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
       String value = config.getString(SECTION_NAME, null, super.keyName);
       if (value != null) {
         checker.setQuery(value);
@@ -307,7 +355,7 @@ enum CheckerConfigEntry {
    * @param config the {@code Config} from which the value of the property should be read
    * @throws ConfigInvalidException if the property has an unexpected value
    */
-  abstract void readFromConfig(String checkerUuid, Checker.Builder checker, Config config)
+  abstract void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config)
       throws ConfigInvalidException;
 
   /**

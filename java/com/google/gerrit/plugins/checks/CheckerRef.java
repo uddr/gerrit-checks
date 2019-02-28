@@ -30,8 +30,8 @@ public class CheckerRef {
   /** Suffix for check refs. */
   public static final String CHECKS_SUFFIX = "/checks";
 
-  public static String refsCheckers(String checkerUuid) {
-    return REFS_CHECKERS + shardUuid(checkerUuid);
+  public static String refsCheckers(CheckerUuid checkerUuid) {
+    return REFS_CHECKERS + shardUuid(checkerUuid.sha1());
   }
 
   public static String checksRef(Change.Id changeId) {

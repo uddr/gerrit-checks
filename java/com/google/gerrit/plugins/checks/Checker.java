@@ -30,20 +30,20 @@ public abstract class Checker {
   /**
    * Returns the UUID of the checker.
    *
-   * <p>The UUID is a SHA-1 that is unique across all checkers.
+   * <p>The UUID is unique across all checkers.
    *
    * @return UUID
    */
-  public abstract String getUuid();
+  public abstract CheckerUuid getUuid();
 
   /**
    * Returns the display name of the checker.
    *
-   * <p>Checker names are not unique, checkers with the same name may exist.
+   * <p>Checkers may not have a name, in this case {@link Optional#empty()} is returned.
    *
    * @return display name of the checker
    */
-  public abstract String getName();
+  public abstract Optional<String> getName();
 
   /**
    * Returns the description of the checker.
@@ -118,14 +118,20 @@ public abstract class Checker {
 
   public abstract Builder toBuilder();
 
-  public static Builder builder(String uuid) {
-    return new AutoValue_Checker.Builder().setUuid(uuid);
+  public static Builder builder() {
+    return new AutoValue_Checker.Builder();
+  }
+
+  public static Builder builder(CheckerUuid uuid) {
+    return builder().setUuid(uuid);
   }
 
   /** A builder for an {@link Checker}. */
   @AutoValue.Builder
   public abstract static class Builder {
-    public abstract Builder setUuid(String uuid);
+    public abstract Builder setUuid(CheckerUuid uuid);
+
+    public abstract CheckerUuid getUuid();
 
     public abstract Builder setName(String name);
 

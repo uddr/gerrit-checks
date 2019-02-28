@@ -39,8 +39,10 @@ import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.lib.BlobBasedConfig;
@@ -59,12 +61,14 @@ import org.eclipse.jgit.treewalk.TreeWalk;
  * <p>There is only one implementation of {@code CheckerOperations}. Nevertheless, we keep the
  * separation between interface and implementation to enhance clarity.
  */
+@Singleton
 public class CheckerOperationsImpl implements CheckerOperations {
   private final Checkers checkers;
   private final CheckersUpdate checkersUpdate;
   private final GitRepositoryManager repoManager;
   private final AllProjectsName allProjectsName;
   private final CheckerJson checkerJson;
+  private final AtomicInteger checkerCounter;
 
   @Inject
   public CheckerOperationsImpl(
@@ -78,10 +82,11 @@ public class CheckerOperationsImpl implements CheckerOperations {
     this.repoManager = repoManager;
     this.allProjectsName = allProjectsName;
     this.checkerJson = checkerJson;
+    this.checkerCounter = new AtomicInteger();
   }
 
   @Override
-  public PerCheckerOperations checker(String checkerUuid) {
+  public PerCheckerOperations checker(CheckerUuid checkerUuid) {
     return new PerCheckerOperationsImpl(checkerUuid);
   }
 
@@ -90,7 +95,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
     return TestCheckerCreation.builder(this::createNewChecker);
   }
 
-  private String createNewChecker(TestCheckerCreation testCheckerCreation)
+  private CheckerUuid createNewChecker(TestCheckerCreation testCheckerCreation)
       throws OrmDuplicateKeyException, ConfigInvalidException, IOException {
     CheckerCreation checkerCreation = toCheckerCreation(testCheckerCreation);
     CheckerUpdate checkerUpdate = toCheckerUpdate(testCheckerCreation);
@@ -99,14 +104,12 @@ public class CheckerOperationsImpl implements CheckerOperations {
   }
 
   private CheckerCreation toCheckerCreation(TestCheckerCreation checkerCreation) {
-    String checkerUuid = CheckerUuid.make("test-checker");
-    String checkerName = checkerCreation.name().orElse("checker-with-uuid-" + checkerUuid);
+    CheckerUuid checkerUuid =
+        checkerCreation
+            .uuid()
+            .orElseGet(() -> CheckerUuid.parse("test:checker-" + checkerCounter.incrementAndGet()));
     Project.NameKey repository = checkerCreation.repository().orElse(allProjectsName);
-    return CheckerCreation.builder()
-        .setCheckerUuid(checkerUuid)
-        .setName(checkerName)
-        .setRepository(repository)
-        .build();
+    return CheckerCreation.builder().setCheckerUuid(checkerUuid).setRepository(repository).build();
   }
 
   private static CheckerUpdate toCheckerUpdate(TestCheckerCreation checkerCreation) {
@@ -120,7 +123,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
   }
 
   @Override
-  public ImmutableSet<String> checkersOf(Project.NameKey repositoryName) throws IOException {
+  public ImmutableSet<CheckerUuid> checkersOf(Project.NameKey repositoryName) throws IOException {
     try (Repository repo = repoManager.openRepository(allProjectsName);
         RevWalk rw = new RevWalk(repo);
         ObjectReader or = repo.newObjectReader()) {
@@ -139,9 +142,11 @@ public class CheckerOperationsImpl implements CheckerOperations {
           return ImmutableSet.of();
         }
 
-        return ImmutableSet.copyOf(
-            Splitter.on('\n')
-                .splitToList(new String(or.open(tw.getObjectId(0), OBJ_BLOB).getBytes(), UTF_8)));
+        return Streams.stream(
+                Splitter.on('\n')
+                    .split(new String(or.open(tw.getObjectId(0), OBJ_BLOB).getBytes(), UTF_8)))
+            .map(CheckerUuid::parse)
+            .collect(toImmutableSet());
       }
     }
   }
@@ -162,9 +167,9 @@ public class CheckerOperationsImpl implements CheckerOperations {
   }
 
   private class PerCheckerOperationsImpl implements PerCheckerOperations {
-    private final String checkerUuid;
+    private final CheckerUuid checkerUuid;
 
-    PerCheckerOperationsImpl(String checkerUuid) {
+    PerCheckerOperationsImpl(CheckerUuid checkerUuid) {
       this.checkerUuid = checkerUuid;
     }
 
@@ -179,7 +184,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
           .orElseThrow(() -> new IllegalStateException("Tried to get non-existing test checker"));
     }
 
-    private Optional<Checker> getChecker(String checkerUuid) {
+    private Optional<Checker> getChecker(CheckerUuid checkerUuid) {
       try {
         return checkers.getChecker(checkerUuid);
       } catch (IOException | ConfigInvalidException e) {

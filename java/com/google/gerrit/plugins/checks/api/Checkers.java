@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import java.util.List;
 
 public interface Checkers {
@@ -27,11 +28,30 @@ public interface Checkers {
    * instance after calling a mutation method on that same instance is not guaranteed to reflect the
    * mutation. It is not recommended to store references to {@code checkerApi} instances.
    *
-   * @param id any identifier supported by the REST API, including checker UUID.
+   * @param checkerUuid checker UUID.
    * @return API for accessing the checker.
    * @throws RestApiException if an error occurred.
    */
-  CheckerApi id(String id) throws RestApiException;
+  default CheckerApi id(CheckerUuid checkerUuid) throws RestApiException {
+    return id(checkerUuid.toString());
+  }
+
+  /**
+   * Look up a checker by ID.
+   *
+   * <p>If the given checker string cannot be parsed to a UUID, {@code ResourceNotFoundException} is
+   * thrown.
+   *
+   * <p><strong>Note:</strong> This method eagerly reads the checker. Methods that mutate the
+   * checker do not necessarily re-read the checker. Therefore, calling a getter method on an
+   * instance after calling a mutation method on that same instance is not guaranteed to reflect the
+   * mutation. It is not recommended to store references to {@code checkerApi} instances.
+   *
+   * @param checkerUuid checker UUID string.
+   * @return API for accessing the checker.
+   * @throws RestApiException if an error occurred.
+   */
+  CheckerApi id(String checkerUuid) throws RestApiException;
 
   /** Create a new checker. */
   CheckerApi create(CheckerInput input) throws RestApiException;
@@ -45,7 +65,7 @@ public interface Checkers {
    */
   class NotImplemented implements Checkers {
     @Override
-    public CheckerApi id(String id) throws RestApiException {
+    public CheckerApi id(String checkerUuid) throws RestApiException {
       throw new NotImplementedException();
     }
 

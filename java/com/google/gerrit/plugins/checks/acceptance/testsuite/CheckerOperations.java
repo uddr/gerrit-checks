@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
 import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
@@ -36,9 +37,21 @@ public interface CheckerOperations {
    * Starts the fluent chain for querying or modifying a checker. Please see the methods of {@link
    * PerCheckerOperations} for details on possible operations.
    *
+   * @param checkerUuid parsed UUID.
    * @return an aggregation of operations on a specific checker
    */
-  PerCheckerOperations checker(String checkerUuid);
+  PerCheckerOperations checker(CheckerUuid checkerUuid);
+
+  /**
+   * Starts the fluent chain for querying or modifying a checker. Please see the methods of {@link
+   * PerCheckerOperations} for details on possible operations.
+   *
+   * @param checkerUuid UUID string to parse
+   * @return an aggregation of operations on a specific checker
+   */
+  default PerCheckerOperations checker(String checkerUuid) {
+    return checker(CheckerUuid.parse(checkerUuid));
+  }
 
   /**
    * Starts the fluent chain to create a checker. The returned builder can be used to specify the
@@ -69,7 +82,7 @@ public interface CheckerOperations {
    * @return set of UUIDs of the checkers that apply to the given repository
    * @throws IOException if reading the checker list fails
    */
-  ImmutableSet<String> checkersOf(Project.NameKey repositoryName) throws IOException;
+  ImmutableSet<CheckerUuid> checkersOf(Project.NameKey repositoryName) throws IOException;
 
   /**
    * Returns the SHA1s of the repositories that have applying checkers.

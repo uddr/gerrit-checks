@@ -15,9 +15,10 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Comparator.comparing;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.plugins.checks.Checker;
@@ -30,7 +31,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Ref;
@@ -51,12 +51,8 @@ class NoteDbCheckers implements Checkers {
   }
 
   @Override
-  public Optional<Checker> getChecker(String checkerUuid)
+  public Optional<Checker> getChecker(CheckerUuid checkerUuid)
       throws IOException, ConfigInvalidException {
-    if (!CheckerUuid.isUuid(checkerUuid)) {
-      return Optional.empty();
-    }
-
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
       CheckerConfig checkerConfig =
           CheckerConfig.loadForChecker(allProjectsName, allProjectsRepo, checkerUuid);
@@ -67,39 +63,38 @@ class NoteDbCheckers implements Checkers {
   @Override
   public ImmutableList<Checker> listCheckers() throws IOException {
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
-      List<Ref> checkerRefs =
-          allProjectsRepo.getRefDatabase().getRefsByPrefix(CheckerRef.REFS_CHECKERS);
-      ImmutableList<String> sortedCheckerUuids =
-          checkerRefs
-              .stream()
-              .map(CheckerUuid::fromRef)
-              .flatMap(Streams::stream)
-              .sorted()
-              .collect(toImmutableList());
-      ImmutableList.Builder<Checker> sortedCheckers = ImmutableList.builder();
-      for (String checkerUuid : sortedCheckerUuids) {
-        try {
-          CheckerConfig checkerConfig =
-              CheckerConfig.loadForChecker(allProjectsName, allProjectsRepo, checkerUuid);
-          checkerConfig.getLoadedChecker().ifPresent(sortedCheckers::add);
-        } catch (ConfigInvalidException e) {
-          logger.atWarning().withCause(e).log(
-              "Ignore invalid checker %s on listing checkers", checkerUuid);
-        }
-      }
-      return sortedCheckers.build();
+      return allProjectsRepo
+          .getRefDatabase()
+          .getRefsByPrefix(CheckerRef.REFS_CHECKERS)
+          .stream()
+          .flatMap(ref -> Streams.stream(tryLoadChecker(allProjectsRepo, ref)))
+          .sorted(comparing(Checker::getUuid))
+          .collect(toImmutableList());
     }
   }
 
+  private Optional<Checker> tryLoadChecker(Repository allProjectsRepo, Ref ref) {
+    if (CheckerRef.isRefsCheckers(ref.getName())) {
+      try {
+        return CheckerConfig.loadForChecker(allProjectsName, allProjectsRepo, ref)
+            .getLoadedChecker();
+      } catch (ConfigInvalidException | IOException e) {
+        logger.atWarning().withCause(e).log(
+            "Ignore invalid checker in %s while listing checkers", ref.getName());
+      }
+    }
+    return Optional.empty();
+  }
+
   @Override
-  public ImmutableSet<Checker> checkersOf(Project.NameKey repositoryName)
+  public ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName)
       throws IOException, ConfigInvalidException {
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
-      ImmutableSet<String> checkerUuids =
+      ImmutableSortedSet<CheckerUuid> checkerUuidStrings =
           CheckersByRepositoryNotes.load(allProjectsName, allProjectsRepo).get(repositoryName);
-
-      ImmutableSet.Builder<Checker> checkers = ImmutableSet.builder();
-      for (String checkerUuid : checkerUuids) {
+      ImmutableSortedSet.Builder<Checker> checkers =
+          ImmutableSortedSet.orderedBy(comparing(Checker::getUuid));
+      for (CheckerUuid checkerUuid : checkerUuidStrings) {
         try {
           CheckerConfig checkerConfig =
               CheckerConfig.loadForChecker(allProjectsName, allProjectsRepo, checkerUuid);

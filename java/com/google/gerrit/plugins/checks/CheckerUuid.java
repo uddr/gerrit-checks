@@ -14,80 +14,112 @@
 
 package com.google.gerrit.plugins.checks;
 
-import static com.google.common.base.Preconditions.checkState;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.hash.Hashing;
 import com.google.gerrit.common.Nullable;
-import com.google.gerrit.reviewdb.client.RefNames;
-import java.security.MessageDigest;
 import java.util.Optional;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class CheckerUuid {
-  /**
-   * Creates a new UUID for a checker.
-   *
-   * <p>The creation of the UUID is non-deterministic. This means invoking this method multiple
-   * times with the same parameters will result in a different UUID for each call.
-   *
-   * @param checkerName checker name.
-   * @return checker UUID.
-   */
-  public static String make(String checkerName) {
-    MessageDigest md = Constants.newMessageDigest();
-    md.update(Constants.encode("checker " + checkerName + "\n"));
-    md.update(Constants.encode(String.valueOf(Math.random())));
-    return ObjectId.fromRaw(md.digest()).name();
+/**
+ * UUID of a checker.
+ *
+ * <p>UUIDs are of the form {@code SCHEME ':' ID}, where:
+ *
+ * <ul>
+ *   <li>The allowed characters within either part are {@code [a-zA-Z0-9._-]}.
+ *   <li>Scheme is a short string that, by convention, is associated with the external system that
+ *       created the checker (e.g. {@code jenkins}).
+ *   <li>ID is an arbitrary string provided by the external system.
+ * </ul>
+ */
+@AutoValue
+public abstract class CheckerUuid implements Comparable<CheckerUuid> {
+  private static final Pattern UUID_PATTERN;
+
+  static {
+    // The set of allowed characters is somewhat arbitrarily small and may be expanded in the future
+    // if there is a concrete use case. Some considerations:
+    //  * It's nice for UUIDs to be URL-safe.
+    //  * UUIDs are currently stored one per line in the CheckersByRepositoryNotes format, so
+    //    newlines would be problematic.
+    //  * UUIDs are stored in git config values.
+    String part = "[a-zA-Z0-9._-]+";
+    UUID_PATTERN = Pattern.compile(String.format("^(?<scheme>%s):(?<id>%s)$", part, part));
   }
 
   /**
-   * Checks whether the given checker UUID has a valid format.
+   * Attempts to parse the given UUID string into a {@code CheckerUuid}.
    *
-   * @param checkerUuid the checker UUID to check
-   * @return {@code true} if the given checker UUID has a valid format, otherwise {@code false}
+   * @param uuid UUID string.
+   * @return new UUID if {@code uuid} is a valid UUID, or empty otherwise.
    */
-  public static boolean isUuid(@Nullable String checkerUuid) {
-    return checkerUuid != null && ObjectId.isId(checkerUuid);
-  }
-
-  /**
-   * Checks whether the given checker UUID has a valid format.
-   *
-   * @param checkerUuid the checker UUID to check
-   * @return the checker UUID
-   * @throws IllegalStateException if the given checker UUID has an invalid format
-   */
-  public static String checkUuid(String checkerUuid) {
-    checkState(isUuid(checkerUuid), "invalid checker UUID: %s", checkerUuid);
-    return checkerUuid;
-  }
-
-  /**
-   * Parses a checker UUID from a checker ref.
-   *
-   * @param ref the ref from which a checker UUID should be parsed
-   * @return the checker UUID, {@link Optional#empty()} if the given ref is null or not a valid
-   *     checker ref
-   */
-  public static Optional<String> fromRef(@Nullable Ref ref) {
-    return fromRef(ref != null ? ref.getName() : (String) null);
-  }
-
-  /**
-   * Parses a checker UUID from a checker ref name.
-   *
-   * @param refName the name of the ref from which a checker UUID should be parsed
-   * @return the checker UUID, {@link Optional#empty()} if the given ref name is null or not a valid
-   *     checker ref name
-   */
-  public static Optional<String> fromRef(@Nullable String refName) {
-    if (refName == null || !CheckerRef.isRefsCheckers(refName)) {
+  public static Optional<CheckerUuid> tryParse(@Nullable String uuid) {
+    if (uuid == null) {
       return Optional.empty();
     }
-    return Optional.ofNullable(
-        RefNames.parseShardedUuidFromRefPart(refName.substring(CheckerRef.REFS_CHECKERS.length())));
+    Matcher m = UUID_PATTERN.matcher(uuid);
+    if (!m.find()) {
+      return Optional.empty();
+    }
+    return Optional.of(new AutoValue_CheckerUuid(m.group("scheme"), m.group("id")));
   }
 
-  private CheckerUuid() {}
+  /**
+   * Returns whether the given input is a valid UUID string.
+   *
+   * @param uuid UUID string.
+   * @return true if {@code uuid} is a valid UUID, false otherwise.
+   */
+  public static boolean isUuid(@Nullable String uuid) {
+    return uuid != null && UUID_PATTERN.matcher(uuid).matches();
+  }
+
+  /**
+   * Parses the given UUID string into a {@code CheckerUuid}, throwing an unchecked exception if it
+   * is not in the proper format.
+   *
+   * @param uuid UUID string.
+   * @return new UUID.
+   */
+  public static CheckerUuid parse(String uuid) {
+    return tryParse(uuid)
+        .orElseThrow(() -> new IllegalArgumentException("invalid checker UUID: " + uuid));
+  }
+
+  /**
+   * Scheme portion of the UUID.
+   *
+   * @return the scheme.
+   */
+  public abstract String scheme();
+
+  /**
+   * ID portion of the UUID.
+   *
+   * @return the ID.
+   */
+  public abstract String id();
+
+  /**
+   * Computes the SHA-1 of the UUID, for use in the Git storage layer where SHA-1s are used as keys.
+   *
+   * @return hex SHA-1 of this UUID's string representation.
+   */
+  @SuppressWarnings("deprecation") // SHA-1 used where Git object IDs are required.
+  public String sha1() {
+    return Hashing.sha1().hashString(toString(), UTF_8).toString();
+  }
+
+  @Override
+  public String toString() {
+    return scheme() + ":" + id();
+  }
+
+  @Override
+  public int compareTo(CheckerUuid o) {
+    return toString().compareTo(o.toString());
+  }
 }

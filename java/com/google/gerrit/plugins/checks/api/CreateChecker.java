@@ -14,8 +14,10 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
@@ -69,27 +71,30 @@ public class CreateChecker
 
   @Override
   public Response<CheckerInfo> apply(TopLevelResource parentResource, CheckerInput input)
-      throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException,
-          OrmDuplicateKeyException {
+      throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException {
     permissionBackend.currentUser().check(permission);
 
     if (input == null) {
       input = new CheckerInput();
     }
 
-    String name = CheckerName.clean(input.name);
-    if (name.isEmpty()) {
-      throw new BadRequestException("name is required");
+    if (Strings.isNullOrEmpty(input.uuid)) {
+      throw new BadRequestException("uuid is required");
     }
+    String uuidStr = input.uuid;
+    CheckerUuid checkerUuid =
+        CheckerUuid.tryParse(input.uuid)
+            .orElseThrow(() -> new BadRequestException("invalid uuid: " + uuidStr));
+
     Project.NameKey repository = resolveRepository(input.repository);
 
-    String checkerUuid = CheckerUuid.make(name);
     CheckerCreation.Builder checkerCreationBuilder =
-        CheckerCreation.builder()
-            .setCheckerUuid(checkerUuid)
-            .setName(name)
-            .setRepository(repository);
+        CheckerCreation.builder().setCheckerUuid(checkerUuid).setRepository(repository);
     CheckerUpdate.Builder checkerUpdateBuilder = CheckerUpdate.builder();
+    String name = CheckerName.clean(input.name);
+    if (!name.isEmpty()) {
+      checkerUpdateBuilder.setName(name);
+    }
     if (input.description != null && !input.description.trim().isEmpty()) {
       checkerUpdateBuilder.setDescription(input.description.trim());
     }
@@ -106,11 +111,15 @@ public class CreateChecker
     if (input.query != null) {
       checkerUpdateBuilder.setQuery(CheckerQuery.clean(input.query));
     }
-    Checker checker =
-        checkersUpdate
-            .get()
-            .createChecker(checkerCreationBuilder.build(), checkerUpdateBuilder.build());
-    return Response.created(checkerJson.format(checker));
+    try {
+      Checker checker =
+          checkersUpdate
+              .get()
+              .createChecker(checkerCreationBuilder.build(), checkerUpdateBuilder.build());
+      return Response.created(checkerJson.format(checker));
+    } catch (OrmDuplicateKeyException e) {
+      throw new ResourceConflictException(e.getMessage());
+    }
   }
 
   private Project.NameKey resolveRepository(String repository)
