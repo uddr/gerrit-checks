@@ -14,35 +14,38 @@
 
 package com.google.gerrit.plugins.checks;
 
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
+import com.google.gerrit.plugins.checks.api.CheckApi;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckResource;
+import com.google.gerrit.plugins.checks.api.Checks;
+import com.google.gerrit.plugins.checks.api.ChecksFactory;
 import com.google.gerrit.server.change.RevisionResource;
-import com.google.gerrit.server.update.BatchUpdate;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-public class CreateCheck
+public class PostCheck
     implements RestCollectionModifyView<RevisionResource, CheckResource, CheckInput> {
 
-  private final BatchUpdate.Factory batchUpdateFactory;
+  private final ChecksFactory checksApiFactory;
 
   @Inject
-  CreateCheck(BatchUpdate.Factory batchUpdateFactory) {
-    this.batchUpdateFactory = batchUpdateFactory;
+  PostCheck(ChecksFactory checksApiFactory) {
+    this.checksApiFactory = checksApiFactory;
   }
 
   @Override
   public CheckInfo apply(RevisionResource rsrc, CheckInput input) throws Exception {
-    // UpsertCheckOp upsertCheckOp =
-    //     upsertCheckOpFactory.create(ImmutableList.of(input), rsrc.getPatchSet().getId());
-    // try (BatchUpdate u =
-    //     batchUpdateFactory.create(rsrc.getProject(), rsrc.getUser(), TimeUtil.nowTs())) {
-    //   u.addOp(rsrc.getChange().getId(), upsertCheckOp);
-    //   u.execute();
-    // }
-    throw new UnsupportedOperationException();
+    // Allow both creation and deletion on this endpoint (post on collection).
+    Checks checksApi = checksApiFactory.revision(rsrc.getPatchSet().getId());
+    try {
+      CheckApi checkApi = checksApi.id(input.checkerUuid);
+      return checkApi.update(input);
+    } catch (ResourceNotFoundException e) {
+      return checksApi.create(input).get();
+    }
   }
 }

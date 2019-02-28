@@ -14,32 +14,29 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import static com.google.gerrit.plugins.checks.api.CheckerResource.CHECKER_KIND;
+import static com.google.gerrit.plugins.checks.api.CheckResource.CHECK_KIND;
+import static com.google.gerrit.server.change.RevisionResource.REVISION_KIND;
 
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
-import com.google.inject.servlet.ServletModule;
+import com.google.gerrit.plugins.checks.PostCheck;
+import com.google.inject.AbstractModule;
 
-public class HttpModule extends ServletModule {
-
+// TODO(gerrit-team): This should move into HttpModule, but a core bug prevents the bindings from
+//  ever making it into RestApiServlet if we just put it there. Currently, bindings are only
+//  accepted if they are in the class that is referenced as 'Module'
+public class ApiModule extends AbstractModule {
   @Override
-  protected void configureServlets() {
-    bind(CheckersCollection.class);
-
-    bind(Checkers.class).to(CheckersImpl.class);
-
-    serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-
+  protected void configure() {
     install(
         new RestApiModule() {
           @Override
           public void configure() {
-            // Checkers
-            DynamicMap.mapOf(binder(), CHECKER_KIND);
-            postOnCollection(CHECKER_KIND).to(CreateChecker.class);
-            get(CHECKER_KIND).to(GetChecker.class);
-            post(CHECKER_KIND).to(UpdateChecker.class);
+            DynamicMap.mapOf(binder(), CHECK_KIND);
+            child(REVISION_KIND, "checks").to(ChecksCollection.class);
+            postOnCollection(CHECK_KIND).to(PostCheck.class);
+            get(CHECK_KIND, "detail").to(GetCheck.class);
           }
         });
 
@@ -47,7 +44,8 @@ public class HttpModule extends ServletModule {
         new FactoryModule() {
           @Override
           public void configure() {
-            factory(CheckerApiImpl.Factory.class);
+            factory(CheckApiImpl.Factory.class);
+            factory(ChecksImpl.Factory.class);
           }
         });
   }

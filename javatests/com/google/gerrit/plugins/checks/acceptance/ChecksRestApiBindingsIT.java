@@ -17,6 +17,9 @@ package com.google.gerrit.plugins.checks.acceptance;
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
+import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Test;
 
 public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
@@ -25,9 +28,56 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
           RestCall.get("/plugins/checks/checkers/%s"),
           RestCall.post("/plugins/checks/checkers/%s"));
 
+  private static final ImmutableList<RestCall> CHECK_ENDPOINTS =
+      ImmutableList.of(RestCall.get("/changes/%s/revisions/%s/checks~checks"));
+
+  private static final ImmutableList<RestCall> SCOPED_CHECK_ENDPOINTS =
+      ImmutableList.of(RestCall.get("/changes/%s/revisions/%s/checks~checks/%s/detail"));
+
   @Test
   public void checkerEndpoints() throws Exception {
     String checkerUuid = checkerOperations.newChecker().create();
     RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid);
+  }
+
+  @Test
+  public void postOnCheckerCollectionForCreate() throws Exception {
+    RestApiCallHelper.execute(adminRestSession, RestCall.post("/plugins/checks/checkers/"));
+  }
+
+  @Test
+  public void checkEndpoints() throws Exception {
+    String checkerUuid = checkerOperations.newChecker().create();
+    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newChecker(key).setState(CheckState.RUNNING).upsert();
+
+    RestApiCallHelper.execute(
+        adminRestSession,
+        CHECK_ENDPOINTS,
+        String.valueOf(key.patchSet().changeId.id),
+        String.valueOf(key.patchSet().patchSetId));
+  }
+
+  @Test
+  public void scopedCheckEndpoints() throws Exception {
+    String checkerUuid = checkerOperations.newChecker().create();
+    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newChecker(key).setState(CheckState.RUNNING).upsert();
+    RestApiCallHelper.execute(
+        adminRestSession,
+        SCOPED_CHECK_ENDPOINTS,
+        String.valueOf(key.patchSet().changeId.id),
+        String.valueOf(key.patchSet().patchSetId),
+        checkerUuid);
+  }
+
+  @Test
+  public void postOnCheckCollectionForCreate() throws Exception {
+    PatchSet.Id patchSetId = createChange().getPatchSetId();
+    RestApiCallHelper.execute(
+        adminRestSession,
+        RestCall.post("/changes/%s/revisions/%s/checks~checks/"),
+        String.valueOf(patchSetId.changeId.id),
+        String.valueOf(patchSetId.patchSetId));
   }
 }

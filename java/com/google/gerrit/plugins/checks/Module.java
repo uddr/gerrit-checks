@@ -20,6 +20,7 @@ import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicSet;
+import com.google.gerrit.plugins.checks.api.ApiModule;
 import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.MergeValidationListener;
@@ -43,5 +44,7 @@ public class Module extends FactoryModule {
     DynamicSet.bind(binder(), RefOperationValidationListener.class)
         .to(CheckerRefOperationValidator.class)
         .in(SINGLETON);
+
+    install(new ApiModule());
   }
 }
