@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.git.testing.CommitSubject.assertCommit;
 
 import com.google.common.collect.ImmutableSet;
@@ -347,6 +348,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     try {
       checkersApi.create(input).get();
+      assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
       assertThat(e).hasMessageThat().isEqualTo("Unsupported operator: project");
     }
