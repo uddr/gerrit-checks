@@ -27,6 +27,7 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
@@ -199,7 +200,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     }
   }
 
-  private void assertCheckerPresentAndEnabled(String checkerUuid)
+  private void assertCheckerPresentAndEnabled(CheckerUuid checkerUuid)
       throws ConfigInvalidException, IOException {
     Checker checker =
         checkers
@@ -237,7 +238,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     }
 
     NoteDbCheckMap checksForRevision = newNotes.get(revId);
-    if (!checksForRevision.checks.containsKey(checkKey.checkerUuid())) {
+    if (!checksForRevision.checks.containsKey(checkKey.checkerUuid().toString())) {
       if (operation == Operation.UPDATE) {
         throw new IOException("Not found: " + checkKey.checkerUuid());
       }
@@ -246,7 +247,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       NoteDbCheck newCheck = NoteDbCheck.fromCheckUpdate(checkUpdate);
       newCheck.created = Timestamp.from(personIdent.getWhen().toInstant());
       newCheck.updated = newCheck.created;
-      checksForRevision.checks.put(checkKey.checkerUuid(), newCheck);
+      checksForRevision.checks.put(checkKey.checkerUuid().toString(), newCheck);
       writeNotesMap(newNotes, cb, ins);
       return true;
     } else if (operation == Operation.CREATE) {
@@ -254,7 +255,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     }
 
     // Update in place
-    NoteDbCheck modifiedCheck = checksForRevision.checks.get(checkKey.checkerUuid());
+    NoteDbCheck modifiedCheck = checksForRevision.checks.get(checkKey.checkerUuid().toString());
     boolean dirty = modifiedCheck.applyUpdate(checkUpdate);
     if (!dirty) {
       return false;
@@ -343,9 +344,10 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       throw new IllegalStateException("revision " + revId + " not found");
     }
     Map<String, NoteDbCheck> checks = newNotes.get(revId).checks;
-    if (!checks.containsKey(checkKey.checkerUuid())) {
-      throw new IllegalStateException("checker " + checkKey.checkerUuid() + " not found");
+    String checkerUuidString = checkKey.checkerUuid().toString();
+    if (!checks.containsKey(checkerUuidString)) {
+      throw new IllegalStateException("checker " + checkerUuidString + " not found");
     }
-    return checks.get(checkKey.checkerUuid()).toCheck(checkKey);
+    return checks.get(checkerUuidString).toCheck(checkKey);
   }
 }

@@ -37,7 +37,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     patchSetId = createChange().getPatchSetId();
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
-    checkKey = CheckKey.create(project, patchSetId, checkerUuid.toString());
+    checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
   }
 

@@ -24,6 +24,7 @@ import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
 import com.google.gerrit.server.UserInitiated;
@@ -66,16 +67,13 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
   }
 
   @Override
-  public CheckApi id(String checkerUuid) throws RestApiException, IOException, OrmException {
-    if (checkerUuid == null || checkerUuid.isEmpty()) {
-      throw new BadRequestException("checkerUuid is required");
-    }
-    // Check that the checker exists and throw a RestApiException if not.
-    CheckerInfo checker = checkers.id(checkerUuid).get();
+  public CheckApi id(CheckerUuid checkerUuid) throws RestApiException, IOException, OrmException {
+    // Ensure that the checker exists and throw a RestApiException if not.
+    checkers.id(checkerUuid).get();
 
     CheckKey checkKey =
         CheckKey.create(
-            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checker.uuid);
+            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checkerUuid);
     Optional<Check> check = checks.getCheck(checkKey);
     return checkApiImplFactory.create(
         new CheckResource(
@@ -89,17 +87,17 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
       throw new BadRequestException("input is required");
     }
     if (input.checkerUuid == null) {
-      throw new BadRequestException("checkerUuid is required");
+      throw new BadRequestException("checker_uuid is required");
     }
     if (input.state == null) {
       throw new BadRequestException("state is required");
     }
-    // Check that the checker exists and throw a BadRequestException if not.
-    CheckerInfo checker = checkers.id(input.checkerUuid).get();
+    // Ensure that the checker exists and throw a RestApiException if not.
+    CheckerUuid checkerUuid = CheckerUuid.parse(checkers.id(input.checkerUuid).get().uuid);
 
     CheckKey checkKey =
         CheckKey.create(
-            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checker.uuid);
+            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checkerUuid);
     CheckUpdate checkUpdate =
         CheckUpdate.builder()
             .setState(input.state)

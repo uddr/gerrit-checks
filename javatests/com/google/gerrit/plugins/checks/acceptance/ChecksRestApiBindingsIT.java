@@ -49,7 +49,7 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
   @Test
   public void checkEndpoints() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid.toString());
+    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
     checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
 
     RestApiCallHelper.execute(
@@ -62,7 +62,7 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
   @Test
   public void scopedCheckEndpoints() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
-    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid.toString());
+    CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
     checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
     RestApiCallHelper.execute(
         adminRestSession,

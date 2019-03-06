@@ -4,6 +4,7 @@ import com.google.gerrit.common.Nullable;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
@@ -37,7 +38,7 @@ class NoteDbCheck {
     return newCheck.build();
   }
 
-  Check toCheck(Project.NameKey project, PatchSet.Id patchSetId, String checkerUuid) {
+  Check toCheck(Project.NameKey project, PatchSet.Id patchSetId, CheckerUuid checkerUuid) {
     CheckKey key = CheckKey.create(project, patchSetId, checkerUuid);
     return toCheck(key);
   }

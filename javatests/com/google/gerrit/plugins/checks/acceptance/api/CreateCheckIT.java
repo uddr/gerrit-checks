@@ -68,7 +68,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     assertThat(info.created).isNotNull();
     assertThat(info.updated).isNotNull();
 
-    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid.toString());
+    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid);
     PerCheckOperations perCheckOps = checkOperations.check(key);
 
     // TODO(gerrit-team) Add a Truth subject for the notes map

@@ -38,10 +38,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checker1Uuid = checkerOperations.newChecker().repository(project).create();
     CheckerUuid checker2Uuid = checkerOperations.newChecker().repository(project).create();
 
-    checkKey1 = CheckKey.create(project, patchSetId, checker1Uuid.toString());
+    checkKey1 = CheckKey.create(project, patchSetId, checker1Uuid);
     checkOperations.newCheck(checkKey1).setState(CheckState.RUNNING).upsert();
 
-    checkKey2 = CheckKey.create(project, patchSetId, checker2Uuid.toString());
+    checkKey2 = CheckKey.create(project, patchSetId, checker2Uuid);
     checkOperations.newCheck(checkKey2).setState(CheckState.RUNNING).upsert();
   }
 

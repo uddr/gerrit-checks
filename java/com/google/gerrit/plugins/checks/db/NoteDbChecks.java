@@ -91,8 +91,8 @@ class NoteDbChecks implements Checks {
         .checks
         .entrySet()
         .stream()
-        .map(e -> e.getValue().toCheck(projectName, psId, e.getKey()))
-        .filter(c -> checkerUuids.contains(CheckerUuid.parse(c.key().checkerUuid())));
+        .map(e -> e.getValue().toCheck(projectName, psId, CheckerUuid.parse(e.getKey())))
+        .filter(c -> checkerUuids.contains(c.key().checkerUuid()));
   }
 
   /** Get all checkers that apply to a project. Might return a superset of checkers that apply. */

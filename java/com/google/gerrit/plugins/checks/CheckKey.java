@@ -25,9 +25,10 @@ public abstract class CheckKey {
 
   public abstract PatchSet.Id patchSet();
 
-  public abstract String checkerUuid();
+  public abstract CheckerUuid checkerUuid();
 
-  public static CheckKey create(Project.NameKey project, PatchSet.Id patchSet, String checkerUuid) {
+  public static CheckKey create(
+      Project.NameKey project, PatchSet.Id patchSet, CheckerUuid checkerUuid) {
     return new AutoValue_CheckKey(project, patchSet, checkerUuid);
   }
 }
