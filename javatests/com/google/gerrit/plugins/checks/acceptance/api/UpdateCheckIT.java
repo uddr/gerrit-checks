@@ -36,7 +36,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   @Test
   public void updateCheckState() throws Exception {
     CheckKey key = CheckKey.create(project, patchSetId, "my-checker-1");
-    checkOperations.newChecker(key).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.FAILED;

@@ -26,7 +26,7 @@ public interface CheckOperations {
 
   PerCheckOperations check(CheckKey key);
 
-  TestCheckUpdate.Builder newChecker(CheckKey key);
+  TestCheckUpdate.Builder newCheck(CheckKey key);
 
   interface PerCheckOperations {
 

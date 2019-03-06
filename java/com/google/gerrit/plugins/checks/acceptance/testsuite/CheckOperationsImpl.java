@@ -55,7 +55,7 @@ public final class CheckOperationsImpl implements CheckOperations {
   }
 
   @Override
-  public TestCheckUpdate.Builder newChecker(CheckKey key) {
+  public TestCheckUpdate.Builder newCheck(CheckKey key) {
     return TestCheckUpdate.builder(key)
         .setCheckUpdater(u -> checksUpdate.createCheck(key, toCheckUpdate(u)));
   }

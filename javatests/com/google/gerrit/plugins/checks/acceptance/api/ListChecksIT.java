@@ -36,10 +36,10 @@ public class ListChecksIT extends AbstractCheckersTest {
   @Test
   public void listAll() throws Exception {
     CheckKey key1 = CheckKey.create(project, patchSetId, "my-checker-1");
-    checkOperations.newChecker(key1).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(key1).setState(CheckState.RUNNING).upsert();
 
     CheckKey key2 = CheckKey.create(project, patchSetId, "my-checker-2");
-    checkOperations.newChecker(key2).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(key2).setState(CheckState.RUNNING).upsert();
 
     // TODO(gerrit-team): Use a truth subject to make this assertation proper
     Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();

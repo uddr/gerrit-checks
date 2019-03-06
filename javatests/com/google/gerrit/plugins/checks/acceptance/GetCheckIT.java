@@ -37,7 +37,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheck() throws Exception {
     String name = "my-checker";
     CheckKey key = CheckKey.create(project, patchSetId, name);
-    checkOperations.newChecker(key).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(name).get();
     assertThat(info.checkerUuid).isEqualTo(name);
