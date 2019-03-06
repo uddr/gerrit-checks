@@ -44,6 +44,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
 
   private final Checks checks;
   private final Provider<ChecksUpdate> checksUpdate;
+  private final Checkers checkers;
   private final CheckJson checkJson;
   private final CheckApiImpl.Factory checkApiImplFactory;
   private final RevisionResource revisionResource;
@@ -53,11 +54,13 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
       Checks checks,
       CheckApiImpl.Factory checkApiImplFactory,
       CheckJson checkJson,
+      Checkers checkers,
       @UserInitiated Provider<ChecksUpdate> checksUpdate,
       @Assisted RevisionResource revisionResource) {
     this.checks = checks;
     this.checkApiImplFactory = checkApiImplFactory;
     this.checkJson = checkJson;
+    this.checkers = checkers;
     this.checksUpdate = checksUpdate;
     this.revisionResource = revisionResource;
   }
@@ -67,10 +70,12 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     if (checkerUuid == null || checkerUuid.isEmpty()) {
       throw new BadRequestException("checkerUuid is required");
     }
+    // Check that the checker exists and throw a RestApiException if not.
+    CheckerInfo checker = checkers.id(checkerUuid).get();
 
     CheckKey checkKey =
         CheckKey.create(
-            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checkerUuid);
+            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checker.uuid);
     Optional<Check> check = checks.getCheck(checkKey);
     return checkApiImplFactory.create(
         new CheckResource(
@@ -89,12 +94,12 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     if (input.state == null) {
       throw new BadRequestException("state is required");
     }
+    // Check that the checker exists and throw a BadRequestException if not.
+    CheckerInfo checker = checkers.id(input.checkerUuid).get();
 
     CheckKey checkKey =
         CheckKey.create(
-            revisionResource.getProject(),
-            revisionResource.getPatchSet().getId(),
-            input.checkerUuid);
+            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checker.uuid);
     CheckUpdate checkUpdate =
         CheckUpdate.builder()
             .setState(input.state)
@@ -111,7 +116,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     return getChecks().stream().map(checkJson::format).collect(toImmutableList());
   }
 
-  private List<Check> getChecks() throws IOException, OrmException {
+  private List<Check> getChecks() throws OrmException, IOException {
     return checks.getChecks(revisionResource.getProject(), revisionResource.getPatchSet().getId());
   }
 }

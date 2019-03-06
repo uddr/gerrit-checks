@@ -233,7 +233,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
       CheckerUpdate checkerUpdate = toCheckerUpdate(testCheckerUpdate);
       checkersUpdate.updateChecker(checkerUuid, checkerUpdate);
 
-      if (testCheckerUpdate.forceInvalidConfig().orElse(false)) {
+      if (testCheckerUpdate.forceInvalidConfig()) {
         try (Repository repo = repoManager.openRepository(allProjectsName)) {
           new TestRepository<>(repo)
               .branch(CheckerRef.refsCheckers(checkerUuid))

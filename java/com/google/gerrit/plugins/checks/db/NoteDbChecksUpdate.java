@@ -25,8 +25,11 @@ import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
+import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
+import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.GerritPersonIdent;
 import com.google.gerrit.server.IdentifiedUser;
@@ -72,6 +75,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
   private final RetryHelper retryHelper;
   private final ChangeNoteUtil noteUtil;
   private final Optional<IdentifiedUser> currentUser;
+  private final Checkers checkers;
 
   @AssistedInject
   NoteDbChecksUpdate(
@@ -79,8 +83,10 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       GitReferenceUpdated gitRefUpdated,
       RetryHelper retryHelper,
       ChangeNoteUtil noteUtil,
+      Checkers checkers,
       @GerritPersonIdent PersonIdent personIdent) {
-    this(repoManager, gitRefUpdated, retryHelper, noteUtil, personIdent, Optional.empty());
+    this(
+        repoManager, gitRefUpdated, retryHelper, noteUtil, checkers, personIdent, Optional.empty());
   }
 
   @AssistedInject
@@ -89,9 +95,17 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       GitReferenceUpdated gitRefUpdated,
       RetryHelper retryHelper,
       ChangeNoteUtil noteUtil,
+      Checkers checkers,
       @GerritPersonIdent PersonIdent personIdent,
       @Assisted IdentifiedUser currentUser) {
-    this(repoManager, gitRefUpdated, retryHelper, noteUtil, personIdent, Optional.of(currentUser));
+    this(
+        repoManager,
+        gitRefUpdated,
+        retryHelper,
+        noteUtil,
+        checkers,
+        personIdent,
+        Optional.of(currentUser));
   }
 
   private NoteDbChecksUpdate(
@@ -99,12 +113,14 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       GitReferenceUpdated gitRefUpdated,
       RetryHelper retryHelper,
       ChangeNoteUtil noteUtil,
+      Checkers checkers,
       @GerritPersonIdent PersonIdent personIdent,
       Optional<IdentifiedUser> currentUser) {
     this.repoManager = repoManager;
     this.gitRefUpdated = gitRefUpdated;
     this.retryHelper = retryHelper;
     this.noteUtil = noteUtil;
+    this.checkers = checkers;
     this.currentUser = currentUser;
     this.personIdent = personIdent;
   }
@@ -141,6 +157,8 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
 
   private Check upsertCheckInNoteDb(CheckKey checkKey, CheckUpdate checkUpdate, Operation operation)
       throws IOException, ConfigInvalidException, OrmDuplicateKeyException {
+    assertCheckerPresentAndEnabled(checkKey.checkerUuid());
+
     try (Repository repo = repoManager.openRepository(checkKey.project());
         ObjectInserter objectInserter = repo.newObjectInserter();
         RevWalk rw = new RevWalk(repo)) {
@@ -178,6 +196,17 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       gitRefUpdated.fire(
           checkKey.project(), refUpdate, currentUser.map(user -> user.state()).orElse(null));
       return readSingleCheck(checkKey, repo, rw, newCommitId);
+    }
+  }
+
+  private void assertCheckerPresentAndEnabled(String checkerUuid)
+      throws ConfigInvalidException, IOException {
+    Checker checker =
+        checkers
+            .getChecker(checkerUuid)
+            .orElseThrow(() -> new IOException(checkerUuid + " missing"));
+    if (checker.getStatus() != CheckerStatus.ENABLED) {
+      throw new IOException("checker " + checkerUuid + " unknown");
     }
   }
 

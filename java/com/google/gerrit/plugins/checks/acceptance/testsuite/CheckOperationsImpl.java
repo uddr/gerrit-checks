@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.plugins.checks.Check;
+import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.CheckerRef;
@@ -39,13 +40,18 @@ import org.eclipse.jgit.revwalk.RevWalk;
 public final class CheckOperationsImpl implements CheckOperations {
   private final Checks checks;
   private final ChecksUpdate checksUpdate;
+  private final CheckJson checkJson;
   private final GitRepositoryManager repoManager;
 
   @Inject
   public CheckOperationsImpl(
-      Checks checks, GitRepositoryManager repoManager, @ServerInitiated ChecksUpdate checksUpdate) {
+      Checks checks,
+      GitRepositoryManager repoManager,
+      CheckJson checkJson,
+      @ServerInitiated ChecksUpdate checksUpdate) {
     this.checks = checks;
     this.repoManager = repoManager;
+    this.checkJson = checkJson;
     this.checksUpdate = checksUpdate;
   }
 
@@ -105,8 +111,8 @@ public final class CheckOperationsImpl implements CheckOperations {
     }
 
     @Override
-    public CheckInfo asInfo() {
-      throw new UnsupportedOperationException("todo");
+    public CheckInfo asInfo() throws Exception {
+      return checkJson.format(get());
     }
 
     @Override

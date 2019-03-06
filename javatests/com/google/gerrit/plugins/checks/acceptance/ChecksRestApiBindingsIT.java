@@ -61,7 +61,7 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
 
   @Test
   public void scopedCheckEndpoints() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey key = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid.toString());
     checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
     RestApiCallHelper.execute(

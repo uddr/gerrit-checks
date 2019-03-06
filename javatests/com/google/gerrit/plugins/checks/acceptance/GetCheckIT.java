@@ -17,7 +17,9 @@ package com.google.gerrit.plugins.checks.acceptance;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
@@ -35,17 +37,38 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Test
   public void getCheck() throws Exception {
-    String name = "my-checker";
-    CheckKey key = CheckKey.create(project, patchSetId, name);
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid.toString());
     checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
 
-    CheckInfo info = checksApiFactory.revision(patchSetId).id(name).get();
-    assertThat(info.checkerUuid).isEqualTo(name);
-    assertThat(info.state).isEqualTo(CheckState.RUNNING);
-    assertThat(info.started).isNull();
-    assertThat(info.finished).isNull();
-    assertThat(info.created).isNotNull();
-    assertThat(info.updated).isNotNull();
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkerUuid.toString()).get();
+    assertThat(info).isEqualTo(checkOperations.check(key).asInfo());
+  }
+
+  @Test
+  public void getCheckForDisabledCheckerThrowsNotFound() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid.toString());
+    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
+
+    checkerOperations.checker(checkerUuid).forUpdate().disable().update();
+
+    exception.expect(ResourceNotFoundException.class);
+    exception.expectMessage("Not found: " + checkerUuid);
+    checksApiFactory.revision(patchSetId).id(checkerUuid.toString()).get();
+  }
+
+  @Test
+  public void getCheckForInvalidCheckerThrowsNotFound() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid.toString());
+    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
+
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    checksApiFactory.revision(patchSetId).id(checkerUuid.toString()).get();
   }
 
   @Test
@@ -54,5 +77,13 @@ public class GetCheckIT extends AbstractCheckersTest {
     exception.expectMessage("Not found: non-existing");
 
     checksApiFactory.revision(patchSetId).id("non-existing").get();
+  }
+
+  @Test
+  public void getNonExistingCheckWithInvalidUuidFails() throws Exception {
+    exception.expect(ResourceNotFoundException.class);
+    exception.expectMessage("Not found: n0n-e#isting");
+
+    checksApiFactory.revision(patchSetId).id("n0n-e#isting").get();
   }
 }
