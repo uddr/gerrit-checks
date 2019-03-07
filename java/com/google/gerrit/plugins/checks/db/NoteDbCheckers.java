@@ -87,8 +87,7 @@ class NoteDbCheckers implements Checkers {
   }
 
   @Override
-  public ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName)
-      throws IOException, ConfigInvalidException {
+  public ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName) throws IOException {
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
       ImmutableSortedSet<CheckerUuid> checkerUuidStrings =
           CheckersByRepositoryNotes.load(allProjectsName, allProjectsRepo).get(repositoryName);

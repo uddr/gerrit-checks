@@ -19,14 +19,12 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.PatchSetUtil;
@@ -38,13 +36,10 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /** Class to read checks from NoteDb. */
 @Singleton
 class NoteDbChecks implements Checks {
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
   private final ChangeNotes.Factory changeNotesFactory;
   private final PatchSetUtil psUtil;
   private final CheckNotes.Factory checkNotesFactory;
@@ -98,16 +93,9 @@ class NoteDbChecks implements Checks {
   /** Get all checkers that apply to a project. Might return a superset of checkers that apply. */
   private ImmutableSet<CheckerUuid> activeAndValidCheckersForProject(Project.NameKey projectName)
       throws IOException {
-    Stream<Checker> checkerStream;
-    try {
-      checkerStream = checkers.checkersOf(projectName).stream();
-    } catch (ConfigInvalidException e) {
-      logger.atInfo().withCause(e).log(
-          "can't bulk-load checkers for " + projectName + " will do one-by-one");
-      checkerStream = checkers.listCheckers().stream();
-    }
-    return checkerStream
-        .filter(c -> c.getStatus() == CheckerStatus.ENABLED)
+    return checkers
+        .checkersOf(projectName)
+        .stream()
         .map(Checker::getUuid)
         .collect(toImmutableSet());
   }

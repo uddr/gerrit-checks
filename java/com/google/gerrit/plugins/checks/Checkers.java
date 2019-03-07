@@ -75,7 +75,7 @@ public interface Checkers {
   /**
    * Returns the checkers that apply to the given repository.
    *
-   * <p>Checkers with invalid configuration are silently ignored.
+   * <p>Never returns disabled checkers. Checkers with invalid configuration are silently ignored.
    *
    * @param repositoryName the name of the repository for which the applying checkers should be
    *     returned
@@ -84,6 +84,5 @@ public interface Checkers {
    *     from the storage
    * @throws ConfigInvalidException if reading the checker list fails
    */
-  ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName)
-      throws IOException, ConfigInvalidException;
+  ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName) throws IOException;
 }

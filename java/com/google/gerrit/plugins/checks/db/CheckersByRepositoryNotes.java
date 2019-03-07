@@ -81,8 +81,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
   private static final int MAX_NOTE_SZ = 1 << 19;
 
   public static CheckersByRepositoryNotes load(
-      AllProjectsName allProjectsName, Repository allProjectsRepo)
-      throws IOException, ConfigInvalidException {
+      AllProjectsName allProjectsName, Repository allProjectsRepo) throws IOException {
     return new CheckersByRepositoryNotes(allProjectsName, allProjectsRepo).load();
   }
 
@@ -121,8 +120,13 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    *
    * @return {@link CheckersByRepositoryNotes} instance for chaining
    */
-  private CheckersByRepositoryNotes load() throws IOException, ConfigInvalidException {
-    super.load(allProjectsName, repo);
+  private CheckersByRepositoryNotes load() throws IOException {
+    try {
+      super.load(allProjectsName, repo);
+    } catch (ConfigInvalidException e) {
+      // load only throws ConfigInvalidException if it's propagating from onLoad.
+      throw new IllegalStateException(e);
+    }
     return this;
   }
 
@@ -241,7 +245,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
   }
 
   @Override
-  protected void onLoad() throws IOException, ConfigInvalidException {
+  protected void onLoad() throws IOException {
     logger.atFine().log("Reading checkers by repository note map");
 
     noteMap = revision != null ? NoteMap.read(reader, revision) : NoteMap.newEmptyMap();
