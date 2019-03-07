@@ -43,6 +43,8 @@ public abstract class TestCheckerUpdate {
 
   public abstract Optional<String> query();
 
+  public abstract Optional<Boolean> forceInvalidConfig();
+
   abstract ThrowingConsumer<TestCheckerUpdate> checkerUpdater();
 
   public static Builder builder(ThrowingConsumer<TestCheckerUpdate> checkerUpdater) {
@@ -77,6 +79,12 @@ public abstract class TestCheckerUpdate {
     public Builder disable() {
       return status(CheckerStatus.DISABLED);
     }
+
+    public Builder forceInvalidConfig() {
+      return forceInvalidConfig(true);
+    }
+
+    abstract Builder forceInvalidConfig(boolean forceInvalidConfig);
 
     public abstract Builder blockingConditions(
         ImmutableSortedSet<BlockingCondition> blockingConditions);
