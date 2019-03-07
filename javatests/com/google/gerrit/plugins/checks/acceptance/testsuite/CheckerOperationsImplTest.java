@@ -338,7 +338,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
   private ObjectId readCheckerCommitSha1(CheckerUuid checkerUuid) throws IOException {
     try (Repository repo = repoManager.openRepository(allProjects)) {
-      return repo.exactRef(CheckerRef.refsCheckers(checkerUuid)).getObjectId();
+      return repo.exactRef(checkerUuid.toRefName()).getObjectId();
     }
   }
 
@@ -354,7 +354,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     try (Repository repo = repoManager.openRepository(allProjects);
         RevWalk rw = new RevWalk(repo);
         ObjectReader or = repo.newObjectReader()) {
-      Ref checkerRef = repo.exactRef(CheckerRef.refsCheckers(checkerUuid));
+      Ref checkerRef = repo.exactRef(checkerUuid.toRefName());
       RevCommit commit = rw.parseCommit(checkerRef.getObjectId());
       try (TreeWalk tw =
           TreeWalk.forPath(or, CheckerConfig.CHECKER_CONFIG_FILE, commit.getTree())) {

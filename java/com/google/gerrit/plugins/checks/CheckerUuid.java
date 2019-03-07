@@ -17,11 +17,15 @@ package com.google.gerrit.plugins.checks;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Hashing;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.reviewdb.client.RefNames;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Repository;
 
 /**
  * UUID of a checker.
@@ -32,11 +36,16 @@ import java.util.regex.Pattern;
  *   <li>The allowed characters within either part are {@code [a-zA-Z0-9._-]}.
  *   <li>Scheme is a short string that, by convention, is associated with the external system that
  *       created the checker (e.g. {@code jenkins}).
+ *   <li>Scheme must be valid as a ref name component according to {@code git-check-ref-format}.
+ *   <li>Scheme has a low length limit (100 chars), to ensure it can be used as part of a refname
+ *       under all possible ref storage systems.
  *   <li>ID is an arbitrary string provided by the external system.
  * </ul>
  */
 @AutoValue
 public abstract class CheckerUuid implements Comparable<CheckerUuid> {
+  @VisibleForTesting static final int MAX_SCHEME_LENGTH = 100;
+
   private static final Pattern UUID_PATTERN;
 
   static {
@@ -64,7 +73,24 @@ public abstract class CheckerUuid implements Comparable<CheckerUuid> {
     if (!m.find()) {
       return Optional.empty();
     }
-    return Optional.of(new AutoValue_CheckerUuid(m.group("scheme"), m.group("id")));
+    String scheme = m.group("scheme");
+    if (scheme.length() > MAX_SCHEME_LENGTH) {
+      return Optional.empty();
+    }
+    // git-check-ref-format(1) says:
+    // "no slash-separated component can begin with a dot `.` or end with the sequence `.lock`."
+    // But JGit's isValidRefName doesn't currently enforce the .lock constraint.
+    if (scheme.endsWith(Constants.LOCK_SUFFIX)) {
+      return Optional.empty();
+    }
+    if (!Repository.isValidRefName(toRefName(scheme, "x"))) {
+      return Optional.empty();
+    }
+    return Optional.of(new AutoValue_CheckerUuid(scheme, m.group("id")));
+  }
+
+  private static String toRefName(String scheme, String hashedId) {
+    return CheckerRef.REFS_CHECKERS + scheme + '/' + hashedId;
   }
 
   /**
@@ -74,7 +100,7 @@ public abstract class CheckerUuid implements Comparable<CheckerUuid> {
    * @return true if {@code uuid} is a valid UUID, false otherwise.
    */
   public static boolean isUuid(@Nullable String uuid) {
-    return uuid != null && UUID_PATTERN.matcher(uuid).matches();
+    return tryParse(uuid).isPresent();
   }
 
   /**
@@ -104,13 +130,16 @@ public abstract class CheckerUuid implements Comparable<CheckerUuid> {
   public abstract String id();
 
   /**
-   * Computes the SHA-1 of the UUID, for use in the Git storage layer where SHA-1s are used as keys.
+   * Computes the name for this checker's config ref.
+   *
+   * <p>Ref names are of the form {@code 'refs/checkers/' SCHEME '/' SHARD(SHA1(ID))}.
    *
    * @return hex SHA-1 of this UUID's string representation.
    */
   @SuppressWarnings("deprecation") // SHA-1 used where Git object IDs are required.
-  public String sha1() {
-    return Hashing.sha1().hashString(toString(), UTF_8).toString();
+  public String toRefName() {
+    return toRefName(
+        scheme(), RefNames.shardUuid(Hashing.sha1().hashString(id(), UTF_8).toString()));
   }
 
   @Override

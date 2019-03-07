@@ -54,7 +54,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.CREATE);
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
 
-    String checkerRef = CheckerRef.refsCheckers(CheckerUuid.parse("test:my-checker"));
+    String checkerRef = CheckerUuid.parse("test:my-checker").toRefName();
 
     TestRepository<InMemoryRepository> testRepo = cloneProject(allProjects);
     PushOneCommit.Result r = pushFactory.create(admin.getIdent(), testRepo).to(checkerRef);
@@ -71,7 +71,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.DELETE, true, REGISTERED_USERS);
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    String checkerRef = CheckerRef.refsCheckers(checkerUuid);
+    String checkerRef = checkerUuid.toRefName();
 
     TestRepository<InMemoryRepository> testRepo = cloneProject(allProjects);
     PushResult r = deleteRef(testRepo, checkerRef);
@@ -87,7 +87,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   @Test
   public void updateCheckerRefsByPushIsDisabled() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    String checkerRef = CheckerRef.refsCheckers(checkerUuid);
+    String checkerRef = checkerUuid.toRefName();
 
     TestRepository<InMemoryRepository> repo = cloneProject(allProjects, admin);
     fetch(repo, checkerRef + ":checkerRef");
@@ -102,7 +102,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   @Test
   public void submitToCheckerRefsIsDisabled() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    String checkerRef = CheckerRef.refsCheckers(checkerUuid);
+    String checkerRef = checkerUuid.toRefName();
 
     String changeId = createChangeWithoutCommitValidation(checkerRef);
 
@@ -127,7 +127,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   @Test
   public void createChangeForCheckerRefsByPushIsDisabled() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    String checkerRef = CheckerRef.refsCheckers(checkerUuid);
+    String checkerRef = checkerUuid.toRefName();
 
     TestRepository<InMemoryRepository> repo = cloneProject(allProjects, admin);
     fetch(repo, checkerRef + ":checkerRef");
@@ -143,7 +143,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   @Test
   public void createChangeForCheckerRefsViaApiIsDisabled() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    String checkerRef = CheckerRef.refsCheckers(checkerUuid);
+    String checkerRef = checkerUuid.toRefName();
 
     TestRepository<InMemoryRepository> repo = cloneProject(allProjects, admin);
     fetch(repo, checkerRef + ":checkerRef");

@@ -16,7 +16,6 @@ package com.google.gerrit.plugins.checks;
 
 import static com.google.gerrit.reviewdb.client.RefNames.REFS_CHANGES;
 import static com.google.gerrit.reviewdb.client.RefNames.shard;
-import static com.google.gerrit.reviewdb.client.RefNames.shardUuid;
 
 import com.google.gerrit.reviewdb.client.Change;
 
@@ -29,10 +28,6 @@ public class CheckerRef {
 
   /** Suffix for check refs. */
   public static final String CHECKS_SUFFIX = "/checks";
-
-  public static String refsCheckers(CheckerUuid checkerUuid) {
-    return REFS_CHECKERS + shardUuid(checkerUuid.sha1());
-  }
 
   public static String checksRef(Change.Id changeId) {
     return REFS_CHANGES + shard(changeId.get()) + CHECKS_SUFFIX;

@@ -16,17 +16,32 @@ package com.google.gerrit.plugins.checks;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static com.google.gerrit.plugins.checks.CheckerUuid.MAX_SCHEME_LENGTH;
+import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.testing.GerritBaseTests;
+import java.util.stream.Stream;
+import org.eclipse.jgit.lib.Repository;
 import org.junit.Test;
 
 public class CheckerUuidTest extends GerritBaseTests {
-
   private static final ImmutableSet<String> VALID_CHECKER_UUIDS =
-      ImmutableSet.of("test:my-checker-123", "TEST:MY-checker", "-t-e.s_t-:m.y-ch_ecker");
+      ImmutableSet.of(
+          "test:my-checker-123",
+          "TEST:MY-checker",
+          "-t-e.s_t-:m.y-ch_ecker",
+          "test:my-checker.",
+          "test.:my-checker",
+          repeat('x', MAX_SCHEME_LENGTH) + ":my-checker",
+          "test:" + repeat('x', 2 * MAX_SCHEME_LENGTH),
+
+          // The ID portion does not have to satisfy git-check-ref-format(1).
+          "test:my..checker",
+          "test:.my-checker",
+          "test:my-checker.lock");
 
   private static final ImmutableSet<String> INVALID_CHECKER_UUIDS =
       ImmutableSet.of(
@@ -44,7 +59,17 @@ public class CheckerUuidTest extends GerritBaseTests {
           "test:my%0Achecker",
           "test:my\0checker",
           "test:my\\0checker",
-          "test:my%00checker");
+          "test:my%00checker",
+          repeat('x', MAX_SCHEME_LENGTH + 1) + ":my-checker",
+
+          // The ID portion has to be a valid path component according to git-check-ref-format(1).
+          "te..st:my-checker",
+          ".test:my-checker",
+          "test.lock:my-checker");
+
+  private static String repeat(char c, int len) {
+    return Stream.generate(() -> Character.toString(c)).limit(len).collect(joining());
+  }
 
   @Test
   public void isUuid() {
@@ -71,6 +96,9 @@ public class CheckerUuidTest extends GerritBaseTests {
         throw new AssertionError("failed to parse " + uuidString, e);
       }
       assertThat(checkerUuid.toString()).named(uuidString).isEqualTo(uuidString);
+      assertThat(Repository.isValidRefName(checkerUuid.toRefName()))
+          .named("valid ref name: %s", checkerUuid.toRefName())
+          .isTrue();
     }
   }
 
@@ -89,9 +117,10 @@ public class CheckerUuidTest extends GerritBaseTests {
     assertThat(checkerUuid.id()).isEqualTo("my-checker");
     assertThat(checkerUuid.toString()).isEqualTo("test:my-checker");
 
-    // $ echo -n test:my-checker | sha1sum
-    // 4ff2f443e66636c68b554b5dbb09c90475ae7147  -
-    assertThat(checkerUuid.sha1()).isEqualTo("4ff2f443e66636c68b554b5dbb09c90475ae7147");
+    // $ echo -n my-checker | sha1sum
+    // f4bf6f9d65a2069e1b23de004b626b9a08e58daa  -
+    assertThat(checkerUuid.toRefName())
+        .isEqualTo("refs/checkers/test/f4/f4bf6f9d65a2069e1b23de004b626b9a08e58daa");
   }
 
   @Test

@@ -24,7 +24,6 @@ import com.google.common.truth.StringSubject;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerQuery;
-import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
@@ -569,7 +568,7 @@ public class CheckerConfigTest extends GerritBaseTests {
 
   private void populateCheckerConfig(CheckerUuid checkerUuid, String fileContent) throws Exception {
     testRepository
-        .branch(CheckerRef.refsCheckers(checkerUuid))
+        .branch(checkerUuid.toRefName())
         .commit()
         .message("Prepopulate checker.config")
         .add(CheckerConfig.CHECKER_CONFIG_FILE, fileContent)
@@ -577,7 +576,7 @@ public class CheckerConfigTest extends GerritBaseTests {
   }
 
   private ObjectId getCheckerRefState(CheckerUuid checkerUuid) throws IOException {
-    return repository.exactRef(CheckerRef.refsCheckers(checkerUuid)).getObjectId();
+    return repository.exactRef(checkerUuid.toRefName()).getObjectId();
   }
 
   private StringSubject assertThatCommitMessage(CheckerUuid checkerUuid) throws IOException {
