@@ -62,6 +62,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     CheckerInfo foundChecker = getCheckerFromServer(checkerUuid);
     assertThat(foundChecker.uuid).isEqualTo(checkerUuid.toString());
     assertThat(foundChecker.name).isNull();
+    assertThat(foundChecker.repository).isEqualTo(allProjects.get());
     assertThat(foundChecker.description).isNull();
     assertThat(foundChecker.createdOn).isNotNull();
   }
