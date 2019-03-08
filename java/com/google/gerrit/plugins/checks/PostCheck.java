@@ -52,7 +52,10 @@ public class PostCheck
       input = new CheckInput();
     }
     if (input.checkerUuid == null) {
-      throw new BadRequestException("checkerUuid is required");
+      throw new BadRequestException("checker UUID is required");
+    }
+    if (!CheckerUuid.isUuid(input.checkerUuid)) {
+      throw new BadRequestException("invalid checker UUID: " + input.checkerUuid);
     }
 
     CheckKey key =

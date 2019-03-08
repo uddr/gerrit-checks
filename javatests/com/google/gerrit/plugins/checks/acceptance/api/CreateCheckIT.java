@@ -16,6 +16,8 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gerrit.acceptance.Sandboxed;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -52,7 +54,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     TestTimeUtil.useSystemTime();
   }
 
+  // TODO(gerrit-team): Investigate why this test fails due to timestamp mismatches if other tests
+  // are executed before it. To avoid this issue this test is sandboxed for now.
   @Test
+  @Sandboxed
   public void createCheck() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
@@ -74,6 +79,17 @@ public class CreateCheckIT extends AbstractCheckersTest {
     // TODO(gerrit-team) Add a Truth subject for the notes map
     Map<RevId, String> notes = perCheckOps.notesAsText();
     assertThat(notes).containsExactly(revId, noteDbContent(checkerUuid.toString()));
+  }
+
+  @Test
+  public void cannotCreateCheckForMalformedCheckerUuid() throws Exception {
+    CheckInput input = new CheckInput();
+    input.checkerUuid = "malformed::checker*UUID";
+    input.state = CheckState.RUNNING;
+
+    exception.expect(BadRequestException.class);
+    exception.expectMessage("invalid checker UUID: " + input.checkerUuid);
+    checksApiFactory.revision(patchSetId).create(input);
   }
 
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave
