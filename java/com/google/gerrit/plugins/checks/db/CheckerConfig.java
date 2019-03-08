@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
-import com.google.gerrit.plugins.checks.CheckerName;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -309,13 +308,6 @@ public class CheckerConfig extends VersionedMetaData {
 
   private void checkLoaded() {
     checkState(isLoaded, "Checker %s not loaded yet", describeForError());
-  }
-
-  private Optional<String> getNewName() {
-    if (checkerUpdate.isPresent()) {
-      return checkerUpdate.get().getName().map(CheckerName::clean);
-    }
-    return Optional.empty();
   }
 
   private Optional<String> getNewRepository() {
