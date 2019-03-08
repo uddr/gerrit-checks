@@ -14,27 +14,19 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.common.collect.ImmutableList;
-import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.Check;
-import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
-import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
-import com.google.gerrit.plugins.checks.ChecksUpdate;
-import com.google.gerrit.server.UserInitiated;
+import com.google.gerrit.plugins.checks.PostCheck;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
@@ -43,26 +35,26 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     ChecksImpl create(RevisionResource revisionResource);
   }
 
-  private final Checks checks;
-  private final Provider<ChecksUpdate> checksUpdate;
   private final Checkers checkers;
-  private final CheckJson checkJson;
+  private final Checks checks;
+  private final ListChecks listChecks;
+  private final PostCheck postCheck;
   private final CheckApiImpl.Factory checkApiImplFactory;
   private final RevisionResource revisionResource;
 
   @Inject
   ChecksImpl(
-      Checks checks,
       CheckApiImpl.Factory checkApiImplFactory,
-      CheckJson checkJson,
+      Checks checks,
       Checkers checkers,
-      @UserInitiated Provider<ChecksUpdate> checksUpdate,
+      ListChecks listChecks,
+      PostCheck postCheck,
       @Assisted RevisionResource revisionResource) {
-    this.checks = checks;
     this.checkApiImplFactory = checkApiImplFactory;
-    this.checkJson = checkJson;
+    this.checks = checks;
+    this.postCheck = postCheck;
     this.checkers = checkers;
-    this.checksUpdate = checksUpdate;
+    this.listChecks = listChecks;
     this.revisionResource = revisionResource;
   }
 
@@ -83,38 +75,12 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
 
   @Override
   public CheckApi create(CheckInput input) throws RestApiException, IOException, OrmException {
-    if (input == null) {
-      throw new BadRequestException("input is required");
-    }
-    if (input.checkerUuid == null) {
-      throw new BadRequestException("checker_uuid is required");
-    }
-    if (input.state == null) {
-      throw new BadRequestException("state is required");
-    }
-    // Ensure that the checker exists and throw a RestApiException if not.
-    CheckerUuid checkerUuid = CheckerUuid.parse(checkers.id(input.checkerUuid).get().uuid);
-
-    CheckKey checkKey =
-        CheckKey.create(
-            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checkerUuid);
-    CheckUpdate checkUpdate =
-        CheckUpdate.builder()
-            .setState(input.state)
-            .setUrl(Optional.ofNullable(input.url))
-            .setStarted(Optional.ofNullable(input.started))
-            .setFinished(Optional.ofNullable(input.finished))
-            .build();
-    Check newCheck = checksUpdate.get().createCheck(checkKey, checkUpdate);
-    return checkApiImplFactory.create(new CheckResource(revisionResource, newCheck));
+    CheckInfo checkInfo = postCheck.apply(revisionResource, input);
+    return id(CheckerUuid.parse(checkInfo.checkerUuid));
   }
 
   @Override
   public ImmutableList<CheckInfo> list() throws RestApiException, IOException, OrmException {
-    return getChecks().stream().map(checkJson::format).collect(toImmutableList());
-  }
-
-  private List<Check> getChecks() throws OrmException, IOException {
-    return checks.getChecks(revisionResource.getProject(), revisionResource.getPatchSet().getId());
+    return listChecks.apply(revisionResource);
   }
 }

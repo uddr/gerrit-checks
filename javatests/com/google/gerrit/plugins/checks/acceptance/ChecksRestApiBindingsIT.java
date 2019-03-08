@@ -33,7 +33,9 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
       ImmutableList.of(RestCall.get("/changes/%s/revisions/%s/checks~checks"));
 
   private static final ImmutableList<RestCall> SCOPED_CHECK_ENDPOINTS =
-      ImmutableList.of(RestCall.get("/changes/%s/revisions/%s/checks~checks/%s/detail"));
+      ImmutableList.of(
+          RestCall.get("/changes/%s/revisions/%s/checks~checks/%s"),
+          RestCall.post("/changes/%s/revisions/%s/checks~checks/%s"));
 
   @Test
   public void checkerEndpoints() throws Exception {

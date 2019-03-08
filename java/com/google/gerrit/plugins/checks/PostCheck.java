@@ -14,38 +14,69 @@
 
 package com.google.gerrit.plugins.checks;
 
-import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
-import com.google.gerrit.plugins.checks.api.CheckApi;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckResource;
-import com.google.gerrit.plugins.checks.api.Checks;
-import com.google.gerrit.plugins.checks.api.ChecksFactory;
+import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.RevisionResource;
+import com.google.gwtorm.server.OrmException;
+import java.io.IOException;
+import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 @Singleton
 public class PostCheck
     implements RestCollectionModifyView<RevisionResource, CheckResource, CheckInput> {
 
-  private final ChecksFactory checksApiFactory;
+  private final Checks checks;
+  private final Provider<ChecksUpdate> checksUpdate;
+  private final CheckJson checkJson;
 
   @Inject
-  PostCheck(ChecksFactory checksApiFactory) {
-    this.checksApiFactory = checksApiFactory;
+  PostCheck(
+      Checks checks, @UserInitiated Provider<ChecksUpdate> checksUpdate, CheckJson checkJson) {
+    this.checks = checks;
+    this.checksUpdate = checksUpdate;
+    this.checkJson = checkJson;
   }
 
   @Override
-  public CheckInfo apply(RevisionResource rsrc, CheckInput input) throws Exception {
-    // Allow both creation and update on this endpoint (post on collection).
-    Checks checksApi = checksApiFactory.revision(rsrc.getPatchSet().getId());
-    try {
-      CheckApi checkApi = checksApi.id(input.checkerUuid);
-      return checkApi.update(input);
-    } catch (ResourceNotFoundException e) {
-      return checksApi.create(input).get();
+  public CheckInfo apply(RevisionResource rsrc, CheckInput input)
+      throws OrmException, IOException, RestApiException {
+    if (input == null) {
+      input = new CheckInput();
     }
+    if (input.checkerUuid == null) {
+      throw new BadRequestException("checkerUuid is required");
+    }
+
+    CheckKey key =
+        CheckKey.create(
+            rsrc.getProject(), rsrc.getPatchSet().getId(), CheckerUuid.parse(input.checkerUuid));
+    Optional<Check> check = checks.getCheck(key);
+    if (!check.isPresent()) {
+      if (input.state == null) {
+        throw new BadRequestException("state is required on creation");
+      }
+
+      Check updatedCheck = checksUpdate.get().createCheck(key, toCheckUpdate(input));
+      return checkJson.format(updatedCheck);
+    }
+    Check updatedCheck = checksUpdate.get().updateCheck(key, toCheckUpdate(input));
+    return checkJson.format(updatedCheck);
+  }
+
+  private static CheckUpdate toCheckUpdate(CheckInput input) throws BadRequestException {
+    return CheckUpdate.builder()
+        .setState(Optional.ofNullable(input.state))
+        .setUrl(input.url == null ? Optional.empty() : Optional.of(CheckerUrl.clean(input.url)))
+        .setStarted(Optional.ofNullable(input.started))
+        .setFinished(Optional.ofNullable(input.finished))
+        .build();
   }
 }

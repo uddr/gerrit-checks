@@ -14,25 +14,41 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.collect.ImmutableList;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.plugins.checks.CheckJson;
+import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.server.change.RevisionResource;
+import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.io.IOException;
 
-public class GetCheck implements RestReadView<CheckResource> {
+@Singleton
+public class ListChecks implements RestReadView<RevisionResource> {
 
+  private final Checks checks;
   private final CheckJson checkJson;
 
   @Inject
-  GetCheck(CheckJson checkJson) {
+  ListChecks(Checks checks, CheckJson checkJson) {
+    this.checks = checks;
     this.checkJson = checkJson;
   }
 
   @Override
-  public CheckInfo apply(CheckResource resource)
-      throws AuthException, BadRequestException, ResourceConflictException {
-    return checkJson.format(resource.getCheck());
+  public ImmutableList<CheckInfo> apply(RevisionResource resource)
+      throws AuthException, BadRequestException, ResourceConflictException, OrmException,
+          IOException {
+    return checks
+        .getChecks(resource.getProject(), resource.getPatchSet().getId())
+        .stream()
+        .map(checkJson::format)
+        .collect(toImmutableList());
   }
 }

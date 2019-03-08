@@ -14,87 +14,35 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.plugins.checks.Check;
-import com.google.gerrit.plugins.checks.CheckJson;
-import com.google.gerrit.plugins.checks.CheckKey;
-import com.google.gerrit.plugins.checks.CheckUpdate;
-import com.google.gerrit.plugins.checks.Checks;
-import com.google.gerrit.plugins.checks.ChecksUpdate;
-import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.server.UserInitiated;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 import java.io.IOException;
-import java.util.Optional;
 
 public class CheckApiImpl implements CheckApi {
   public interface Factory {
     CheckApiImpl create(CheckResource c);
   }
 
-  private final Checks checks;
-  private final CheckJson checkJson;
-  private final Provider<ChecksUpdate> checksUpdate;
+  private final GetCheck getCheck;
+  private final UpdateCheck updateCheck;
   private final CheckResource checkResource;
 
   @Inject
-  CheckApiImpl(
-      Checks checks,
-      CheckJson checkJson,
-      @UserInitiated Provider<ChecksUpdate> checksUpdate,
-      @Assisted CheckResource checkResource) {
-    this.checks = checks;
-    this.checkJson = checkJson;
-    this.checksUpdate = checksUpdate;
+  CheckApiImpl(GetCheck getCheck, UpdateCheck updateCheck, @Assisted CheckResource checkResource) {
+    this.getCheck = getCheck;
+    this.updateCheck = updateCheck;
     this.checkResource = checkResource;
   }
 
   @Override
   public CheckInfo get() throws RestApiException {
-    return checkJson.format(checkResource.getCheck());
+    return getCheck.apply(checkResource);
   }
 
   @Override
   public CheckInfo update(CheckInput input) throws RestApiException, IOException, OrmException {
-    if (input == null) {
-      throw new BadRequestException("input is required");
-    }
-    if (input.checkerUuid != null && !input.checkerUuid.equals(checkResource.getCheckerUuid())) {
-      throw new BadRequestException(
-          String.format(
-              "checkerUuid must either be null or the same as on the resource:\n"
-                  + "the check resource belongs to checker %s,"
-                  + " but in the input checker %s was specified",
-              checkResource.getCheckerUuid(), input.checkerUuid));
-    }
-
-    Project.NameKey project = checkResource.getRevisionResource().getProject();
-
-    CheckKey key =
-        CheckKey.create(
-            project,
-            checkResource.getRevisionResource().getPatchSet().getId(),
-            checkResource.getCheckerUuid());
-    Optional<Check> check = checks.getCheck(key);
-    if (!check.isPresent()) {
-      throw new ResourceNotFoundException("Not found: " + input.checkerUuid);
-    }
-
-    Check updatedCheck = checksUpdate.get().updateCheck(key, toCheckUpdate(input));
-    return checkJson.format(updatedCheck);
-  }
-
-  private static CheckUpdate toCheckUpdate(CheckInput input) {
-    return CheckUpdate.builder()
-        .setState(Optional.ofNullable(input.state))
-        .setUrl(Optional.ofNullable(input.url))
-        .setStarted(Optional.ofNullable(input.started))
-        .setFinished(Optional.ofNullable(input.finished))
-        .build();
+    return updateCheck.apply(checkResource, input);
   }
 }

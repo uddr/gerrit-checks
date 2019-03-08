@@ -45,7 +45,8 @@ public class ApiModule extends AbstractModule {
             DynamicMap.mapOf(binder(), CHECK_KIND);
             child(REVISION_KIND, "checks").to(ChecksCollection.class);
             postOnCollection(CHECK_KIND).to(PostCheck.class);
-            get(CHECK_KIND, "detail").to(GetCheck.class);
+            get(CHECK_KIND).to(GetCheck.class);
+            post(CHECK_KIND).to(UpdateCheck.class);
           }
         });
 

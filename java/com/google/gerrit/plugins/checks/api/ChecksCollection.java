@@ -37,18 +37,21 @@ import java.util.Optional;
 @Singleton
 public class ChecksCollection implements ChildCollection<RevisionResource, CheckResource> {
 
+  private final ListChecks listChecks;
   private final Checks checks;
   private final DynamicMap<RestView<CheckResource>> views;
 
   @Inject
-  ChecksCollection(Checks checks, DynamicMap<RestView<CheckResource>> views) {
+  ChecksCollection(
+      ListChecks listChecks, Checks checks, DynamicMap<RestView<CheckResource>> views) {
+    this.listChecks = listChecks;
     this.checks = checks;
     this.views = views;
   }
 
   @Override
   public RestReadView<RevisionResource> list() throws RestApiException {
-    return resource -> checks.getChecks(resource.getProject(), resource.getPatchSet().getId());
+    return listChecks;
   }
 
   @Override
