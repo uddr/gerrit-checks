@@ -17,11 +17,14 @@ package com.google.gerrit.plugins.checks;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.Strings;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class CheckerUrl {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   /**
    * Cleans a user-provided URL.
    *
@@ -39,6 +42,7 @@ public class CheckerUrl {
     try {
       uri = new URI(trimmed);
     } catch (URISyntaxException e) {
+      logger.atFine().withCause(e).log("invalid checker URL: %s", urlString);
       uri = null;
     }
     if (uri == null || Strings.isNullOrEmpty(uri.getScheme())) {
