@@ -39,7 +39,7 @@ public class PostCheck
 
   @Override
   public CheckInfo apply(RevisionResource rsrc, CheckInput input) throws Exception {
-    // Allow both creation and deletion on this endpoint (post on collection).
+    // Allow both creation and update on this endpoint (post on collection).
     Checks checksApi = checksApiFactory.revision(rsrc.getPatchSet().getId());
     try {
       CheckApi checkApi = checksApi.id(input.checkerUuid);
