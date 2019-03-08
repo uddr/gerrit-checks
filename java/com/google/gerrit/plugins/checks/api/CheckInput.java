@@ -53,7 +53,7 @@ public class CheckInput {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add(checkerUuid, "checkerUuid")
+        .add("checkerUuid", checkerUuid)
         .add("state", state)
         .add("url", url)
         .add("started", started)

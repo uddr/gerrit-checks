@@ -83,7 +83,7 @@ public class CheckInfo {
         .add("project", project)
         .add("changeNumber", changeNumber)
         .add("patchSetId", patchSetId)
-        .add(checkerUuid, "checkerUuid")
+        .add("checkerUuid", checkerUuid)
         .add("state", state)
         .add("url", url)
         .add("started", started)
