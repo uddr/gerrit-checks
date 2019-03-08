@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.registration.DynamicMap;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ChildCollection;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -54,7 +55,9 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
   public CheckResource parse(RevisionResource parent, IdString id)
       throws RestApiException, PermissionBackendException, IOException, OrmException {
     CheckerUuid checkerUuid =
-        CheckerUuid.tryParse(id.get()).orElseThrow(() -> new ResourceNotFoundException(id.get()));
+        CheckerUuid.tryParse(id.get())
+            .orElseThrow(
+                () -> new BadRequestException(String.format("Invalid checker UUID: %s", id.get())));
     CheckKey checkKey =
         CheckKey.create(parent.getProject(), parent.getPatchSet().getId(), checkerUuid);
     Optional<Check> check = checks.getCheck(checkKey);
