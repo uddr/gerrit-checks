@@ -33,7 +33,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   private CheckKey checkKey;
 
   @Before
-  public void setTimeForTesting() throws Exception {
+  public void setUp() throws Exception {
     patchSetId = createChange().getPatchSetId();
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();

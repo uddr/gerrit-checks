@@ -39,7 +39,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
   private RevId revId;
 
   @Before
-  public void setTimeForTesting() throws Exception {
+  public void setUp() throws Exception {
     TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
     TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
 

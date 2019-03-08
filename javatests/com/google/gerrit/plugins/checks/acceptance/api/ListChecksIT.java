@@ -32,7 +32,7 @@ public class ListChecksIT extends AbstractCheckersTest {
   private CheckKey checkKey2;
 
   @Before
-  public void setTimeForTesting() throws Exception {
+  public void setUp() throws Exception {
     patchSetId = createChange().getPatchSetId();
 
     CheckerUuid checker1Uuid = checkerOperations.newChecker().repository(project).create();
