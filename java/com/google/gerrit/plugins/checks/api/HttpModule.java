@@ -14,10 +14,6 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import static com.google.gerrit.plugins.checks.api.CheckerResource.CHECKER_KIND;
-
-import com.google.gerrit.extensions.config.FactoryModule;
-import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.inject.servlet.ServletModule;
 
@@ -25,10 +21,6 @@ public class HttpModule extends ServletModule {
 
   @Override
   protected void configureServlets() {
-    bind(CheckersCollection.class);
-
-    bind(Checkers.class).to(CheckersImpl.class);
-
     serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
 
     install(
@@ -36,18 +28,7 @@ public class HttpModule extends ServletModule {
           @Override
           public void configure() {
             // Checkers
-            DynamicMap.mapOf(binder(), CHECKER_KIND);
-            postOnCollection(CHECKER_KIND).to(CreateChecker.class);
-            get(CHECKER_KIND).to(GetChecker.class);
-            post(CHECKER_KIND).to(UpdateChecker.class);
-          }
-        });
 
-    install(
-        new FactoryModule() {
-          @Override
-          public void configure() {
-            factory(CheckerApiImpl.Factory.class);
           }
         });
   }

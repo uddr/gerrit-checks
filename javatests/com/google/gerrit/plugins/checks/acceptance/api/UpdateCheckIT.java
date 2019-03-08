@@ -16,7 +16,10 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
@@ -27,21 +30,48 @@ import org.junit.Test;
 
 public class UpdateCheckIT extends AbstractCheckersTest {
   private PatchSet.Id patchSetId;
+  private CheckKey checkKey;
 
   @Before
   public void setTimeForTesting() throws Exception {
     patchSetId = createChange().getPatchSetId();
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
   }
 
   @Test
   public void updateCheckState() throws Exception {
-    CheckKey key = CheckKey.create(project, patchSetId, "my-checker-1");
-    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
-
     CheckInput input = new CheckInput();
     input.state = CheckState.FAILED;
 
-    CheckInfo info = checksApiFactory.revision(patchSetId).id("my-checker-1").update(input);
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.state).isEqualTo(CheckState.FAILED);
+  }
+
+  @Test
+  public void updateCheckStateForDisabledChecker() throws Exception {
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().disable().update();
+
+    exception.expect(ResourceNotFoundException.class);
+    exception.expectMessage("Not found: " + checkKey.checkerUuid());
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
+  }
+
+  @Test
+  public void updateCheckStateForInvalidChecker() throws Exception {
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().forceInvalidConfig().update();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkKey.checkerUuid());
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
+  }
+
+  @Test
+  public void updateCheckStateWithInvalidUuid() throws Exception {
+    exception.expect(ResourceNotFoundException.class);
+    exception.expectMessage("Not found: in#alid");
+    checksApiFactory.revision(patchSetId).id("in#alid").update(new CheckInput());
   }
 }

@@ -43,12 +43,14 @@ public abstract class TestCheckerUpdate {
 
   public abstract Optional<String> query();
 
-  public abstract Optional<Boolean> forceInvalidConfig();
+  public abstract boolean forceInvalidConfig();
 
   abstract ThrowingConsumer<TestCheckerUpdate> checkerUpdater();
 
   public static Builder builder(ThrowingConsumer<TestCheckerUpdate> checkerUpdater) {
-    return new AutoValue_TestCheckerUpdate.Builder().checkerUpdater(checkerUpdater);
+    return new AutoValue_TestCheckerUpdate.Builder()
+        .checkerUpdater(checkerUpdater)
+        .forceInvalidConfig(false);
   }
 
   @AutoValue.Builder

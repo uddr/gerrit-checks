@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.api;
 import com.google.gerrit.extensions.restapi.RestResource;
 import com.google.gerrit.extensions.restapi.RestView;
 import com.google.gerrit.plugins.checks.Check;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
@@ -47,7 +48,7 @@ public class CheckResource implements RestResource {
     return check;
   }
 
-  public String getCheckerUuid() {
+  public CheckerUuid getCheckerUuid() {
     return check.key().checkerUuid();
   }
 

@@ -22,7 +22,7 @@ import com.google.inject.Singleton;
 public class CheckJson {
   public CheckInfo format(Check check) {
     CheckInfo info = new CheckInfo();
-    info.checkerUuid = check.key().checkerUuid();
+    info.checkerUuid = check.key().checkerUuid().toString();
     info.changeNumber = check.key().patchSet().changeId.id;
     info.project = check.key().project().get();
     info.patchSetId = check.key().patchSet().patchSetId;

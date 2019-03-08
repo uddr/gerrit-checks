@@ -15,7 +15,6 @@
 package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.registration.DynamicMap;
-import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.ChildCollection;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -24,6 +23,7 @@ import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.restapi.RestView;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.permissions.PermissionBackendException;
@@ -52,10 +52,11 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
 
   @Override
   public CheckResource parse(RevisionResource parent, IdString id)
-      throws AuthException, ResourceNotFoundException, PermissionBackendException, IOException,
-          OrmException {
+      throws RestApiException, PermissionBackendException, IOException, OrmException {
+    CheckerUuid checkerUuid =
+        CheckerUuid.tryParse(id.get()).orElseThrow(() -> new ResourceNotFoundException(id.get()));
     CheckKey checkKey =
-        CheckKey.create(parent.getProject(), parent.getPatchSet().getId(), id.get());
+        CheckKey.create(parent.getProject(), parent.getPatchSet().getId(), checkerUuid);
     Optional<Check> check = checks.getCheck(checkKey);
     return new CheckResource(
         parent, check.orElseThrow(() -> new ResourceNotFoundException("Not found: " + id.get())));

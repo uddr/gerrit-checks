@@ -24,6 +24,7 @@ import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
 import com.google.gerrit.server.UserInitiated;
@@ -44,6 +45,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
 
   private final Checks checks;
   private final Provider<ChecksUpdate> checksUpdate;
+  private final Checkers checkers;
   private final CheckJson checkJson;
   private final CheckApiImpl.Factory checkApiImplFactory;
   private final RevisionResource revisionResource;
@@ -53,20 +55,21 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
       Checks checks,
       CheckApiImpl.Factory checkApiImplFactory,
       CheckJson checkJson,
+      Checkers checkers,
       @UserInitiated Provider<ChecksUpdate> checksUpdate,
       @Assisted RevisionResource revisionResource) {
     this.checks = checks;
     this.checkApiImplFactory = checkApiImplFactory;
     this.checkJson = checkJson;
+    this.checkers = checkers;
     this.checksUpdate = checksUpdate;
     this.revisionResource = revisionResource;
   }
 
   @Override
-  public CheckApi id(String checkerUuid) throws RestApiException, IOException, OrmException {
-    if (checkerUuid == null || checkerUuid.isEmpty()) {
-      throw new BadRequestException("checkerUuid is required");
-    }
+  public CheckApi id(CheckerUuid checkerUuid) throws RestApiException, IOException, OrmException {
+    // Ensure that the checker exists and throw a RestApiException if not.
+    checkers.id(checkerUuid).get();
 
     CheckKey checkKey =
         CheckKey.create(
@@ -84,17 +87,17 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
       throw new BadRequestException("input is required");
     }
     if (input.checkerUuid == null) {
-      throw new BadRequestException("checkerUuid is required");
+      throw new BadRequestException("checker_uuid is required");
     }
     if (input.state == null) {
       throw new BadRequestException("state is required");
     }
+    // Ensure that the checker exists and throw a RestApiException if not.
+    CheckerUuid checkerUuid = CheckerUuid.parse(checkers.id(input.checkerUuid).get().uuid);
 
     CheckKey checkKey =
         CheckKey.create(
-            revisionResource.getProject(),
-            revisionResource.getPatchSet().getId(),
-            input.checkerUuid);
+            revisionResource.getProject(), revisionResource.getPatchSet().getId(), checkerUuid);
     CheckUpdate checkUpdate =
         CheckUpdate.builder()
             .setState(input.state)
@@ -111,7 +114,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     return getChecks().stream().map(checkJson::format).collect(toImmutableList());
   }
 
-  private List<Check> getChecks() throws IOException, OrmException {
+  private List<Check> getChecks() throws OrmException, IOException {
     return checks.getChecks(revisionResource.getProject(), revisionResource.getPatchSet().getId());
   }
 }

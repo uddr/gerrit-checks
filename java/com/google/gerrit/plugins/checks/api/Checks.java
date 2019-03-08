@@ -16,13 +16,21 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.extensions.restapi.NotImplementedException;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gwtorm.server.OrmException;
 import java.io.IOException;
 
 /** Java API to interact with {@code Check}s. */
 public interface Checks {
-  CheckApi id(String checkerUuid) throws RestApiException, IOException, OrmException;
+  CheckApi id(CheckerUuid checkerUuid) throws RestApiException, IOException, OrmException;
+
+  default CheckApi id(String uuidString) throws RestApiException, IOException, OrmException {
+    return id(
+        CheckerUuid.tryParse(uuidString)
+            .orElseThrow(() -> new ResourceNotFoundException("Not found: " + uuidString)));
+  }
 
   CheckApi create(CheckInput input) throws RestApiException, IOException, OrmException;
 
@@ -34,7 +42,7 @@ public interface Checks {
    */
   class NotImplemented implements Checks {
     @Override
-    public CheckApi id(String checkerUuid) throws RestApiException, IOException, OrmException {
+    public CheckApi id(CheckerUuid checkerUuid) throws RestApiException, IOException, OrmException {
       throw new NotImplementedException();
     }
 

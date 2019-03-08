@@ -15,11 +15,18 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.PatchSetUtil;
@@ -27,34 +34,42 @@ import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.io.IOException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /** Class to read checks from NoteDb. */
 @Singleton
 class NoteDbChecks implements Checks {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final ChangeNotes.Factory changeNotesFactory;
   private final PatchSetUtil psUtil;
   private final CheckNotes.Factory checkNotesFactory;
+  private final Checkers checkers;
 
   @Inject
   NoteDbChecks(
       ChangeNotes.Factory changeNotesFactory,
       PatchSetUtil psUtil,
-      CheckNotes.Factory checkNotesFactory) {
+      CheckNotes.Factory checkNotesFactory,
+      Checkers checkers) {
     this.changeNotesFactory = changeNotesFactory;
     this.psUtil = psUtil;
     this.checkNotesFactory = checkNotesFactory;
+    this.checkers = checkers;
   }
 
   @Override
   public ImmutableList<Check> getChecks(Project.NameKey projectName, PatchSet.Id psId)
-      throws OrmException {
+      throws OrmException, IOException {
     return getChecksAsStream(projectName, psId).collect(toImmutableList());
   }
 
   @Override
-  public Optional<Check> getCheck(CheckKey checkKey) throws OrmException {
+  public Optional<Check> getCheck(CheckKey checkKey) throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     return getChecksAsStream(checkKey.project(), checkKey.patchSet())
         .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
@@ -62,18 +77,38 @@ class NoteDbChecks implements Checks {
   }
 
   private Stream<Check> getChecksAsStream(Project.NameKey projectName, PatchSet.Id psId)
-      throws OrmException {
+      throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     ChangeNotes notes = changeNotesFactory.create(projectName, psId.getParentKey());
     PatchSet patchSet = psUtil.get(notes, psId);
     CheckNotes checkNotes = checkNotesFactory.create(notes.getChange());
+
     checkNotes.load();
+    Set<CheckerUuid> checkerUuids = activeAndValidCheckersForProject(projectName);
     return checkNotes
         .getChecks()
         .getOrDefault(patchSet.getRevision(), NoteDbCheckMap.empty())
         .checks
         .entrySet()
         .stream()
-        .map(e -> e.getValue().toCheck(projectName, psId, e.getKey()));
+        .map(e -> e.getValue().toCheck(projectName, psId, CheckerUuid.parse(e.getKey())))
+        .filter(c -> checkerUuids.contains(c.key().checkerUuid()));
+  }
+
+  /** Get all checkers that apply to a project. Might return a superset of checkers that apply. */
+  private ImmutableSet<CheckerUuid> activeAndValidCheckersForProject(Project.NameKey projectName)
+      throws IOException {
+    Stream<Checker> checkerStream;
+    try {
+      checkerStream = checkers.checkersOf(projectName).stream();
+    } catch (ConfigInvalidException e) {
+      logger.atInfo().withCause(e).log(
+          "can't bulk-load checkers for " + projectName + " will do one-by-one");
+      checkerStream = checkers.listCheckers().stream();
+    }
+    return checkerStream
+        .filter(c -> c.getStatus() == CheckerStatus.ENABLED)
+        .map(Checker::getUuid)
+        .collect(toImmutableSet());
   }
 }

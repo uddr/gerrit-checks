@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations.PerCheckOperations;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
@@ -53,14 +54,14 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void createCheck() throws Exception {
-    String checkerUuid = "my-checker";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid;
+    input.checkerUuid = checkerUuid.toString();
     input.state = CheckState.RUNNING;
 
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
-    assertThat(info.checkerUuid).isEqualTo(checkerUuid);
+    assertThat(info.checkerUuid).isEqualTo(checkerUuid.toString());
     assertThat(info.state).isEqualTo(CheckState.RUNNING);
     assertThat(info.started).isNull();
     assertThat(info.finished).isNull();
@@ -72,19 +73,21 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
     // TODO(gerrit-team) Add a Truth subject for the notes map
     Map<RevId, String> notes = perCheckOps.notesAsText();
-    assertThat(notes).containsExactly(revId, noteDbContent());
+    assertThat(notes).containsExactly(revId, noteDbContent(checkerUuid.toString()));
   }
 
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave
 
-  private String noteDbContent() {
+  private String noteDbContent(String uuid) {
     return ""
         + "{\n"
         + "  \"checks\": {\n"
-        + "    \"my-checker\": {\n"
+        + "    \""
+        + uuid
+        + "\": {\n"
         + "      \"state\": \"RUNNING\",\n"
-        + "      \"created\": \"1970-01-01T00:00:22Z\",\n"
-        + "      \"updated\": \"1970-01-01T00:00:22Z\"\n"
+        + "      \"created\": \"1970-01-01T00:00:25Z\",\n"
+        + "      \"updated\": \"1970-01-01T00:00:25Z\"\n"
         + "    }\n"
         + "  }\n"
         + "}";
