@@ -70,9 +70,8 @@ public enum CombinedCheckState {
       } else if (state == CheckState.FAILED) {
         if (e.getValue()) {
           return CombinedCheckState.FAILED;
-        } else {
-          failedOptionalCount++;
         }
+        failedOptionalCount++;
       } else if (state == CheckState.SUCCESSFUL) {
         successfulCount++;
       } else if (state == CheckState.NOT_RELEVANT) {
