@@ -66,7 +66,11 @@ public class CheckApiImpl implements CheckApi {
     }
     if (input.checkerUuid != null && !input.checkerUuid.equals(checkResource.getCheckerUuid())) {
       throw new BadRequestException(
-          "checkerUuid must either be null or the same as on the resource");
+          String.format(
+              "checkerUuid must either be null or the same as on the resource:\n"
+                  + "the check resource belongs to checker %s,"
+                  + " but in the input checker %s was specified",
+              checkResource.getCheckerUuid(), input.checkerUuid));
     }
 
     Project.NameKey project = checkResource.getRevisionResource().getProject();
