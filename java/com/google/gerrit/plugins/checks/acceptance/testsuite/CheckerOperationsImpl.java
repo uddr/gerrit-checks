@@ -225,6 +225,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
       return checkerJson.format(checker.get());
     }
 
+    @Override
     public TestCheckerUpdate.Builder forUpdate() {
       return TestCheckerUpdate.builder(this::updateChecker);
     }
