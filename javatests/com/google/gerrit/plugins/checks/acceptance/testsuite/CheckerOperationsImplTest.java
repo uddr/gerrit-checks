@@ -48,6 +48,7 @@ import org.junit.Test;
 
 public class CheckerOperationsImplTest extends AbstractCheckersTest {
   // Use specific subclass instead of depending on the interface field from the base class.
+  @SuppressWarnings("hiding")
   private CheckerOperationsImpl checkerOperations;
 
   @Before
