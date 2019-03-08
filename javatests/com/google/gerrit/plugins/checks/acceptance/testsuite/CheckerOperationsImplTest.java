@@ -64,6 +64,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     assertThat(foundChecker.uuid).isEqualTo(checkerUuid.toString());
     assertThat(foundChecker.name).isNull();
     assertThat(foundChecker.repository).isEqualTo(allProjects.get());
+    assertThat(foundChecker.status).isEqualTo(CheckerStatus.ENABLED);
     assertThat(foundChecker.description).isNull();
     assertThat(foundChecker.createdOn).isNotNull();
   }
@@ -110,6 +111,15 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     CheckerInfo checker = getCheckerFromServer(checkerUuid);
     assertThat(checker.description).isNull();
+  }
+
+  @Test
+  public void specifiedStatusIsRespectedForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().status(CheckerStatus.DISABLED).create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.status).isEqualTo(CheckerStatus.DISABLED);
   }
 
   @Test
@@ -198,6 +208,15 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     Timestamp createdOn = checkerOperations.checker(checker.uuid).get().getCreatedOn();
 
     assertThat(createdOn).isEqualTo(checker.createdOn);
+  }
+
+  @Test
+  public void statusOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
+
+    CheckerStatus status = checkerOperations.checker(checker.uuid).get().getStatus();
+
+    assertThat(status).isEqualTo(checker.status);
   }
 
   @Test

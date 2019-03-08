@@ -72,7 +72,7 @@ public abstract class TestCheckerUpdate {
 
     public abstract Builder repository(Project.NameKey repository);
 
-    abstract Builder status(CheckerStatus status);
+    public abstract Builder status(CheckerStatus status);
 
     public Builder enable() {
       return status(CheckerStatus.ENABLED);

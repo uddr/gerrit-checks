@@ -118,6 +118,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
     checkerCreation.description().ifPresent(builder::setDescription);
     checkerCreation.url().ifPresent(builder::setUrl);
     checkerCreation.repository().ifPresent(builder::setRepository);
+    checkerCreation.status().ifPresent(builder::setStatus);
     checkerCreation.query().ifPresent(builder::setQuery);
     return builder.build();
   }
