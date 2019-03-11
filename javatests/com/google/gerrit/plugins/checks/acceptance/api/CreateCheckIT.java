@@ -20,6 +20,7 @@ import com.google.gerrit.acceptance.Sandboxed;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -106,6 +107,20 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
     exception.expect(UnprocessableEntityException.class);
     exception.expectMessage("checker " + input.checkerUuid + " not found");
+    checksApiFactory.revision(patchSetId).create(input);
+  }
+
+  @Test
+  public void cannotCreateCheckForInvalidChecker() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.toString();
+    input.state = CheckState.RUNNING;
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot create check");
     checksApiFactory.revision(patchSetId).create(input);
   }
 
