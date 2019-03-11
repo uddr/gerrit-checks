@@ -34,7 +34,6 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.notes.NoteMap;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 
 public final class CheckOperationsImpl implements CheckOperations {
@@ -81,11 +80,6 @@ public final class CheckOperationsImpl implements CheckOperations {
     @Override
     public Check get() throws Exception {
       return checks.getCheck(key).get();
-    }
-
-    @Override
-    public RevCommit commit() throws Exception {
-      throw new UnsupportedOperationException("bla bla");
     }
 
     @Override

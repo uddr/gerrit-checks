@@ -19,7 +19,6 @@ import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.reviewdb.client.RevId;
-import org.eclipse.jgit.revwalk.RevCommit;
 
 // TODO(gerrit-team): Add Java doc
 public interface CheckOperations {
@@ -33,8 +32,6 @@ public interface CheckOperations {
     boolean exists() throws Exception;
 
     Check get() throws Exception;
-
-    RevCommit commit() throws Exception;
 
     ImmutableMap<RevId, String> notesAsText() throws Exception;
 
