@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -26,10 +27,13 @@ import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 
 public class GetCheckIT extends AbstractCheckersTest {
+  @Inject private RequestScopeOperations requestScopeOperations;
+
   private PatchSet.Id patchSetId;
 
   @Before
@@ -92,14 +96,14 @@ public class GetCheckIT extends AbstractCheckersTest {
     checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
 
     exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    exception.expectMessage("Cannot retrieve checker");
     checksApiFactory.revision(patchSetId).id(checkerUuid.toString());
   }
 
   @Test
   public void getCheckForNonExistingChecker() throws Exception {
     exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: test:non-existing");
+    exception.expectMessage("Checker test:non-existing not found");
     checksApiFactory.revision(patchSetId).id("test:non-existing");
   }
 
@@ -108,5 +112,18 @@ public class GetCheckIT extends AbstractCheckersTest {
     exception.expect(BadRequestException.class);
     exception.expectMessage("invalid checker UUID: malformed::checker*UUID");
     checksApiFactory.revision(patchSetId).id("malformed::checker*UUID");
+  }
+
+  @Test
+  public void getCheckWithoutAdministrateCheckers() throws Exception {
+    requestScopeOperations.setApiUser(user.getId());
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
   }
 }
