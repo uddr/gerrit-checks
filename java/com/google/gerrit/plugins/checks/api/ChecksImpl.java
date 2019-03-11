@@ -22,7 +22,6 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.PostCheck;
 import com.google.gerrit.server.change.RevisionResource;
@@ -36,7 +35,6 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     ChecksImpl create(RevisionResource revisionResource);
   }
 
-  private final Checkers checkers;
   private final Checks checks;
   private final ListChecks listChecks;
   private final PostCheck postCheck;
@@ -47,36 +45,18 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
   ChecksImpl(
       CheckApiImpl.Factory checkApiImplFactory,
       Checks checks,
-      Checkers checkers,
       ListChecks listChecks,
       PostCheck postCheck,
       @Assisted RevisionResource revisionResource) {
     this.checkApiImplFactory = checkApiImplFactory;
     this.checks = checks;
     this.postCheck = postCheck;
-    this.checkers = checkers;
     this.listChecks = listChecks;
     this.revisionResource = revisionResource;
   }
 
   @Override
   public CheckApi id(CheckerUuid checkerUuid) throws RestApiException {
-    // Ensure that the checker exists.
-    // TODO(gerrit-team): We are not asking for any permission for resolving the checker. This means
-    // users can probe which checkers exist. That's okay for now. The only permission that we have
-    // and that we could check is the 'Administrate Checkers' permission, but this permission should
-    // not be required for viewing checks on a change that is visible to the user.
-    try {
-      checkers
-          .getChecker(checkerUuid)
-          .orElseThrow(
-              () ->
-                  new ResourceNotFoundException(
-                      String.format("Checker %s not found", checkerUuid)));
-    } catch (Exception e) {
-      throw asRestApiException("Cannot retrieve checker", e);
-    }
-
     try {
       CheckKey checkKey =
           CheckKey.create(

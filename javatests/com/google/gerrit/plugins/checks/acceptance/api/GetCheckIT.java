@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -28,6 +27,10 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Inject;
+import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
+import org.eclipse.jgit.junit.TestRepository;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,16 +63,22 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
 
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage(
-        String.format(
-            "Patch set %s in project %s doesn't have check for checker %s.",
-            patchSetId, project, checkerUuid));
-    checksApiFactory.revision(patchSetId).id(checkerUuid);
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
   }
 
-  // TODO(gerrit-team): I think according to our latest discussions it should be possible to
-  // retrieve checks of disabled checkers, when we implement this, this test needs to be adapted
+  @Test
+  public void getCheckForCheckerThatDoesNotApplyToTheChange() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).query("message:not-matching").create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
   @Test
   public void getCheckForDisabledChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
@@ -79,32 +88,43 @@ public class GetCheckIT extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forUpdate().disable().update();
 
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  @Test
+  public void getCheckForInvalidChecker() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  @Test
+  public void getCheckForNonExistingChecker() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    deleteCheckerRef(checkerUuid);
+
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  @Test
+  public void getNonExistingCheck() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
     exception.expect(ResourceNotFoundException.class);
     exception.expectMessage(
         String.format(
             "Patch set %s in project %s doesn't have check for checker %s.",
             patchSetId, project, checkerUuid));
     checksApiFactory.revision(patchSetId).id(checkerUuid);
-  }
-
-  @Test
-  public void getCheckForInvalidChecker() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
-    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
-
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
-
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker");
-    checksApiFactory.revision(patchSetId).id(checkerUuid.toString());
-  }
-
-  @Test
-  public void getCheckForNonExistingChecker() throws Exception {
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Checker test:non-existing not found");
-    checksApiFactory.revision(patchSetId).id("test:non-existing");
   }
 
   @Test
@@ -125,5 +145,15 @@ public class GetCheckIT extends AbstractCheckersTest {
 
     CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
     assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  private void deleteCheckerRef(CheckerUuid checkerUuid) throws Exception {
+    try (Repository allProjectsRepo = repoManager.openRepository(allProjects)) {
+      TestRepository<InMemoryRepository> testRepo =
+          new TestRepository<>((InMemoryRepository) allProjectsRepo);
+      RefUpdate ru = testRepo.getRepository().updateRef(checkerUuid.toRefName(), true);
+      ru.setForceUpdate(true);
+      assertThat(ru.delete()).isEqualTo(RefUpdate.Result.FORCED);
+    }
   }
 }
