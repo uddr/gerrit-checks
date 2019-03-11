@@ -22,6 +22,8 @@ import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckResource;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.RevisionResource;
+import com.google.gerrit.server.permissions.PermissionBackend;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gwtorm.server.OrmException;
 import java.io.IOException;
 import java.util.Optional;
@@ -32,14 +34,21 @@ import javax.inject.Singleton;
 @Singleton
 public class PostCheck
     implements RestCollectionModifyView<RevisionResource, CheckResource, CheckInput> {
-
+  private final PermissionBackend permissionBackend;
+  private final AdministrateCheckersPermission permission;
   private final Checks checks;
   private final Provider<ChecksUpdate> checksUpdate;
   private final CheckJson checkJson;
 
   @Inject
   PostCheck(
-      Checks checks, @UserInitiated Provider<ChecksUpdate> checksUpdate, CheckJson checkJson) {
+      PermissionBackend permissionBackend,
+      AdministrateCheckersPermission permission,
+      Checks checks,
+      @UserInitiated Provider<ChecksUpdate> checksUpdate,
+      CheckJson checkJson) {
+    this.permissionBackend = permissionBackend;
+    this.permission = permission;
     this.checks = checks;
     this.checksUpdate = checksUpdate;
     this.checkJson = checkJson;
@@ -47,7 +56,7 @@ public class PostCheck
 
   @Override
   public CheckInfo apply(RevisionResource rsrc, CheckInput input)
-      throws OrmException, IOException, RestApiException {
+      throws OrmException, IOException, RestApiException, PermissionBackendException {
     if (input == null) {
       input = new CheckInput();
     }
@@ -57,6 +66,8 @@ public class PostCheck
     if (!CheckerUuid.isUuid(input.checkerUuid)) {
       throw new BadRequestException("invalid checker UUID: " + input.checkerUuid);
     }
+
+    permissionBackend.currentUser().check(permission);
 
     CheckKey key =
         CheckKey.create(

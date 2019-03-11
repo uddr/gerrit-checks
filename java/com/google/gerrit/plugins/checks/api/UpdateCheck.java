@@ -18,6 +18,7 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.plugins.checks.PostCheck;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -34,7 +35,7 @@ public class UpdateCheck implements RestModifyView<CheckResource, CheckInput> {
 
   @Override
   public CheckInfo apply(CheckResource checkResource, CheckInput input)
-      throws RestApiException, IOException, OrmException {
+      throws RestApiException, IOException, OrmException, PermissionBackendException {
     if (input == null) {
       input = new CheckInput();
     }

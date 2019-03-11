@@ -16,6 +16,8 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -23,10 +25,13 @@ import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 
 public class UpdateCheckIT extends AbstractCheckersTest {
+  @Inject private RequestScopeOperations requestScopeOperations;
+
   private PatchSet.Id patchSetId;
   private CheckKey checkKey;
 
@@ -46,5 +51,14 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.state).isEqualTo(CheckState.FAILED);
+  }
+
+  @Test
+  public void cannotUpdateCheckWithoutAdministrateCheckers() throws Exception {
+    requestScopeOperations.setApiUser(user.getId());
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("not permitted");
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
   }
 }

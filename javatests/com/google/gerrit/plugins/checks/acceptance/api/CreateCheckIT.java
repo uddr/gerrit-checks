@@ -17,6 +17,8 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gerrit.acceptance.Sandboxed;
+import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -28,6 +30,7 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.testing.TestTimeUtil;
+import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
@@ -37,6 +40,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class CreateCheckIT extends AbstractCheckersTest {
+  @Inject private RequestScopeOperations requestScopeOperations;
+
   private PatchSet.Id patchSetId;
   private RevId revId;
 
@@ -89,6 +94,21 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
     exception.expect(BadRequestException.class);
     exception.expectMessage("invalid checker UUID: " + input.checkerUuid);
+    checksApiFactory.revision(patchSetId).create(input);
+  }
+
+  @Test
+  public void cannotCreateCheckWithoutAdministrateCheckers() throws Exception {
+    requestScopeOperations.setApiUser(user.getId());
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.toString();
+    input.state = CheckState.RUNNING;
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("not permitted");
     checksApiFactory.revision(patchSetId).create(input);
   }
 
