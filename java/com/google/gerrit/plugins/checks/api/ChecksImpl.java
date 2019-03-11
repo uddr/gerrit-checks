@@ -71,7 +71,14 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
       return checkApiImplFactory.create(
           new CheckResource(
               revisionResource,
-              check.orElseThrow(() -> new ResourceNotFoundException("Not found: " + checkerUuid))));
+              check.orElseThrow(
+                  () ->
+                      new ResourceNotFoundException(
+                          String.format(
+                              "Patch set %s in project %s doesn't have check for checker %s.",
+                              revisionResource.getPatchSet().getId(),
+                              revisionResource.getProject(),
+                              checkerUuid)))));
     } catch (Exception e) {
       throw asRestApiException("Cannot parse check", e);
     }

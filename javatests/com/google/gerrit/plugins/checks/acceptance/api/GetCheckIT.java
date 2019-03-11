@@ -57,7 +57,10 @@ public class GetCheckIT extends AbstractCheckersTest {
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
 
     exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: " + checkerUuid);
+    exception.expectMessage(
+        String.format(
+            "Patch set %s in project %s doesn't have check for checker %s.",
+            patchSetId, project, checkerUuid));
     checksApiFactory.revision(patchSetId).id(checkerUuid);
   }
 
@@ -73,7 +76,10 @@ public class GetCheckIT extends AbstractCheckersTest {
     checkerOperations.checker(checkerUuid).forUpdate().disable().update();
 
     exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: " + checkerUuid);
+    exception.expectMessage(
+        String.format(
+            "Patch set %s in project %s doesn't have check for checker %s.",
+            patchSetId, project, checkerUuid));
     checksApiFactory.revision(patchSetId).id(checkerUuid);
   }
 
