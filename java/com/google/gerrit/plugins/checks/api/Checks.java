@@ -15,8 +15,8 @@
 package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.NotImplementedException;
-import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 
@@ -27,7 +27,10 @@ public interface Checks {
   default CheckApi id(String uuidString) throws RestApiException {
     return id(
         CheckerUuid.tryParse(uuidString)
-            .orElseThrow(() -> new ResourceNotFoundException("Not found: " + uuidString)));
+            .orElseThrow(
+                () ->
+                    new BadRequestException(
+                        String.format("invalid checker UUID: %s", uuidString))));
   }
 
   CheckApi create(CheckInput input) throws RestApiException;

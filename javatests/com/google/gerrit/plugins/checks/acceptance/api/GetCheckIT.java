@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -98,8 +99,8 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckForInvalidCheckerUuid() throws Exception {
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: malformed::checker*UUID");
+    exception.expect(BadRequestException.class);
+    exception.expectMessage("invalid checker UUID: malformed::checker*UUID");
     checksApiFactory.revision(patchSetId).id("malformed::checker*UUID");
   }
 }
