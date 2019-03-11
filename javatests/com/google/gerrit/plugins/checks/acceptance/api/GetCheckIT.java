@@ -17,12 +17,12 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import org.junit.Before;
@@ -69,10 +69,37 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
 
-    checkerOperations.checker(checkerUuid).forUpdate().status(CheckerStatus.DISABLED).update();
+    checkerOperations.checker(checkerUuid).forUpdate().disable().update();
 
     exception.expect(ResourceNotFoundException.class);
     exception.expectMessage("Not found: " + checkerUuid);
     checksApiFactory.revision(patchSetId).id(checkerUuid);
+  }
+
+  @Test
+  public void getCheckForInvalidChecker() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(key).setState(CheckState.RUNNING).upsert();
+
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    checksApiFactory.revision(patchSetId).id(checkerUuid.toString());
+  }
+
+  @Test
+  public void getCheckForNonExistingChecker() throws Exception {
+    exception.expect(ResourceNotFoundException.class);
+    exception.expectMessage("Not found: test:non-existing");
+    checksApiFactory.revision(patchSetId).id("test:non-existing");
+  }
+
+  @Test
+  public void getCheckForInvalidCheckerUuid() throws Exception {
+    exception.expect(ResourceNotFoundException.class);
+    exception.expectMessage("Not found: malformed::checker*UUID");
+    checksApiFactory.revision(patchSetId).id("malformed::checker*UUID");
   }
 }
