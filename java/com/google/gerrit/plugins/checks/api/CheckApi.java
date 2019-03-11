@@ -16,8 +16,6 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gwtorm.server.OrmException;
-import java.io.IOException;
 
 /** Java API to interact with single {@code Check}s. */
 public interface CheckApi {
@@ -25,7 +23,7 @@ public interface CheckApi {
   CheckInfo get() throws RestApiException;
 
   /** Updates a check and returns the {@link CheckInfo} for the updated resource. */
-  CheckInfo update(CheckInput input) throws RestApiException, IOException, OrmException;
+  CheckInfo update(CheckInput input) throws RestApiException;
 
   /**
    * A default implementation which allows source compatibility when adding new methods to the
@@ -38,7 +36,7 @@ public interface CheckApi {
     }
 
     @Override
-    public CheckInfo update(CheckInput input) throws RestApiException, IOException, OrmException {
+    public CheckInfo update(CheckInput input) throws RestApiException {
       throw new NotImplementedException();
     }
   }

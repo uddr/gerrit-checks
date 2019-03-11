@@ -14,11 +14,11 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
+
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import java.io.IOException;
 
 public class CheckApiImpl implements CheckApi {
   public interface Factory {
@@ -42,7 +42,11 @@ public class CheckApiImpl implements CheckApi {
   }
 
   @Override
-  public CheckInfo update(CheckInput input) throws RestApiException, IOException, OrmException {
-    return updateCheck.apply(checkResource, input);
+  public CheckInfo update(CheckInput input) throws RestApiException {
+    try {
+      return updateCheck.apply(checkResource, input);
+    } catch (Exception e) {
+      throw asRestApiException("Cannot update check", e);
+    }
   }
 }
