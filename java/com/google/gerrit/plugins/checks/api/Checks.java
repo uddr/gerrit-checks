@@ -19,22 +19,20 @@ import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gwtorm.server.OrmException;
-import java.io.IOException;
 
 /** Java API to interact with {@code Check}s. */
 public interface Checks {
-  CheckApi id(CheckerUuid checkerUuid) throws RestApiException, IOException, OrmException;
+  CheckApi id(CheckerUuid checkerUuid) throws RestApiException;
 
-  default CheckApi id(String uuidString) throws RestApiException, IOException, OrmException {
+  default CheckApi id(String uuidString) throws RestApiException {
     return id(
         CheckerUuid.tryParse(uuidString)
             .orElseThrow(() -> new ResourceNotFoundException("Not found: " + uuidString)));
   }
 
-  CheckApi create(CheckInput input) throws RestApiException, IOException, OrmException;
+  CheckApi create(CheckInput input) throws RestApiException;
 
-  ImmutableList<CheckInfo> list() throws RestApiException, IOException, OrmException;
+  ImmutableList<CheckInfo> list() throws RestApiException;
 
   /**
    * A default implementation which allows source compatibility when adding new methods to the
@@ -42,17 +40,17 @@ public interface Checks {
    */
   class NotImplemented implements Checks {
     @Override
-    public CheckApi id(CheckerUuid checkerUuid) throws RestApiException, IOException, OrmException {
+    public CheckApi id(CheckerUuid checkerUuid) throws RestApiException {
       throw new NotImplementedException();
     }
 
     @Override
-    public CheckApi create(CheckInput input) throws RestApiException, IOException, OrmException {
+    public CheckApi create(CheckInput input) throws RestApiException {
       throw new NotImplementedException();
     }
 
     @Override
-    public ImmutableList<CheckInfo> list() throws RestApiException, IOException, OrmException {
+    public ImmutableList<CheckInfo> list() throws RestApiException {
       throw new NotImplementedException();
     }
   }
