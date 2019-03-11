@@ -24,13 +24,13 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 public interface Checks {
   CheckApi id(CheckerUuid checkerUuid) throws RestApiException;
 
-  default CheckApi id(String uuidString) throws RestApiException {
+  default CheckApi id(String checkerUuidString) throws RestApiException {
     return id(
-        CheckerUuid.tryParse(uuidString)
+        CheckerUuid.tryParse(checkerUuidString)
             .orElseThrow(
                 () ->
                     new BadRequestException(
-                        String.format("invalid checker UUID: %s", uuidString))));
+                        String.format("invalid checker UUID: %s", checkerUuidString))));
   }
 
   CheckApi create(CheckInput input) throws RestApiException;
