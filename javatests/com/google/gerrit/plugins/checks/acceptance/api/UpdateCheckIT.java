@@ -16,8 +16,6 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -48,30 +46,5 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.state).isEqualTo(CheckState.FAILED);
-  }
-
-  @Test
-  public void updateCheckStateForDisabledChecker() throws Exception {
-    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().disable().update();
-
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: " + checkKey.checkerUuid());
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
-  }
-
-  @Test
-  public void updateCheckStateForInvalidChecker() throws Exception {
-    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().forceInvalidConfig().update();
-
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkKey.checkerUuid());
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
-  }
-
-  @Test
-  public void updateCheckStateWithInvalidUuid() throws Exception {
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: in#alid");
-    checksApiFactory.revision(patchSetId).id("in#alid").update(new CheckInput());
   }
 }
