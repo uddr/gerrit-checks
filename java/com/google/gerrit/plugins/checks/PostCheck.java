@@ -76,16 +76,17 @@ public class PostCheck
     permissionBackend.currentUser().check(permission);
 
     CheckerUuid checkerUuid = CheckerUuid.parse(input.checkerUuid);
-    checkers
-        .getChecker(checkerUuid)
-        .orElseThrow(
-            () ->
-                new UnprocessableEntityException(
-                    String.format("checker %s not found", checkerUuid)));
 
     CheckKey key = CheckKey.create(rsrc.getProject(), rsrc.getPatchSet().getId(), checkerUuid);
     Optional<Check> check = checks.getCheck(key);
     if (!check.isPresent()) {
+      checkers
+          .getChecker(checkerUuid)
+          .orElseThrow(
+              () ->
+                  new UnprocessableEntityException(
+                      String.format("checker %s not found", checkerUuid)));
+
       if (input.state == null) {
         throw new BadRequestException("state is required on creation");
       }

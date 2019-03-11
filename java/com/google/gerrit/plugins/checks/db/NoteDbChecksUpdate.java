@@ -156,7 +156,9 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
 
   private Check upsertCheckInNoteDb(CheckKey checkKey, CheckUpdate checkUpdate, Operation operation)
       throws IOException, ConfigInvalidException, OrmDuplicateKeyException {
-    assertCheckerIsPresent(checkKey.checkerUuid());
+    if (operation == Operation.CREATE) {
+      assertCheckerIsPresent(checkKey.checkerUuid());
+    }
 
     try (Repository repo = repoManager.openRepository(checkKey.project());
         ObjectInserter objectInserter = repo.newObjectInserter();
