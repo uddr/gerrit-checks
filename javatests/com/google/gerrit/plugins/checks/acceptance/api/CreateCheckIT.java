@@ -29,6 +29,7 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations.Per
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.testing.TestTimeUtil;
@@ -122,6 +123,21 @@ public class CreateCheckIT extends AbstractCheckersTest {
     exception.expect(RestApiException.class);
     exception.expectMessage("Cannot create check");
     checksApiFactory.revision(patchSetId).create(input);
+  }
+
+  @Test
+  public void canCreateCheckForDisabledChecker() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).status(CheckerStatus.DISABLED).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.toString();
+    input.state = CheckState.RUNNING;
+
+    checksApiFactory.revision(patchSetId).create(input);
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    assertThat(checkOperations.check(checkKey).exists()).isTrue();
   }
 
   @Test

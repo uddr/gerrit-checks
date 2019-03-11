@@ -25,12 +25,10 @@ import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
-import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.GerritPersonIdent;
 import com.google.gerrit.server.IdentifiedUser;
@@ -158,7 +156,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
 
   private Check upsertCheckInNoteDb(CheckKey checkKey, CheckUpdate checkUpdate, Operation operation)
       throws IOException, ConfigInvalidException, OrmDuplicateKeyException {
-    assertCheckerPresentAndEnabled(checkKey.checkerUuid());
+    assertCheckerIsPresent(checkKey.checkerUuid());
 
     try (Repository repo = repoManager.openRepository(checkKey.project());
         ObjectInserter objectInserter = repo.newObjectInserter();
@@ -200,15 +198,9 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     }
   }
 
-  private void assertCheckerPresentAndEnabled(CheckerUuid checkerUuid)
+  private void assertCheckerIsPresent(CheckerUuid checkerUuid)
       throws ConfigInvalidException, IOException {
-    Checker checker =
-        checkers
-            .getChecker(checkerUuid)
-            .orElseThrow(() -> new IOException(checkerUuid + " missing"));
-    if (checker.getStatus() != CheckerStatus.ENABLED) {
-      throw new IOException("checker " + checkerUuid + " unknown");
-    }
+    checkers.getChecker(checkerUuid).orElseThrow(() -> new IOException(checkerUuid + " missing"));
   }
 
   private boolean updateNotesMap(

@@ -54,6 +54,17 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void canUpdateCheckForDisabledChecker() throws Exception {
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().disable().update();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.SUCCESSFUL;
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.state).isEqualTo(CheckState.SUCCESSFUL);
+  }
+
+  @Test
   public void cannotUpdateCheckWithoutAdministrateCheckers() throws Exception {
     requestScopeOperations.setApiUser(user.getId());
 
