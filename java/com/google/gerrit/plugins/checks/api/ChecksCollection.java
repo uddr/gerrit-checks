@@ -36,17 +36,21 @@ import java.util.Optional;
 
 @Singleton
 public class ChecksCollection implements ChildCollection<RevisionResource, CheckResource> {
-
-  private final ListChecks listChecks;
+  private final CheckBackfiller checkBackfiller;
   private final Checks checks;
   private final DynamicMap<RestView<CheckResource>> views;
+  private final ListChecks listChecks;
 
   @Inject
   ChecksCollection(
-      ListChecks listChecks, Checks checks, DynamicMap<RestView<CheckResource>> views) {
-    this.listChecks = listChecks;
+      CheckBackfiller checkBackfiller,
+      Checks checks,
+      DynamicMap<RestView<CheckResource>> views,
+      ListChecks listChecks) {
+    this.checkBackfiller = checkBackfiller;
     this.checks = checks;
     this.views = views;
+    this.listChecks = listChecks;
   }
 
   @Override
@@ -64,8 +68,19 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
     CheckKey checkKey =
         CheckKey.create(parent.getProject(), parent.getPatchSet().getId(), checkerUuid);
     Optional<Check> check = checks.getCheck(checkKey);
+    if (!check.isPresent()) {
+      check =
+          checkBackfiller.getBackfilledCheckForRelevantChecker(
+              checkerUuid, parent.getNotes(), checkKey.patchSet());
+    }
     return new CheckResource(
-        parent, check.orElseThrow(() -> new ResourceNotFoundException("Not found: " + id.get())));
+        parent,
+        check.orElseThrow(
+            () ->
+                new ResourceNotFoundException(
+                    String.format(
+                        "Patch set %s in project %s doesn't have check for checker %s.",
+                        checkKey.patchSet(), checkKey.project(), checkerUuid))));
   }
 
   @Override

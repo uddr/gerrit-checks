@@ -22,6 +22,8 @@ import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.index.change.ChangeField;
@@ -34,22 +36,28 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
 class CheckBackfiller {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final ChangeData.Factory changeDataFactory;
+  private final Checkers checkers;
   private final Provider<AnonymousUser> anonymousUserProvider;
   private final Provider<ChangeQueryBuilder> queryBuilderProvider;
 
   @Inject
   CheckBackfiller(
       Factory changeDataFactory,
+      Checkers checkers,
       Provider<AnonymousUser> anonymousUserProvider,
       Provider<ChangeQueryBuilder> queryBuilderProvider) {
     this.changeDataFactory = changeDataFactory;
+    this.checkers = checkers;
     this.anonymousUserProvider = anonymousUserProvider;
     this.queryBuilderProvider = queryBuilderProvider;
   }
@@ -69,20 +77,50 @@ class CheckBackfiller {
     // NOT_STARTED, with creation time matching the patch set.
     ImmutableList.Builder<Check> result = ImmutableList.builderWithExpectedSize(candidates.size());
     PatchSet ps = cd.patchSet(psId);
-    ChangeQueryBuilder queryBuilder =
-        queryBuilderProvider.get().asUser(anonymousUserProvider.get());
+    ChangeQueryBuilder queryBuilder = newQueryBuilder();
     for (Checker checker : candidates) {
       if (matches(checker, cd, queryBuilder)) {
         // Add synthetic check at the creation time of the patch set.
-        result.add(
-            Check.builder(CheckKey.create(cd.project(), ps.getId(), checker.getUuid()))
-                .setState(CheckState.NOT_STARTED)
-                .setCreated(ps.getCreatedOn())
-                .setUpdated(ps.getCreatedOn())
-                .build());
+        result.add(newBackfilledCheck(cd, ps, checker));
       }
     }
     return result.build();
+  }
+
+  Optional<Check> getBackfilledCheckForRelevantChecker(
+      CheckerUuid candidate, ChangeNotes notes, PatchSet.Id psId) throws OrmException, IOException {
+    ChangeData cd = changeDataFactory.create(notes);
+    if (!psId.equals(cd.change().currentPatchSetId())) {
+      // The query system can only match against the current patch set; it doesn't make sense to
+      // backfill checkers for old patch sets.
+      return Optional.empty();
+    }
+
+    Optional<Checker> checker;
+    try {
+      checker = checkers.getChecker(candidate);
+    } catch (ConfigInvalidException e) {
+      // Match behavior of Checkers#checkersOf, ignoring invalid config.
+      return Optional.empty();
+    }
+    if (!checker.isPresent()
+        || checker.get().getStatus() != CheckerStatus.ENABLED
+        || !matches(checker.get(), cd, newQueryBuilder())) {
+      return Optional.empty();
+    }
+    return Optional.of(newBackfilledCheck(cd, cd.patchSet(psId), checker.get()));
+  }
+
+  private Check newBackfilledCheck(ChangeData cd, PatchSet ps, Checker checker) {
+    return Check.builder(CheckKey.create(cd.project(), ps.getId(), checker.getUuid()))
+        .setState(CheckState.NOT_STARTED)
+        .setCreated(ps.getCreatedOn())
+        .setUpdated(ps.getCreatedOn())
+        .build();
+  }
+
+  private ChangeQueryBuilder newQueryBuilder() {
+    return queryBuilderProvider.get().asUser(anonymousUserProvider.get());
   }
 
   private static boolean matches(Checker checker, ChangeData cd, ChangeQueryBuilder queryBuilder)
