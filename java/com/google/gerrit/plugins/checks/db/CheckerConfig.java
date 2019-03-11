@@ -63,9 +63,9 @@ import org.eclipse.jgit.revwalk.RevSort;
  * <h2>Internal details</h2>
  *
  * <p>Each checker is represented by a commit on a branch as defined by {@link
- * CheckerRef#refsCheckers(CheckerUuid)}. Previous versions of the checker exist as older commits on
- * the same branch and can be reached by following along the parent references. New commits for
- * updates are only created if a real modification occurs.
+ * CheckerUuid#toRefName()}. Previous versions of the checker exist as older commits on the same
+ * branch and can be reached by following along the parent references. New commits for updates are
+ * only created if a real modification occurs.
  *
  * <p>Within each commit, the properties of a checker are stored in <em>checker.config</em> file
  * (further specified by {@link CheckerConfigEntry}). The <em>checker.config</em> file is formatted
