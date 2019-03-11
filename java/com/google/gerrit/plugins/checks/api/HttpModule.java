@@ -14,7 +14,6 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.inject.servlet.ServletModule;
 
 public class HttpModule extends ServletModule {
@@ -22,14 +21,5 @@ public class HttpModule extends ServletModule {
   @Override
   protected void configureServlets() {
     serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-
-    install(
-        new RestApiModule() {
-          @Override
-          public void configure() {
-            // Checkers
-
-          }
-        });
   }
 }
