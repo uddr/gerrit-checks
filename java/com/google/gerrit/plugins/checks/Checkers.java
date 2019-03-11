@@ -82,7 +82,6 @@ public interface Checkers {
    * @return the checkers that apply that apply to the given repository, sorted by UUID
    * @throws IOException if reading the checker list fails or if any checker couldn't be retrieved
    *     from the storage
-   * @throws ConfigInvalidException if reading the checker list fails
    */
   ImmutableSortedSet<Checker> checkersOf(Project.NameKey repositoryName) throws IOException;
 }
