@@ -329,6 +329,17 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void refCanBeDeleted() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().deleteRef().update();
+
+    try (Repository allProjectsRepo = repoManager.openRepository(allProjects)) {
+      assertThat(allProjectsRepo.exactRef(checkerUuid.toRefName())).isNull();
+    }
+  }
+
+  @Test
   public void getCommit() throws Exception {
     CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
 

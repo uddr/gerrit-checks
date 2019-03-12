@@ -31,10 +31,6 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import java.sql.Timestamp;
 import java.util.Collection;
-import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
-import org.eclipse.jgit.junit.TestRepository;
-import org.eclipse.jgit.lib.RefUpdate;
-import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -118,7 +114,7 @@ public class ListChecksIT extends AbstractCheckersTest {
 
   @Test
   public void listIncludesCheckFromNonExistingChecker() throws Exception {
-    deleteCheckerRef(checkKey2.checkerUuid());
+    checkerOperations.checker(checkKey2.checkerUuid()).forUpdate().deleteRef().update();
 
     Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
     assertThat(info)
@@ -188,15 +184,5 @@ public class ListChecksIT extends AbstractCheckersTest {
     return getOnlyElement(
             gApi.changes().id(changeId.get()).get(CURRENT_REVISION).revisions.values())
         .created;
-  }
-
-  private void deleteCheckerRef(CheckerUuid checkerUuid) throws Exception {
-    try (Repository allProjectsRepo = repoManager.openRepository(allProjects)) {
-      TestRepository<InMemoryRepository> testRepo =
-          new TestRepository<>((InMemoryRepository) allProjectsRepo);
-      RefUpdate ru = testRepo.getRepository().updateRef(checkerUuid.toRefName(), true);
-      ru.setForceUpdate(true);
-      assertThat(ru.delete()).isEqualTo(RefUpdate.Result.FORCED);
-    }
   }
 }

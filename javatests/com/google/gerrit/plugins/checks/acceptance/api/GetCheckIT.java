@@ -35,10 +35,6 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
-import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
-import org.eclipse.jgit.junit.TestRepository;
-import org.eclipse.jgit.lib.RefUpdate;
-import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -119,7 +115,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
-    deleteCheckerRef(checkerUuid);
+    checkerOperations.checker(checkerUuid).forUpdate().deleteRef().update();
 
     CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
     assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -193,16 +189,6 @@ public class GetCheckIT extends AbstractCheckersTest {
     return getOnlyElement(
             gApi.changes().id(changeId.get()).get(CURRENT_REVISION).revisions.values())
         .created;
-  }
-
-  private void deleteCheckerRef(CheckerUuid checkerUuid) throws Exception {
-    try (Repository allProjectsRepo = repoManager.openRepository(allProjects)) {
-      TestRepository<InMemoryRepository> testRepo =
-          new TestRepository<>((InMemoryRepository) allProjectsRepo);
-      RefUpdate ru = testRepo.getRepository().updateRef(checkerUuid.toRefName(), true);
-      ru.setForceUpdate(true);
-      assertThat(ru.delete()).isEqualTo(RefUpdate.Result.FORCED);
-    }
   }
 
   private void assertCheckNotFound(PatchSet.Id patchSetId, CheckerUuid checkerUuid)

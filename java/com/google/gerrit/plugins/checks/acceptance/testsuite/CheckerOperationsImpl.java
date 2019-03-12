@@ -49,6 +49,7 @@ import org.eclipse.jgit.lib.BlobBasedConfig;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.NoteMap;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -242,6 +243,15 @@ public class CheckerOperationsImpl implements CheckerOperations {
               .commit()
               .add(CheckerConfig.CHECKER_CONFIG_FILE, "invalid-config")
               .create();
+        }
+      }
+
+      if (testCheckerUpdate.deleteRef()) {
+        try (Repository repo = repoManager.openRepository(allProjectsName)) {
+          RefUpdate ru =
+              new TestRepository<>(repo).getRepository().updateRef(checkerUuid.toRefName(), true);
+          ru.setForceUpdate(true);
+          ru.delete();
         }
       }
     }

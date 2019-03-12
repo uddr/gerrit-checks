@@ -27,10 +27,6 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Inject;
-import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
-import org.eclipse.jgit.junit.TestRepository;
-import org.eclipse.jgit.lib.RefUpdate;
-import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -98,7 +94,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void canUpdateCheckForNonExistingChecker() throws Exception {
-    deleteCheckerRef(checkKey.checkerUuid());
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().deleteRef().update();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.SUCCESSFUL;
@@ -125,15 +121,5 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     exception.expect(AuthException.class);
     exception.expectMessage("not permitted");
     checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
-  }
-
-  private void deleteCheckerRef(CheckerUuid checkerUuid) throws Exception {
-    try (Repository allProjectsRepo = repoManager.openRepository(allProjects)) {
-      TestRepository<InMemoryRepository> testRepo =
-          new TestRepository<>((InMemoryRepository) allProjectsRepo);
-      RefUpdate ru = testRepo.getRepository().updateRef(checkerUuid.toRefName(), true);
-      ru.setForceUpdate(true);
-      assertThat(ru.delete()).isEqualTo(RefUpdate.Result.FORCED);
-    }
   }
 }
