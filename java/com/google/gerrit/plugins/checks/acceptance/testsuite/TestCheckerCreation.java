@@ -14,12 +14,19 @@
 
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static java.util.Comparator.naturalOrder;
+
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.acceptance.testsuite.ThrowingFunction;
 import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @AutoValue
 public abstract class TestCheckerCreation {
@@ -34,6 +41,8 @@ public abstract class TestCheckerCreation {
   public abstract Optional<Project.NameKey> repository();
 
   public abstract Optional<CheckerStatus> status();
+
+  public abstract Optional<ImmutableSortedSet<BlockingCondition>> blockingConditions();
 
   public abstract Optional<String> query();
 
@@ -64,6 +73,19 @@ public abstract class TestCheckerCreation {
     public abstract Builder repository(Project.NameKey repository);
 
     public abstract Builder status(CheckerStatus status);
+
+    public abstract Builder blockingConditions(
+        ImmutableSortedSet<BlockingCondition> blockingConditions);
+
+    public Builder blockingConditions(BlockingCondition first, BlockingCondition... rest) {
+      return blockingConditions(
+          Stream.concat(Stream.of(first), Arrays.stream(rest))
+              .collect(toImmutableSortedSet(naturalOrder())));
+    }
+
+    public Builder clearBlockingConditions() {
+      return blockingConditions(ImmutableSortedSet.of());
+    }
 
     public abstract Builder query(String query);
 

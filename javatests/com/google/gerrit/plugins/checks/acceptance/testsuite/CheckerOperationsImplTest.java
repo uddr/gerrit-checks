@@ -21,6 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
@@ -174,6 +175,18 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void specifiedBlockingConditionsAreRespectedForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+            .create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
+  }
+
+  @Test
   public void existingCheckerCanBeCheckedForExistence() throws Exception {
     CheckerUuid checkerUuid = createCheckerInServer(createArbitraryCheckerInput());
 
@@ -313,6 +326,20 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     Optional<String> query = checkerOperations.checker(checkerUuid).get().getQuery();
 
     assertThat(query).hasValue("message:foo");
+  }
+
+  @Test
+  public void blockConditionsOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+            .create();
+
+    ImmutableSortedSet<BlockingCondition> blockingConditions =
+        checkerOperations.checker(checkerUuid).get().getBlockingConditions();
+
+    assertThat(blockingConditions).containsExactly(BlockingCondition.STATE_NOT_PASSING);
   }
 
   @Test
