@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
@@ -24,6 +25,7 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
@@ -35,6 +37,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Optional;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -51,9 +54,12 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   @SuppressWarnings("hiding")
   private CheckerOperationsImpl checkerOperations;
 
+  private Checkers checkers;
+
   @Before
   public void setUp() {
     checkerOperations = plugin.getSysInjector().getInstance(CheckerOperationsImpl.class);
+    checkers = plugin.getSysInjector().getInstance(Checkers.class);
   }
 
   @Test
@@ -326,6 +332,20 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     Optional<String> currentQuery = checkerOperations.checker(checkerUuid).get().getQuery();
     assertThat(currentQuery).isEmpty();
+  }
+
+  @Test
+  public void configCanBeMadeInvalid() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+
+    try {
+      checkers.getChecker(checkerUuid);
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
+      // expected
+    }
   }
 
   @Test
