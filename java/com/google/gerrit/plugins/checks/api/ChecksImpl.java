@@ -17,17 +17,13 @@ package com.google.gerrit.plugins.checks.api;
 import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.plugins.checks.Check;
-import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.PostCheck;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import java.util.Optional;
 
 class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
 
@@ -35,44 +31,31 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
     ChecksImpl create(RevisionResource revisionResource);
   }
 
-  private final Checks checks;
+  private final CheckApiImpl.Factory checkApiImplFactory;
+  private final ChecksCollection checksCollection;
   private final ListChecks listChecks;
   private final PostCheck postCheck;
-  private final CheckApiImpl.Factory checkApiImplFactory;
   private final RevisionResource revisionResource;
 
   @Inject
   ChecksImpl(
       CheckApiImpl.Factory checkApiImplFactory,
-      Checks checks,
+      ChecksCollection checksCollection,
       ListChecks listChecks,
       PostCheck postCheck,
       @Assisted RevisionResource revisionResource) {
     this.checkApiImplFactory = checkApiImplFactory;
-    this.checks = checks;
-    this.postCheck = postCheck;
+    this.checksCollection = checksCollection;
     this.listChecks = listChecks;
+    this.postCheck = postCheck;
     this.revisionResource = revisionResource;
   }
 
   @Override
   public CheckApi id(CheckerUuid checkerUuid) throws RestApiException {
     try {
-      CheckKey checkKey =
-          CheckKey.create(
-              revisionResource.getProject(), revisionResource.getPatchSet().getId(), checkerUuid);
-      Optional<Check> check = checks.getCheck(checkKey);
       return checkApiImplFactory.create(
-          new CheckResource(
-              revisionResource,
-              check.orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          String.format(
-                              "Patch set %s in project %s doesn't have check for checker %s.",
-                              revisionResource.getPatchSet().getId(),
-                              revisionResource.getProject(),
-                              checkerUuid)))));
+          checksCollection.parse(revisionResource, IdString.fromDecoded(checkerUuid.toString())));
     } catch (Exception e) {
       throw asRestApiException("Cannot parse check", e);
     }
