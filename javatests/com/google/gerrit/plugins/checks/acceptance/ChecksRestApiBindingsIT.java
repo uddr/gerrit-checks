@@ -24,6 +24,11 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Test;
 
 public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
+  private static final ImmutableList<RestCall> ROOT_ENDPOINTS =
+      ImmutableList.of(
+          RestCall.post("/plugins/checks/checkers/"),
+          RestCall.get("/plugins/checks/checks.pending/"));
+
   private static final ImmutableList<RestCall> CHECKER_ENDPOINTS =
       ImmutableList.of(
           RestCall.get("/plugins/checks/checkers/%s"),
@@ -38,14 +43,14 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
           RestCall.post("/changes/%s/revisions/%s/checks~checks/%s"));
 
   @Test
-  public void checkerEndpoints() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid.toString());
+  public void rootEndpoints() throws Exception {
+    RestApiCallHelper.execute(adminRestSession, ROOT_ENDPOINTS);
   }
 
   @Test
-  public void postOnCheckerCollectionForCreate() throws Exception {
-    RestApiCallHelper.execute(adminRestSession, RestCall.post("/plugins/checks/checkers/"));
+  public void checkerEndpoints() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid.toString());
   }
 
   @Test

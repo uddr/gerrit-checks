@@ -22,6 +22,7 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperations;
 import com.google.gerrit.plugins.checks.api.Checkers;
 import com.google.gerrit.plugins.checks.api.ChecksFactory;
+import com.google.gerrit.plugins.checks.api.PendingChecks;
 import org.junit.Before;
 
 // TODO(dborowitz): Improve the plugin test framework so we can avoid subclassing:
@@ -37,6 +38,7 @@ public class AbstractCheckersTest extends LightweightPluginDaemonTest {
   protected CheckOperations checkOperations;
   protected Checkers checkersApi;
   protected ChecksFactory checksApiFactory;
+  protected PendingChecks pendingChecksApi;
 
   @Override
   protected ProjectResetter.Config resetProjects() {
@@ -50,6 +52,7 @@ public class AbstractCheckersTest extends LightweightPluginDaemonTest {
     checkOperations = plugin.getSysInjector().getInstance(CheckOperations.class);
     checkersApi = plugin.getHttpInjector().getInstance(Checkers.class);
     checksApiFactory = plugin.getHttpInjector().getInstance(ChecksFactory.class);
+    pendingChecksApi = plugin.getHttpInjector().getInstance(PendingChecks.class);
 
     allowGlobalCapabilities(group("Administrators").getGroupUUID(), "checks-administrateCheckers");
   }

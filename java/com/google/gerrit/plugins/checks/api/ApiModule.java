@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.api;
 
 import static com.google.gerrit.plugins.checks.api.CheckResource.CHECK_KIND;
 import static com.google.gerrit.plugins.checks.api.CheckerResource.CHECKER_KIND;
+import static com.google.gerrit.plugins.checks.api.PendingCheckResource.PENDING_CHECK_KIND;
 import static com.google.gerrit.server.change.RevisionResource.REVISION_KIND;
 
 import com.google.gerrit.extensions.config.FactoryModule;
@@ -33,6 +34,9 @@ public class ApiModule extends AbstractModule {
     bind(CheckersCollection.class);
     bind(Checkers.class).to(CheckersImpl.class);
 
+    bind(PendingChecksCollection.class);
+    bind(PendingChecks.class).to(PendingChecksImpl.class);
+
     install(
         new RestApiModule() {
           @Override
@@ -47,6 +51,8 @@ public class ApiModule extends AbstractModule {
             postOnCollection(CHECK_KIND).to(PostCheck.class);
             get(CHECK_KIND).to(GetCheck.class);
             post(CHECK_KIND).to(UpdateCheck.class);
+
+            DynamicMap.mapOf(binder(), PENDING_CHECK_KIND);
           }
         });
 

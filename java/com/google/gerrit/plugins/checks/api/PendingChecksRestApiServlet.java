@@ -14,13 +14,18 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.inject.servlet.ServletModule;
+import com.google.gerrit.httpd.restapi.RestApiServlet;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
-public class HttpModule extends ServletModule {
+@Singleton
+public class PendingChecksRestApiServlet extends ChecksRestApiServlet {
+  private static final long serialVersionUID = 1L;
 
-  @Override
-  protected void configureServlets() {
-    serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-    serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
+  @Inject
+  PendingChecksRestApiServlet(
+      RestApiServlet.Globals globals, Provider<PendingChecksCollection> pendingChecks) {
+    super(globals, pendingChecks, "/checks.pending/");
   }
 }

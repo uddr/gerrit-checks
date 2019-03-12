@@ -14,13 +14,11 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.inject.servlet.ServletModule;
+import com.google.gerrit.extensions.restapi.RestResource;
+import com.google.gerrit.extensions.restapi.RestView;
+import com.google.inject.TypeLiteral;
 
-public class HttpModule extends ServletModule {
-
-  @Override
-  protected void configureServlets() {
-    serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-    serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
-  }
+public class PendingCheckResource implements RestResource {
+  public static final TypeLiteral<RestView<PendingCheckResource>> PENDING_CHECK_KIND =
+      new TypeLiteral<RestView<PendingCheckResource>>() {};
 }

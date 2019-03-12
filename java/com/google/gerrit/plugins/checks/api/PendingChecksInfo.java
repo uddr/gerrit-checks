@@ -14,13 +14,14 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.inject.servlet.ServletModule;
+import com.google.gerrit.plugins.checks.CheckerUuid;
+import java.util.Map;
 
-public class HttpModule extends ServletModule {
+/** REST API representation of pending checks on patch set. */
+public class PendingChecksInfo {
+  /** Patch set for which the checks are pending. */
+  public CheckablePatchSetInfo patchSet;
 
-  @Override
-  protected void configureServlets() {
-    serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-    serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
-  }
+  /** Pending checks on the patch set by checker UUID. */
+  public Map<CheckerUuid, PendingCheckInfo> pendingChecks;
 }

@@ -14,13 +14,14 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.inject.servlet.ServletModule;
+/** REST API representation of a patch set for which checks are pending. */
+public class CheckablePatchSetInfo {
+  /** Project name. */
+  public String project;
 
-public class HttpModule extends ServletModule {
+  /** Change number. */
+  public int changeNumber;
 
-  @Override
-  protected void configureServlets() {
-    serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-    serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
-  }
+  /** Patch set ID. */
+  public int patchSetId;
 }

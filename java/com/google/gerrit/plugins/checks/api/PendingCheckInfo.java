@@ -14,13 +14,14 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.inject.servlet.ServletModule;
-
-public class HttpModule extends ServletModule {
-
-  @Override
-  protected void configureServlets() {
-    serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
-    serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
-  }
+/**
+ * REST API representation of a pending check.
+ *
+ * <p>Checks are pending if they are in a non-final state and the external checker system intends to
+ * post further updates on them. Which states these are depends on the external checker system, by
+ * default we only consider checks in state {@link CheckState#NOT_STARTED} as pending.
+ */
+public class PendingCheckInfo {
+  /** State of the check. */
+  public CheckState state;
 }
