@@ -71,8 +71,12 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     assertThat(foundChecker.name).isNull();
     assertThat(foundChecker.repository).isEqualTo(allProjects.get());
     assertThat(foundChecker.status).isEqualTo(CheckerStatus.ENABLED);
+    assertThat(foundChecker.query).isEqualTo("status:open");
+    assertThat(foundChecker.blocking).isEmpty();
+    assertThat(foundChecker.url).isNull();
     assertThat(foundChecker.description).isNull();
     assertThat(foundChecker.createdOn).isNotNull();
+    assertThat(foundChecker.updatedOn).isNotNull();
   }
 
   @Test
@@ -126,6 +130,47 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     CheckerInfo checker = getCheckerFromServer(checkerUuid);
     assertThat(checker.status).isEqualTo(CheckerStatus.DISABLED);
+  }
+
+  @Test
+  public void specifiedRepositoryIsRespectedForCheckerCreation() throws Exception {
+    Project.NameKey otherProject = createProjectOverAPI("other", null, true, null);
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(otherProject).create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.repository).isEqualTo(otherProject.get());
+  }
+
+  @Test
+  public void specifiedUrlIsRespectedForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().url("http://foo.bar").create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.url).isEqualTo("http://foo.bar");
+  }
+
+  @Test
+  public void requestingNoUrlIsPossibleForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().clearUrl().create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.url).isNull();
+  }
+
+  @Test
+  public void specifiedQueryIsRespectedForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query("message:foo").create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.query).isEqualTo("message:foo");
+  }
+
+  @Test
+  public void requestingNoQueryIsPossibleForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query("").create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.query).isNull();
   }
 
   @Test
@@ -217,12 +262,66 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void updatedOnOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
+
+    Timestamp updatedOn = checkerOperations.checker(checker.uuid).get().getUpdatedOn();
+
+    assertThat(updatedOn).isEqualTo(checker.updatedOn);
+  }
+
+  @Test
   public void statusOfExistingCheckerCanBeRetrieved() throws Exception {
     CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
 
     CheckerStatus status = checkerOperations.checker(checker.uuid).get().getStatus();
 
     assertThat(status).isEqualTo(checker.status);
+  }
+
+  @Test
+  public void repositoryOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
+
+    Project.NameKey repository = checkerOperations.checker(checker.uuid).get().getRepository();
+
+    assertThat(repository.get()).isEqualTo(checker.repository);
+  }
+
+  @Test
+  public void urlOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().url("http://foo.bar").create();
+
+    Optional<String> url = checkerOperations.checker(checkerUuid).get().getUrl();
+
+    assertThat(url).hasValue("http://foo.bar");
+  }
+
+  @Test
+  public void emptyUrlOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().clearUrl().create();
+
+    Optional<String> url = checkerOperations.checker(checkerUuid).get().getUrl();
+
+    assertThat(url).isEmpty();
+  }
+
+  @Test
+  public void queryOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query("message:foo").create();
+
+    Optional<String> query = checkerOperations.checker(checkerUuid).get().getQuery();
+
+    assertThat(query).hasValue("message:foo");
+  }
+
+  @Test
+  public void emptyQueryOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query("").create();
+
+    Optional<String> query = checkerOperations.checker(checkerUuid).get().getQuery();
+
+    assertThat(query).isEmpty();
   }
 
   @Test
@@ -282,9 +381,28 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void urlCanBeUpdated() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().url("http://foo.bar").create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().url("http://bar.baz").update();
+
+    Optional<String> currentUrl = checkerOperations.checker(checkerUuid).get().getUrl();
+    assertThat(currentUrl).hasValue("http://bar.baz");
+  }
+
+  @Test
+  public void urlCanBeCleared() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().url("http://foo.bar").create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().clearUrl().update();
+
+    Optional<String> currentUrl = checkerOperations.checker(checkerUuid).get().getUrl();
+    assertThat(currentUrl).isEmpty();
+  }
+
+  @Test
   public void statusCanBeUpdated() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().description("original description").create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     assertThat(checkerOperations.checker(checkerUuid).asInfo().status)
         .isEqualTo(CheckerStatus.ENABLED);
 
@@ -299,8 +417,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
   @Test
   public void blockingConditionsCanBeUpdated() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().description("original description").create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking).isEmpty();
 
     checkerOperations
@@ -322,6 +439,18 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     Optional<String> currentQuery = checkerOperations.checker(checkerUuid).get().getQuery();
     assertThat(currentQuery).hasValue("f:bar");
+  }
+
+  @Test
+  public void repositoryCanBeUpdated() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(allProjects).create();
+
+    Project.NameKey otherProject = createProjectOverAPI("other", null, true, null);
+    checkerOperations.checker(checkerUuid).forUpdate().repository(otherProject).update();
+
+    Project.NameKey currentRepository =
+        checkerOperations.checker(checkerUuid).get().getRepository();
+    assertThat(currentRepository).isEqualTo(otherProject);
   }
 
   @Test
