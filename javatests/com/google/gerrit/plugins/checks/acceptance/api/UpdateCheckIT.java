@@ -25,6 +25,7 @@ import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +57,33 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   @Test
   public void canUpdateCheckForDisabledChecker() throws Exception {
     checkerOperations.checker(checkKey.checkerUuid()).forUpdate().disable().update();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.SUCCESSFUL;
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.state).isEqualTo(CheckState.SUCCESSFUL);
+  }
+
+  @Test
+  public void canUpdateCheckForCheckerThatDoesNotApplyToTheProject() throws Exception {
+    Project.NameKey otherProject = createProjectOverAPI("other", null, true, null);
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().repository(otherProject).update();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.SUCCESSFUL;
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.state).isEqualTo(CheckState.SUCCESSFUL);
+  }
+
+  @Test
+  public void canUpdateCheckForCheckerThatDoesNotApplyToTheChange() throws Exception {
+    checkerOperations
+        .checker(checkKey.checkerUuid())
+        .forUpdate()
+        .query("message:not-matching")
+        .update();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.SUCCESSFUL;
