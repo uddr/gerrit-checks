@@ -29,6 +29,7 @@ import com.google.gerrit.server.git.validators.RefOperationValidationListener;
 public class Module extends FactoryModule {
   @Override
   protected void configure() {
+    factory(CheckJson.AssistedFactory.class);
     install(new NoteDbCheckersModule());
 
     bind(CapabilityDefinition.class)

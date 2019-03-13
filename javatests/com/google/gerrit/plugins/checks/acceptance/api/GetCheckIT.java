@@ -19,17 +19,19 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.plugins.checks.Check;
-import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
@@ -41,12 +43,10 @@ import org.junit.Test;
 public class GetCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
 
-  private CheckJson checkJson;
   private PatchSet.Id patchSetId;
 
   @Before
   public void setUp() throws Exception {
-    checkJson = plugin.getSysInjector().getInstance(CheckJson.class);
     patchSetId = createChange().getPatchSetId();
   }
 
@@ -58,7 +58,44 @@ public class GetCheckIT extends AbstractCheckersTest {
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
 
     CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
-    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+    CheckInfo expected = new CheckInfo();
+    expected.project = checkKey.project().get();
+    expected.changeNumber = checkKey.patchSet().getParentKey().get();
+    expected.patchSetId = checkKey.patchSet().get();
+    expected.checkerUuid = checkKey.checkerUuid().toString();
+    expected.state = CheckState.RUNNING;
+    expected.created = checkOperations.check(checkKey).get().created();
+    expected.updated = expected.created;
+    assertThat(checkInfo).isEqualTo(expected);
+  }
+
+  @Test
+  public void getCheckWithOptions() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .name("My Checker")
+            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+            .repository(project)
+            .create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo checkInfo =
+        checksApiFactory.revision(patchSetId).id(checkerUuid).get(ListChecksOption.CHECKER);
+    CheckInfo expected = new CheckInfo();
+    expected.project = checkKey.project().get();
+    expected.changeNumber = checkKey.patchSet().getParentKey().get();
+    expected.patchSetId = checkKey.patchSet().get();
+    expected.checkerUuid = checkKey.checkerUuid().toString();
+    expected.state = CheckState.RUNNING;
+    expected.created = checkOperations.check(checkKey).get().created();
+    expected.updated = expected.created;
+    expected.checkerName = "My Checker";
+    expected.blocking = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
+    expected.checkerStatus = CheckerStatus.ENABLED;
+    assertThat(checkInfo).isEqualTo(expected);
   }
 
   @Test
@@ -134,14 +171,15 @@ public class GetCheckIT extends AbstractCheckersTest {
     gApi.changes().id(changeId.get()).topic(topic);
 
     Timestamp psCreated = getPatchSetCreated(changeId);
-    assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get())
-        .isEqualTo(
-            checkJson.format(
-                Check.builder(checkKey)
-                    .setState(CheckState.NOT_STARTED)
-                    .setCreated(psCreated)
-                    .setUpdated(psCreated)
-                    .build()));
+    CheckInfo expected = new CheckInfo();
+    expected.project = checkKey.project().get();
+    expected.changeNumber = checkKey.patchSet().getParentKey().get();
+    expected.patchSetId = checkKey.patchSet().get();
+    expected.checkerUuid = checkKey.checkerUuid().toString();
+    expected.state = CheckState.NOT_STARTED;
+    expected.created = psCreated;
+    expected.updated = psCreated;
+    assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get()).isEqualTo(expected);
   }
 
   @Test
@@ -151,14 +189,15 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
 
     Timestamp psCreated = getPatchSetCreated(changeId);
-    assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get())
-        .isEqualTo(
-            checkJson.format(
-                Check.builder(checkKey)
-                    .setState(CheckState.NOT_STARTED)
-                    .setCreated(psCreated)
-                    .setUpdated(psCreated)
-                    .build()));
+    CheckInfo expected = new CheckInfo();
+    expected.project = checkKey.project().get();
+    expected.changeNumber = checkKey.patchSet().getParentKey().get();
+    expected.patchSetId = checkKey.patchSet().get();
+    expected.checkerUuid = checkKey.checkerUuid().toString();
+    expected.state = CheckState.NOT_STARTED;
+    expected.created = psCreated;
+    expected.updated = psCreated;
+    assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get()).isEqualTo(expected);
 
     checkerOperations.checker(checkerUuid).forUpdate().disable().update();
 

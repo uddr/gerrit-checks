@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -24,6 +25,7 @@ import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.ServerInitiated;
@@ -39,18 +41,18 @@ import org.eclipse.jgit.revwalk.RevWalk;
 public final class CheckOperationsImpl implements CheckOperations {
   private final Checks checks;
   private final ChecksUpdate checksUpdate;
-  private final CheckJson checkJson;
+  private final CheckJson.Factory checkJsonFactory;
   private final GitRepositoryManager repoManager;
 
   @Inject
   public CheckOperationsImpl(
       Checks checks,
       GitRepositoryManager repoManager,
-      CheckJson checkJson,
+      CheckJson.Factory checkJsonFactory,
       @ServerInitiated ChecksUpdate checksUpdate) {
     this.checks = checks;
     this.repoManager = repoManager;
-    this.checkJson = checkJson;
+    this.checkJsonFactory = checkJsonFactory;
     this.checksUpdate = checksUpdate;
   }
 
@@ -105,8 +107,8 @@ public final class CheckOperationsImpl implements CheckOperations {
     }
 
     @Override
-    public CheckInfo asInfo() throws Exception {
-      return checkJson.format(get());
+    public CheckInfo asInfo(ListChecksOption... options) throws Exception {
+      return checkJsonFactory.create(ImmutableSet.copyOf(options)).format(get());
     }
 
     @Override

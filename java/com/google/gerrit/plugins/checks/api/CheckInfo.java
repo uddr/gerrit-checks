@@ -18,6 +18,7 @@ import com.google.common.base.MoreObjects;
 import com.google.gerrit.common.Nullable;
 import java.sql.Timestamp;
 import java.util.Objects;
+import java.util.Set;
 
 /** REST API representation of a {@link com.google.gerrit.plugins.checks.Check}. */
 public class CheckInfo {
@@ -44,6 +45,15 @@ public class CheckInfo {
   /** Timestamp of when this check was last updated. */
   public Timestamp updated;
 
+  /** Name of the checker that produced this check. */
+  public String checkerName;
+
+  /** Status of the checker that produced this check. */
+  public CheckerStatus checkerStatus;
+
+  /** Blocking conditions that apply to this check. */
+  public Set<BlockingCondition> blocking;
+
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof CheckInfo)) {
@@ -59,7 +69,10 @@ public class CheckInfo {
         && Objects.equals(other.started, started)
         && Objects.equals(other.finished, finished)
         && Objects.equals(other.created, created)
-        && Objects.equals(other.updated, updated);
+        && Objects.equals(other.updated, updated)
+        && Objects.equals(other.checkerName, checkerName)
+        && Objects.equals(other.checkerStatus, checkerStatus)
+        && Objects.equals(other.blocking, blocking);
   }
 
   @Override
@@ -74,7 +87,10 @@ public class CheckInfo {
         started,
         finished,
         created,
-        updated);
+        updated,
+        checkerName,
+        checkerStatus,
+        blocking);
   }
 
   @Override
@@ -90,6 +106,9 @@ public class CheckInfo {
         .add("finished", finished)
         .add("created", created)
         .add("updated", updated)
+        .add("checkerName", checkerName)
+        .add("checkerStatus", checkerStatus)
+        .add("blocking", blocking)
         .toString();
   }
 }

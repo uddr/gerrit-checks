@@ -41,7 +41,7 @@ public class PostCheck
   private final Checkers checkers;
   private final Checks checks;
   private final Provider<ChecksUpdate> checksUpdate;
-  private final CheckJson checkJson;
+  private final CheckJson.Factory checkJsonFactory;
 
   @Inject
   PostCheck(
@@ -50,13 +50,13 @@ public class PostCheck
       Checkers checkers,
       Checks checks,
       @UserInitiated Provider<ChecksUpdate> checksUpdate,
-      CheckJson checkJson) {
+      CheckJson.Factory checkJsonFactory) {
     this.permissionBackend = permissionBackend;
     this.permission = permission;
     this.checkers = checkers;
     this.checks = checks;
     this.checksUpdate = checksUpdate;
-    this.checkJson = checkJson;
+    this.checkJsonFactory = checkJsonFactory;
   }
 
   @Override
@@ -79,6 +79,7 @@ public class PostCheck
 
     CheckKey key = CheckKey.create(rsrc.getProject(), rsrc.getPatchSet().getId(), checkerUuid);
     Optional<Check> check = checks.getCheck(key);
+    Check updatedCheck;
     if (!check.isPresent()) {
       checkers
           .getChecker(checkerUuid)
@@ -86,12 +87,11 @@ public class PostCheck
               () ->
                   new UnprocessableEntityException(
                       String.format("checker %s not found", checkerUuid)));
-
-      Check updatedCheck = checksUpdate.get().createCheck(key, toCheckUpdate(input));
-      return checkJson.format(updatedCheck);
+      updatedCheck = checksUpdate.get().createCheck(key, toCheckUpdate(input));
+    } else {
+      updatedCheck = checksUpdate.get().updateCheck(key, toCheckUpdate(input));
     }
-    Check updatedCheck = checksUpdate.get().updateCheck(key, toCheckUpdate(input));
-    return checkJson.format(updatedCheck);
+    return checkJsonFactory.noOptions().format(updatedCheck);
   }
 
   private static CheckUpdate toCheckUpdate(CheckInput input) throws BadRequestException {

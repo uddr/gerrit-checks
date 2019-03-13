@@ -13,6 +13,8 @@ _'GET /changes/[\{change-id\}](../../../Documentation/rest-api-changes.html#chan
 
 Retrieves all checks for a given revision and change.
 
+Additional fields can be obtained by adding [`o` parameters](#query-options).
+
 #### Request
 
 ```
@@ -60,6 +62,8 @@ Retrieves a check.
 
 Returns a check regardless of the state that the checker is in (also for
 `DISABLED` checkers).
+
+Additional fields can be obtained by adding [`o` parameters](#query-options).
 
 #### Request
 
@@ -169,6 +173,9 @@ The `CheckInfo` entity describes a check.
 | `finished`        | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.
 | `created`         |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check was created.
 | `updated`         |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check was last updated.
+| `checker_name`    | optional | The name of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
+| `checker_status`  | optional | The [status](rest-api-checkers.md#checker-info) of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
+| `blocking`        | optional | Set of [blocking conditions](rest-api-checkers.md#blocking-conditions) that apply to this checker.<br />Only set if [checker details](#option-checker) are requested.
 
 ### <a id="check-input"> CheckInput
 The `CheckInput` entity contains information for creating or updating a check.
@@ -184,3 +191,10 @@ The `CheckInput` entity contains information for creating or updating a check.
 ### <a id="check-state"> CheckState (enum)
 The `CheckState` enum can have the following values: `NOT_STARTED`, `FAILED`,
 `SCHEDULED`, `RUNNING`, `SUCCESSFUL` and `NOT_RELEVANT`.
+
+### <a id="query-options"> Options
+
+The following query options are supported in the `o` field of certain requests:
+
+* <a id="option-checker"></a> `CHECKER`: Include details from the configuration of
+  the checker that produced this check.

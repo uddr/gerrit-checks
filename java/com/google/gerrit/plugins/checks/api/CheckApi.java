@@ -16,11 +16,12 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 
 /** Java API to interact with single {@code Check}s. */
 public interface CheckApi {
-  /** Returns a {@link CheckInfo} for the scoped resource. */
-  CheckInfo get() throws RestApiException;
+  /** Returns a {@link CheckInfo} for the scoped resource with the given options. */
+  CheckInfo get(ListChecksOption... options) throws RestApiException;
 
   /** Updates a check and returns the {@link CheckInfo} for the updated resource. */
   CheckInfo update(CheckInput input) throws RestApiException;
@@ -31,7 +32,7 @@ public interface CheckApi {
    */
   class NotImplemented implements CheckApi {
     @Override
-    public CheckInfo get() throws RestApiException {
+    public CheckInfo get(ListChecksOption... options) throws RestApiException {
       throw new NotImplementedException();
     }
 

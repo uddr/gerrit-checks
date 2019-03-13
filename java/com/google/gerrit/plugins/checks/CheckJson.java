@@ -14,13 +14,51 @@
 
 package com.google.gerrit.plugins.checks;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.assistedinject.Assisted;
+import java.io.IOException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /** Formats a {@link Check} as JSON. */
-@Singleton
 public class CheckJson {
-  public CheckInfo format(Check check) {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Singleton
+  public static class Factory {
+    private final AssistedFactory assistedFactory;
+
+    @Inject
+    Factory(AssistedFactory assistedFactory) {
+      this.assistedFactory = assistedFactory;
+    }
+
+    public CheckJson create(Iterable<ListChecksOption> options) {
+      return assistedFactory.create(options);
+    }
+
+    public CheckJson noOptions() {
+      return create(ImmutableSet.of());
+    }
+  }
+
+  interface AssistedFactory {
+    CheckJson create(Iterable<ListChecksOption> options);
+  }
+
+  private final Checkers checkers;
+  private final ImmutableSet<ListChecksOption> options;
+
+  @Inject
+  CheckJson(Checkers checkers, @Assisted Iterable<ListChecksOption> options) {
+    this.checkers = checkers;
+    this.options = ImmutableSet.copyOf(options);
+  }
+
+  public CheckInfo format(Check check) throws IOException {
     CheckInfo info = new CheckInfo();
     info.checkerUuid = check.key().checkerUuid().toString();
     info.changeNumber = check.key().patchSet().changeId.id;
@@ -34,6 +72,25 @@ public class CheckJson {
 
     info.created = check.created();
     info.updated = check.updated();
+
+    if (options.contains(ListChecksOption.CHECKER)) {
+      populateCheckerFields(check.key().checkerUuid(), info);
+    }
     return info;
+  }
+
+  private void populateCheckerFields(CheckerUuid checkerUuid, CheckInfo info) throws IOException {
+    try {
+      checkers
+          .getChecker(checkerUuid)
+          .ifPresent(
+              checker -> {
+                info.checkerName = checker.getName().orElse(null);
+                info.checkerStatus = checker.getStatus();
+                info.blocking = checker.getBlockingConditions();
+              });
+    } catch (ConfigInvalidException e) {
+      logger.atWarning().withCause(e).log("skipping invalid checker %s", checkerUuid);
+    }
   }
 }

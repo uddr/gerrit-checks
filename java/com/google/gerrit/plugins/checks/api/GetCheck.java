@@ -14,25 +14,41 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.extensions.client.ListOption;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.plugins.checks.CheckJson;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.inject.Inject;
+import java.io.IOException;
+import java.util.EnumSet;
+import org.kohsuke.args4j.Option;
 
 public class GetCheck implements RestReadView<CheckResource> {
+  private final CheckJson.Factory checkJsonFactory;
 
-  private final CheckJson checkJson;
+  private final EnumSet<ListChecksOption> options = EnumSet.noneOf(ListChecksOption.class);
+
+  @Option(name = "-o", usage = "Output options")
+  void addOption(ListChecksOption o) {
+    options.add(o);
+  }
+
+  @Option(name = "-O", usage = "Output option flags, in hex")
+  void setOptionFlagsHex(String hex) {
+    options.addAll(ListOption.fromBits(ListChecksOption.class, Integer.parseInt(hex, 16)));
+  }
 
   @Inject
-  GetCheck(CheckJson checkJson) {
-    this.checkJson = checkJson;
+  GetCheck(CheckJson.Factory checkJsonFactory) {
+    this.checkJsonFactory = checkJsonFactory;
   }
 
   @Override
   public CheckInfo apply(CheckResource resource)
-      throws AuthException, BadRequestException, ResourceConflictException {
-    return checkJson.format(resource.getCheck());
+      throws AuthException, BadRequestException, ResourceConflictException, IOException {
+    return checkJsonFactory.create(options).format(resource.getCheck());
   }
 }

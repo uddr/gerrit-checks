@@ -17,8 +17,10 @@ package com.google.gerrit.plugins.checks.api;
 import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
 
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import java.util.Arrays;
 
 public class CheckApiImpl implements CheckApi {
   public interface Factory {
@@ -37,8 +39,13 @@ public class CheckApiImpl implements CheckApi {
   }
 
   @Override
-  public CheckInfo get() throws RestApiException {
-    return getCheck.apply(checkResource);
+  public CheckInfo get(ListChecksOption... options) throws RestApiException {
+    try {
+      Arrays.stream(options).forEach(getCheck::addOption);
+      return getCheck.apply(checkResource);
+    } catch (Exception e) {
+      throw asRestApiException("Cannot retrieve check", e);
+    }
   }
 
   @Override

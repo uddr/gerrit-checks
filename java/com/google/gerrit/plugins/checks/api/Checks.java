@@ -19,6 +19,7 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 
 /** Java API to interact with {@code Check}s. */
 public interface Checks {
@@ -35,7 +36,7 @@ public interface Checks {
 
   CheckApi create(CheckInput input) throws RestApiException;
 
-  ImmutableList<CheckInfo> list() throws RestApiException;
+  ImmutableList<CheckInfo> list(ListChecksOption... options) throws RestApiException;
 
   /**
    * A default implementation which allows source compatibility when adding new methods to the
@@ -53,7 +54,7 @@ public interface Checks {
     }
 
     @Override
-    public ImmutableList<CheckInfo> list() throws RestApiException {
+    public ImmutableList<CheckInfo> list(ListChecksOption... options) throws RestApiException {
       throw new NotImplementedException();
     }
   }

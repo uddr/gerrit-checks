@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.api;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gerrit.extensions.client.ListOption;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -27,25 +28,41 @@ import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Map;
+import org.kohsuke.args4j.Option;
 
-@Singleton
 public class ListChecks implements RestReadView<RevisionResource> {
   private final CheckBackfiller checkBackfiller;
-  private final CheckJson checkJson;
+  private final CheckJson.Factory checkJsonFactory;
   private final Checkers checkers;
   private final Checks checks;
 
+  private final EnumSet<ListChecksOption> options = EnumSet.noneOf(ListChecksOption.class);
+
+  @Option(name = "-o", usage = "Output options")
+  void addOption(ListChecksOption o) {
+    options.add(o);
+  }
+
+  @Option(name = "-O", usage = "Output option flags, in hex")
+  void setOptionFlagsHex(String hex) {
+    options.addAll(ListOption.fromBits(ListChecksOption.class, Integer.parseInt(hex, 16)));
+  }
+
   @Inject
   ListChecks(
-      CheckBackfiller checkBackfiller, CheckJson checkJson, Checkers checkers, Checks checks) {
+      CheckBackfiller checkBackfiller,
+      CheckJson.Factory checkJsonFactory,
+      Checkers checkers,
+      Checks checks) {
     this.checkBackfiller = checkBackfiller;
-    this.checkJson = checkJson;
+    this.checkJsonFactory = checkJsonFactory;
     this.checkers = checkers;
     this.checks = checks;
   }
@@ -54,10 +71,9 @@ public class ListChecks implements RestReadView<RevisionResource> {
   public ImmutableList<CheckInfo> apply(RevisionResource resource)
       throws AuthException, BadRequestException, ResourceConflictException, OrmException,
           IOException {
+    CheckJson checkJson = checkJsonFactory.create(options);
     Map<CheckerUuid, Checker> checkersByUuid =
-        checkers
-            .checkersOf(resource.getProject())
-            .stream()
+        checkers.checkersOf(resource.getProject()).stream()
             .collect(toMap(Checker::getUuid, c -> c));
 
     ImmutableList.Builder<CheckInfo> result =
@@ -67,12 +83,11 @@ public class ListChecks implements RestReadView<RevisionResource> {
       result.add(checkJson.format(check));
     }
 
-    checkBackfiller
-        .getBackfilledChecksForRelevantCheckers(
-            checkersByUuid.values(), resource.getNotes(), resource.getPatchSet().getId())
-        .stream()
-        .map(checkJson::format)
-        .forEach(result::add);
+    for (Check check :
+        checkBackfiller.getBackfilledChecksForRelevantCheckers(
+            checkersByUuid.values(), resource.getNotes(), resource.getPatchSet().getId())) {
+      result.add(checkJson.format(check));
+    }
 
     return result.build();
   }

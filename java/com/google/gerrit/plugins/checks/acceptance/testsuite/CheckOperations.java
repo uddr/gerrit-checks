@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.reviewdb.client.RevId;
 
@@ -102,9 +103,10 @@ public interface CheckOperations {
      *
      * <p><strong>Note:</strong>This call will fail with an exception if the check doesn't exist.
      *
+     * @param options output options.
      * @return this check as {@link CheckInfo}
      */
-    CheckInfo asInfo() throws Exception;
+    CheckInfo asInfo(ListChecksOption... options) throws Exception;
 
     /**
      * Starts the fluent chain to update a check. The returned builder can be used to specify how
