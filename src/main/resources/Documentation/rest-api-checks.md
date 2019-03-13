@@ -161,7 +161,7 @@ The `CheckInfo` entity describes a check.
 | ----------------- | -------- | ----------- |
 | `project`         |          | The project name that this check applies to.
 | `change_number`   |          | The change number that this check applies to.
-| `patch_set_id`    |          | The path set that this check applies to.
+| `patch_set_id`    |          | The patch set that this check applies to.
 | `checker_uuid`    |          | The [UUID](./rest-api-checkers.md#checker-id) of the checker that reported this check.
 | `state`           |          | The state as string-serialized form of [CheckState](#check-state)
 | `url`             | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
