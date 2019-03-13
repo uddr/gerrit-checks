@@ -172,7 +172,7 @@ UUIDs must be unique and are immutable after creation.
 Checker names cannot be used as identifiers in the REST API since checker names
 may be ambiguous.
 
-### <a id="json-entities"> JSON Entities
+## <a id="json-entities"> JSON Entities
 
 ### <a id="checker-info"> CheckerInfo
 The `CheckerInfo` entity describes a checker.

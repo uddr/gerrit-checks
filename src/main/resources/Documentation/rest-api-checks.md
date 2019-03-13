@@ -152,7 +152,7 @@ If the [checker-id](./rest-api-checkers.md#checker-id) is provided as part of
 the URL, it must either match the value provided in the request body via
 [CheckInput](#check-input) or the value in the request body is omitted.
 
-### <a id="json-entities"> JSON Entities
+## <a id="json-entities"> JSON Entities
 
 ### <a id="check-info"> CheckInfo
 The `CheckInfo` entity describes a check.
