@@ -14,6 +14,8 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.CurrentUser;
@@ -21,6 +23,7 @@ import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.notedb.ChangeNotes;
+import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -49,16 +52,30 @@ public class ChecksFactory {
     this.changeResourceFactory = changeResourceFactory;
   }
 
-  public Checks currentRevision(Change.Id changeId) throws OrmException {
-    ChangeNotes notes = changeNotesFactory.createChecked(changeId);
-    return revision(notes.getChange().currentPatchSetId());
+  public Checks currentRevision(Change.Id changeId) throws OrmException, RestApiException {
+    ChangeResource changeResource = getChangeResource(changeId);
+    PatchSet patchSet = psUtil.current(changeResource.getNotes());
+    return getChecks(changeResource, patchSet);
   }
 
-  public Checks revision(PatchSet.Id patchSetId) throws OrmException {
-    ChangeNotes notes = changeNotesFactory.createChecked(patchSetId.getParentKey());
-    PatchSet patchSet = psUtil.get(notes, patchSetId);
-    RevisionResource revisionResource =
-        new RevisionResource(changeResourceFactory.create(notes, user.get()), patchSet);
+  public Checks revision(PatchSet.Id patchSetId) throws OrmException, RestApiException {
+    ChangeResource changeResource = getChangeResource(patchSetId.getParentKey());
+    PatchSet patchSet = psUtil.get(changeResource.getNotes(), patchSetId);
+    return getChecks(changeResource, patchSet);
+  }
+
+  private ChangeResource getChangeResource(Change.Id changeId)
+      throws OrmException, RestApiException {
+    try {
+      ChangeNotes notes = changeNotesFactory.createChecked(changeId);
+      return changeResourceFactory.create(notes, user.get());
+    } catch (NoSuchChangeException e) {
+      throw new ResourceNotFoundException(String.format("Change %d not found", changeId.get()), e);
+    }
+  }
+
+  private Checks getChecks(ChangeResource changeResource, PatchSet patchSet) {
+    RevisionResource revisionResource = new RevisionResource(changeResource, patchSet);
     return checksFactory.create(revisionResource);
   }
 }
