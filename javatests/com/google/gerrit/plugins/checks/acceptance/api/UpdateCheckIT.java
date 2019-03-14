@@ -42,7 +42,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
   }
 
   @Test
@@ -121,5 +121,18 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     exception.expect(AuthException.class);
     exception.expectMessage("not permitted");
     checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
+  }
+
+  @Test
+  public void otherPropertiesCanBeSetWithoutEverSettingTheState() throws Exception {
+    // Create a new checker so that we know for sure that no other update ever happened for it.
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.url = "https://www.example.com";
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkerUuid).update(input);
+
+    assertThat(info.url).isEqualTo("https://www.example.com");
+    assertThat(info.state).isEqualTo(CheckState.NOT_STARTED);
   }
 }

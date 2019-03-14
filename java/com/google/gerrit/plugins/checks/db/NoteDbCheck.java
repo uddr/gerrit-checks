@@ -15,7 +15,7 @@ class NoteDbCheck {
 
   private NoteDbCheck() {}
 
-  public CheckState state;
+  public CheckState state = CheckState.NOT_STARTED;
   @Nullable public String url;
   @Nullable public Timestamp started;
   @Nullable public Timestamp finished;
@@ -43,7 +43,7 @@ class NoteDbCheck {
     return toCheck(key);
   }
 
-  static NoteDbCheck fromCheckUpdate(CheckUpdate checkUpdate) {
+  static NoteDbCheck createInitialNoteDbCheck(CheckUpdate checkUpdate) {
     NoteDbCheck noteDbCheck = new NoteDbCheck();
     noteDbCheck.applyUpdate(checkUpdate);
     return noteDbCheck;

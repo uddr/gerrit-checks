@@ -87,10 +87,6 @@ public class PostCheck
                   new UnprocessableEntityException(
                       String.format("checker %s not found", checkerUuid)));
 
-      if (input.state == null) {
-        throw new BadRequestException("state is required on creation");
-      }
-
       Check updatedCheck = checksUpdate.get().createCheck(key, toCheckUpdate(input));
       return checkJson.format(updatedCheck);
     }

@@ -238,7 +238,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       }
 
       // Create check
-      NoteDbCheck newCheck = NoteDbCheck.fromCheckUpdate(checkUpdate);
+      NoteDbCheck newCheck = NoteDbCheck.createInitialNoteDbCheck(checkUpdate);
       newCheck.created = Timestamp.from(personIdent.getWhen().toInstant());
       newCheck.updated = newCheck.created;
       checksForRevision.checks.put(checkKey.checkerUuid().toString(), newCheck);
