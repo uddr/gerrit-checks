@@ -111,7 +111,8 @@ public final class CheckOperationsImpl implements CheckOperations {
 
     @Override
     public TestCheckUpdate.Builder forUpdate() {
-      throw new UnsupportedOperationException("todo");
+      return TestCheckUpdate.builder(key)
+          .setCheckUpdater(testUpdate -> checksUpdate.updateCheck(key, toCheckUpdate(testUpdate)));
     }
   }
 
