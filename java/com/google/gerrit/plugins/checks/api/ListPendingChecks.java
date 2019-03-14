@@ -39,7 +39,7 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
   @Option(
       name = "--checker",
       metaVar = "UUID",
-      usage = "checker UUID formated as '<scheme>:<id>'",
+      usage = "checker UUID formatted as '<scheme>:<id>'",
       handler = CheckerUuidHandler.class)
   public void setChecker(CheckerUuid checkerUuid) {
     this.checkerUuid = checkerUuid;
