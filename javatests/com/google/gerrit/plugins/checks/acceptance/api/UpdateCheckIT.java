@@ -135,4 +135,31 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     assertThat(info.url).isEqualTo("https://www.example.com");
     assertThat(info.state).isEqualTo(CheckState.NOT_STARTED);
   }
+
+  @Test
+  public void stateCanBeSetToNotStarted() throws Exception {
+    checkOperations.check(checkKey).forUpdate().setState(CheckState.FAILED).upsert();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.NOT_STARTED;
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    assertThat(info.state).isEqualTo(CheckState.NOT_STARTED);
+  }
+
+  @Test
+  public void otherPropertiesAreKeptWhenStateIsSetToNotStarted() throws Exception {
+    checkOperations
+        .check(checkKey)
+        .forUpdate()
+        .setState(CheckState.FAILED)
+        .setUrl("https://www.example.com")
+        .upsert();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.NOT_STARTED;
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    assertThat(info.url).isEqualTo("https://www.example.com");
+  }
 }
