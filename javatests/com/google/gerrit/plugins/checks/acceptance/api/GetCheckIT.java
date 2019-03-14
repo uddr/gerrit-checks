@@ -185,6 +185,25 @@ public class GetCheckIT extends AbstractCheckersTest {
     assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
   }
 
+  @Test
+  public void checkForDeletedChangeDoesNotExist() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    gApi.changes().id(patchSetId.getParentKey().get()).delete();
+
+    try {
+      checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+      assert_().fail("expected ResourceNotFoundException");
+    } catch (ResourceNotFoundException e) {
+      assertThat(e)
+          .hasMessageThat()
+          .ignoringCase()
+          .contains(String.format("change %d", patchSetId.getParentKey().get()));
+    }
+  }
+
   private Timestamp getPatchSetCreated(Change.Id changeId) throws RestApiException {
     return getOnlyElement(
             gApi.changes().id(changeId.get()).get(CURRENT_REVISION).revisions.values())
