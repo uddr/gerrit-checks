@@ -11,7 +11,7 @@ Please also take note of the general information on the
 ### <a id="get-checker"> List Pending Checks
 _'GET /checks.pending/'_
 
-Lists pending checks for a checker or for all checkers of a scheme.
+Lists pending checks for a checker.
 
 Checks are pending if they are in a non-final state and the external
 checker system intends to post further updates on them.
@@ -23,11 +23,7 @@ interested in (see [state](#state-param) request parameter).
 Request parameters:
 
 * <a id="checker-param"> `checker`: the UUID of the checker for which
-  pending checks should be listed (optional, if not specified `scheme`
-  must be set)
-* <a id="scheme-param"> `scheme`: the scheme of the checkers for which
-  pending checks should be listed (optional, if not specified `checker`
-  must be set)
+  pending checks should be listed (required)
 * <a id="state-param"> `state`: state that should be considered as
   pending (optional, by default the state `NOT_STARTED` is assumed,
   this option may be specified multiple times to request checks
@@ -75,56 +71,6 @@ entities is returned that describes the pending checks.
       "pending_checks": {
         "test:my-checker": {
           "state": "SCHEDULED",
-        }
-      }
-    }
-  ]
-```
-
-#### Request by checker scheme
-
-```
-  GET /checks.pending/?scheme=test&state=NOT_STARTED&state=SCHEDULED HTTP/1.0
-```
-
-As response a list of [PendingChecksInfo](#pending-checks-info)
-entities is returned that describes the pending checks.
-
-#### Response by checker scheme
-
-```
-  HTTP/1.1 200 OK
-  Content-Disposition: attachment
-  Content-Type: application/json; charset=UTF-8
-  )]}'
-  [
-    {
-      "patch_set": {
-        "project": "test-project",
-        "change_number": 1,
-        "patch_set_id": 1,
-      }
-      "pending_checks": {
-        "test:my-checker": {
-          "state": "NOT_STARTED",
-        },
-        "test:my-other-checker": {
-          "state": "SCHEDULED",
-        }
-      }
-    },
-    {
-      "patch_set": {
-        "project": "test-project",
-        "change_number": 5,
-        "patch_set_id": 2,
-      }
-      "pending_checks": {
-        "test:my-checker": {
-          "state": "NOT_STARTED",
-        },
-        "test:my-other-checker": {
-          "state": "NOT_STARTED",
         }
       }
     }

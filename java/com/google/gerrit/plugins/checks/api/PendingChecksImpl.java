@@ -46,17 +46,4 @@ public class PendingChecksImpl implements PendingChecks {
       throw asRestApiException("Cannot list pending checks", e);
     }
   }
-
-  @Override
-  public List<PendingChecksInfo> listForScheme(String scheme, CheckState... checkStates)
-      throws RestApiException {
-    try {
-      ListPendingChecks listPendingChecks = listPendingChecksProvider.get();
-      listPendingChecks.setScheme(scheme);
-      Stream.of(checkStates).forEach(listPendingChecks::addState);
-      return listPendingChecks.apply(TopLevelResource.INSTANCE);
-    } catch (Exception e) {
-      throw asRestApiException("Cannot list pending checks for scheme", e);
-    }
-  }
 }

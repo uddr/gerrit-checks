@@ -52,28 +52,12 @@ public interface PendingChecks {
   }
 
   /**
-   * Lists the pending checks for all checkers of the specified checker scheme.
-   *
-   * @param scheme the checker scheme for which pending checks should be listed
-   * @param checkStates the states that should be considered as pending, if not specified {@link
-   *     CheckState#NOT_STARTED} is assumed.
-   * @return the pending checks
-   */
-  List<PendingChecksInfo> listForScheme(String scheme, CheckState... checkStates)
-      throws RestApiException;
-
-  /**
    * A default implementation which allows source compatibility when adding new methods to the
    * interface.
    */
   class NotImplemented implements PendingChecks {
     @Override
     public List<PendingChecksInfo> list(CheckerUuid checkerUuid, CheckState... checkStates) {
-      throw new NotImplementedException();
-    }
-
-    @Override
-    public List<PendingChecksInfo> listForScheme(String scheme, CheckState... checkStates) {
       throw new NotImplementedException();
     }
   }

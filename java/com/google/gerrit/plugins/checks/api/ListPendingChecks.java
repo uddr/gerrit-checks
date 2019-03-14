@@ -33,7 +33,6 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
   private final AdministrateCheckersPermission permission;
 
   private CheckerUuid checkerUuid;
-  private String scheme;
   private List<CheckState> states = new ArrayList<>(CheckState.values().length);
 
   @Option(
@@ -43,11 +42,6 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
       handler = CheckerUuidHandler.class)
   public void setChecker(CheckerUuid checkerUuid) {
     this.checkerUuid = checkerUuid;
-  }
-
-  @Option(name = "--scheme", metaVar = "SCHEME", usage = "checker scheme")
-  public void setScheme(String scheme) {
-    this.scheme = scheme;
   }
 
   @Option(name = "--state", metaVar = "STATE", usage = "check state")
@@ -72,12 +66,8 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
       states.add(CheckState.NOT_STARTED);
     }
 
-    if (checkerUuid == null && scheme == null) {
-      throw new BadRequestException("checker or scheme is required");
-    }
-
-    if (checkerUuid != null && scheme != null) {
-      throw new BadRequestException("checker and scheme are mutually exclusive");
+    if (checkerUuid == null) {
+      throw new BadRequestException("checker UUID is required");
     }
 
     // TODO(ekempin): Implement this REST endpoint
