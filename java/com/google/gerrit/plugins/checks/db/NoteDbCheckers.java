@@ -63,10 +63,7 @@ class NoteDbCheckers implements Checkers {
   @Override
   public ImmutableList<Checker> listCheckers() throws IOException {
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
-      return allProjectsRepo
-          .getRefDatabase()
-          .getRefsByPrefix(CheckerRef.REFS_CHECKERS)
-          .stream()
+      return allProjectsRepo.getRefDatabase().getRefsByPrefix(CheckerRef.REFS_CHECKERS).stream()
           .flatMap(ref -> Streams.stream(tryLoadChecker(allProjectsRepo, ref)))
           .sorted(comparing(Checker::getUuid))
           .collect(toImmutableList());

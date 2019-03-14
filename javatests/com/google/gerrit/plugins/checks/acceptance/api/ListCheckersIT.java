@@ -48,8 +48,7 @@ public class ListCheckersIT extends AbstractCheckersTest {
             .url("http://example.com/my-checker")
             .create();
     List<CheckerInfo> expectedCheckerInfos =
-        ImmutableList.of(checkerUuid1, checkerUuid2, checkerUuid3)
-            .stream()
+        ImmutableList.of(checkerUuid1, checkerUuid2, checkerUuid3).stream()
             .sorted()
             .map(uuid -> checkerOperations.checker(uuid).asInfo())
             .collect(toList());

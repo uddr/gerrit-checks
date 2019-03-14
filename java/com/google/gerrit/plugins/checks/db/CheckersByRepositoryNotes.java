@@ -330,9 +330,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
    * <p>Doesn't validate the entries are valid checker UUIDs.
    */
   private static ImmutableSortedSet<String> parseNote(byte[] raw) {
-    return Splitter.on('\n')
-        .splitToList(new String(raw, UTF_8))
-        .stream()
+    return Splitter.on('\n').splitToList(new String(raw, UTF_8)).stream()
         .collect(toImmutableSortedSet(naturalOrder()));
   }
 
