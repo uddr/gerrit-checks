@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.gerrit.plugins.checks.api;
+package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
@@ -24,6 +24,8 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
+import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.index.change.ChangeField;
@@ -42,7 +44,7 @@ import java.util.Optional;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
-class CheckBackfiller {
+public class CheckBackfiller {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final ChangeData.Factory changeDataFactory;
@@ -62,7 +64,7 @@ class CheckBackfiller {
     this.queryBuilderProvider = queryBuilderProvider;
   }
 
-  ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
+  public ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
       Collection<Checker> candidates, ChangeNotes notes, PatchSet.Id psId) throws OrmException {
     if (candidates.isEmpty()) {
       return ImmutableList.of();
@@ -87,7 +89,7 @@ class CheckBackfiller {
     return result.build();
   }
 
-  Optional<Check> getBackfilledCheckForRelevantChecker(
+  public Optional<Check> getBackfilledCheckForRelevantChecker(
       CheckerUuid candidate, ChangeNotes notes, PatchSet.Id psId) throws OrmException, IOException {
     ChangeData cd = changeDataFactory.create(notes);
     if (!psId.equals(cd.change().currentPatchSetId())) {

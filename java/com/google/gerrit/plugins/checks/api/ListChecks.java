@@ -29,6 +29,7 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.ListChecksOption;
+import com.google.gerrit.plugins.checks.db.CheckBackfiller;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
