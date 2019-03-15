@@ -14,10 +14,12 @@
 
 package com.google.gerrit.plugins.checks;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gwtorm.server.OrmException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,15 +39,31 @@ public interface Checks {
    *
    * @param projectName the name of the project
    * @param patchSetId the ID of the patch set
+   * @param options options for getting checks.
    * @return the checks, {@link Optional#empty()} if no checks with the given UUID exists
    * @throws OrmException if the checks couldn't be retrieved from the storage
    */
-  ImmutableList<Check> getChecks(Project.NameKey projectName, PatchSet.Id patchSetId)
-      throws OrmException;
+  ImmutableList<Check> getChecks(
+      Project.NameKey projectName, PatchSet.Id patchSetId, GetCheckOptions options)
+      throws OrmException, IOException;
 
   /**
    * Returns a {@link Optional} holding a single check. {@code Optional.empty()} if the check does
    * not exist.
    */
-  Optional<Check> getCheck(CheckKey checkKey) throws OrmException;
+  Optional<Check> getCheck(CheckKey checkKey) throws OrmException, IOException;
+
+  @AutoValue
+  abstract class GetCheckOptions {
+    public static GetCheckOptions defaults() {
+      return new AutoValue_Checks_GetCheckOptions(false);
+    }
+
+    public static GetCheckOptions withBackfilling() {
+      return new AutoValue_Checks_GetCheckOptions(true);
+    }
+
+    /** Backfills checks for relevant checkers with default when they don't exist yet. */
+    public abstract boolean backfillChecks();
+  }
 }
