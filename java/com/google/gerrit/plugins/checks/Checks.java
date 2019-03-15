@@ -50,8 +50,16 @@ public interface Checks {
   /**
    * Returns a {@link Optional} holding a single check. {@code Optional.empty()} if the check does
    * not exist.
+   *
+   * @param checkKey the key of the target check.
+   * @param options options for getting a check.
+   * @return the target check if it exists. A backfilled check will be returned if {@link
+   *     GetCheckOptions#backfillChecks()} is true.
+   * @throws OrmException if the check couldn't be retrieved from the storage
+   * @throws IOException if the check couldn't be retrieved from the storage
    */
-  Optional<Check> getCheck(CheckKey checkKey) throws OrmException, IOException;
+  Optional<Check> getCheck(CheckKey checkKey, GetCheckOptions options)
+      throws OrmException, IOException;
 
   @AutoValue
   abstract class GetCheckOptions {

@@ -68,12 +68,23 @@ class NoteDbChecks implements Checks {
   }
 
   @Override
-  public Optional<Check> getCheck(CheckKey checkKey) throws OrmException, IOException {
+  public Optional<Check> getCheck(CheckKey checkKey, GetCheckOptions options)
+      throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
-    return getChecksFromNoteDb(checkKey.project(), checkKey.patchSet(), GetCheckOptions.defaults())
-        .stream()
-        .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
-        .findAny();
+    Optional<Check> result =
+        getChecksFromNoteDb(checkKey.project(), checkKey.patchSet(), GetCheckOptions.defaults())
+            .stream()
+            .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
+            .findAny();
+
+    if (!result.isPresent() && options.backfillChecks()) {
+      ChangeNotes notes =
+          changeNotesFactory.create(checkKey.project(), checkKey.patchSet().getParentKey());
+      return checkBackfiller.getBackfilledCheckForRelevantChecker(
+          checkKey.checkerUuid(), notes, checkKey.patchSet());
+    }
+
+    return result;
   }
 
   private ImmutableList<Check> getChecksFromNoteDb(

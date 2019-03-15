@@ -18,6 +18,7 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckResource;
@@ -78,7 +79,7 @@ public class PostCheck
     CheckerUuid checkerUuid = CheckerUuid.parse(input.checkerUuid);
 
     CheckKey key = CheckKey.create(rsrc.getProject(), rsrc.getPatchSet().getId(), checkerUuid);
-    Optional<Check> check = checks.getCheck(key);
+    Optional<Check> check = checks.getCheck(key, GetCheckOptions.defaults());
     Check updatedCheck;
     if (!check.isPresent()) {
       checkers

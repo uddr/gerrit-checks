@@ -24,6 +24,7 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
 import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
@@ -76,12 +77,12 @@ public final class CheckOperationsImpl implements CheckOperations {
 
     @Override
     public boolean exists() throws Exception {
-      return checks.getCheck(key).isPresent();
+      return checks.getCheck(key, GetCheckOptions.defaults()).isPresent();
     }
 
     @Override
     public Check get() throws Exception {
-      return checks.getCheck(key).get();
+      return checks.getCheck(key, GetCheckOptions.defaults()).get();
     }
 
     @Override
