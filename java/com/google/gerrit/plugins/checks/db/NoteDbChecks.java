@@ -18,6 +18,8 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -25,39 +27,50 @@ import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
+import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.gerrit.reviewdb.client.PatchSet.Id;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.server.PatchSetUtil;
-import com.google.gerrit.server.notedb.ChangeNotes;
+import com.google.gerrit.reviewdb.client.Project.NameKey;
+import com.google.gerrit.server.AnonymousUser;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 /** Class to read checks from NoteDb. */
 @Singleton
 class NoteDbChecks implements Checks {
-  private final ChangeNotes.Factory changeNotesFactory;
-  private final PatchSetUtil psUtil;
+  private final ChangeData.Factory changeDataFactory;
   private final CheckNotes.Factory checkNotesFactory;
   private final Checkers checkers;
   private final CheckBackfiller checkBackfiller;
+  private final Provider<AnonymousUser> anonymousUserProvider;
+  private final Provider<ChangeQueryBuilder> queryBuilderProvider;
 
   @Inject
   NoteDbChecks(
-      ChangeNotes.Factory changeNotesFactory,
-      PatchSetUtil psUtil,
+      ChangeData.Factory changeDataFactory,
       CheckNotes.Factory checkNotesFactory,
       Checkers checkers,
-      CheckBackfiller checkBackfiller) {
-    this.changeNotesFactory = changeNotesFactory;
-    this.psUtil = psUtil;
+      CheckBackfiller checkBackfiller,
+      Provider<AnonymousUser> anonymousUserProvider,
+      Provider<ChangeQueryBuilder> queryBuilderProvider) {
+    this.changeDataFactory = changeDataFactory;
     this.checkNotesFactory = checkNotesFactory;
     this.checkers = checkers;
     this.checkBackfiller = checkBackfiller;
+    this.anonymousUserProvider = anonymousUserProvider;
+    this.queryBuilderProvider = queryBuilderProvider;
   }
 
   @Override
@@ -78,10 +91,10 @@ class NoteDbChecks implements Checks {
             .findAny();
 
     if (!result.isPresent() && options.backfillChecks()) {
-      ChangeNotes notes =
-          changeNotesFactory.create(checkKey.project(), checkKey.patchSet().getParentKey());
+      ChangeData changeData =
+          changeDataFactory.create(checkKey.project(), checkKey.patchSet().getParentKey());
       return checkBackfiller.getBackfilledCheckForRelevantChecker(
-          checkKey.checkerUuid(), notes, checkKey.patchSet());
+          checkKey.checkerUuid(), changeData, checkKey.patchSet());
     }
 
     return result;
@@ -91,9 +104,9 @@ class NoteDbChecks implements Checks {
       Project.NameKey projectName, PatchSet.Id psId, GetCheckOptions options)
       throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
-    ChangeNotes notes = changeNotesFactory.create(projectName, psId.getParentKey());
-    PatchSet patchSet = psUtil.get(notes, psId);
-    CheckNotes checkNotes = checkNotesFactory.create(notes.getChange());
+    ChangeData changeData = changeDataFactory.create(projectName, psId.getParentKey());
+    PatchSet patchSet = changeData.patchSet(psId);
+    CheckNotes checkNotes = checkNotesFactory.create(changeData.change());
     checkNotes.load();
 
     ImmutableList<Check> existingChecks =
@@ -109,10 +122,51 @@ class NoteDbChecks implements Checks {
     ImmutableList<Checker> checkersForBackfiller =
         getCheckersForBackfiller(projectName, existingChecks);
     ImmutableList<Check> backfilledChecks =
-        checkBackfiller.getBackfilledChecksForRelevantCheckers(checkersForBackfiller, notes, psId);
+        checkBackfiller.getBackfilledChecksForRelevantCheckers(
+            checkersForBackfiller, changeData, psId);
 
     return Stream.concat(existingChecks.stream(), backfilledChecks.stream())
         .collect(toImmutableList());
+  }
+
+  @Override
+  public CombinedCheckState getCombinedCheckState(NameKey projectName, Id patchSetId)
+      throws IOException, OrmException {
+    ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId);
+    ImmutableMap<String, Checker> allCheckersOfProject =
+        checkers.checkersOf(projectName).stream()
+            .collect(ImmutableMap.toImmutableMap(c -> c.getUuid().toString(), c -> c));
+
+    // Always backfilling checks to have a meaningful "CombinedCheckState" even when there are some
+    // or all checks missing.
+    ImmutableMap<String, Check> checks =
+        getChecks(projectName, patchSetId, GetCheckOptions.withBackfilling()).stream()
+            .collect(ImmutableMap.toImmutableMap(c -> c.key().checkerUuid().toString(), c -> c));
+
+    ChangeQueryBuilder queryBuilder =
+        queryBuilderProvider.get().asUser(anonymousUserProvider.get());
+    ImmutableListMultimap.Builder<CheckState, Boolean> statesAndRequired =
+        ImmutableListMultimap.builder();
+
+    for (Map.Entry<String, Check> entry : checks.entrySet()) {
+      String checkerUuid = entry.getKey();
+      Check check = entry.getValue();
+
+      Checker checker = allCheckersOfProject.get(checkerUuid);
+      if (checker == null) {
+        // A not-relevant check.
+        statesAndRequired.put(check.state(), false);
+        continue;
+      }
+
+      boolean isRequired =
+          checker.getStatus() == CheckerStatus.ENABLED
+              && checker.isRequired()
+              && checker.isCheckerRelevant(changeData, queryBuilder);
+      statesAndRequired.put(check.state(), isRequired);
+    }
+
+    return CombinedCheckState.combine(statesAndRequired.build());
   }
 
   private ImmutableList<Checker> getCheckersForBackfiller(
