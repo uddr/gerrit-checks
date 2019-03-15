@@ -14,20 +14,17 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import java.util.Set;
+import static com.google.common.truth.Truth.assertThat;
 
-/**
- * Conditions evaluated on a check in the context of a change that determine whether the check
- * blocks submission of a change.
- */
-public enum BlockingCondition {
-  /**
-   * Block submission unless the combined state for all checks on the change {@link
-   * CombinedCheckState#isPassing() is passing}.
-   */
-  STATE_NOT_PASSING;
+import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.testing.GerritBaseTests;
+import org.junit.Test;
 
-  public static Boolean isRequired(Set<BlockingCondition> blocking) {
-    return blocking.contains(STATE_NOT_PASSING);
+public class BlockingConditionTest extends GerritBaseTests {
+  @Test
+  public void isRequired() {
+    assertThat(BlockingCondition.isRequired(ImmutableSet.of())).isFalse();
+    assertThat(BlockingCondition.isRequired(ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING)))
+        .isTrue();
   }
 }

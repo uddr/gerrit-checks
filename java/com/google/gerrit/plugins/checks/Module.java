@@ -21,10 +21,15 @@ import com.google.gerrit.extensions.config.CapabilityDefinition;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.plugins.checks.api.ApiModule;
+import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory;
+import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory.GetChangeOptions;
 import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
+import com.google.gerrit.server.DynamicOptions;
+import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.MergeValidationListener;
 import com.google.gerrit.server.git.validators.RefOperationValidationListener;
+import com.google.gerrit.server.restapi.change.GetChange;
 
 public class Module extends FactoryModule {
   @Override
@@ -45,6 +50,11 @@ public class Module extends FactoryModule {
     DynamicSet.bind(binder(), RefOperationValidationListener.class)
         .to(CheckerRefOperationValidator.class)
         .in(SINGLETON);
+
+    DynamicSet.bind(binder(), ChangeAttributeFactory.class).to(ChangeCheckAttributeFactory.class);
+    bind(DynamicOptions.DynamicBean.class)
+        .annotatedWith(Exports.named(GetChange.class))
+        .to(GetChangeOptions.class);
 
     install(new ApiModule());
   }
