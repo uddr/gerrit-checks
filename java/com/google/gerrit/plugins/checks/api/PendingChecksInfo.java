@@ -14,7 +14,6 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.gerrit.plugins.checks.CheckerUuid;
 import java.util.Map;
 
 /** REST API representation of pending checks on patch set. */
@@ -23,5 +22,5 @@ public class PendingChecksInfo {
   public CheckablePatchSetInfo patchSet;
 
   /** Pending checks on the patch set by checker UUID. */
-  public Map<CheckerUuid, PendingCheckInfo> pendingChecks;
+  public Map<String, PendingCheckInfo> pendingChecks;
 }
