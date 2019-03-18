@@ -28,7 +28,6 @@ import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -51,12 +50,12 @@ class NoteDbChecks implements Checks {
 
   @Override
   public ImmutableList<Check> getChecks(Project.NameKey projectName, PatchSet.Id psId)
-      throws OrmException, IOException {
+      throws OrmException {
     return getChecksAsStream(projectName, psId).collect(toImmutableList());
   }
 
   @Override
-  public Optional<Check> getCheck(CheckKey checkKey) throws OrmException, IOException {
+  public Optional<Check> getCheck(CheckKey checkKey) throws OrmException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     return getChecksAsStream(checkKey.project(), checkKey.patchSet())
         .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
