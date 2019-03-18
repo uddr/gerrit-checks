@@ -44,7 +44,7 @@ import java.util.Optional;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
-public class CheckBackfiller {
+class CheckBackfiller {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final ChangeData.Factory changeDataFactory;
@@ -64,7 +64,7 @@ public class CheckBackfiller {
     this.queryBuilderProvider = queryBuilderProvider;
   }
 
-  public ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
+  ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
       Collection<Checker> candidates, ChangeNotes notes, PatchSet.Id psId) throws OrmException {
     if (candidates.isEmpty()) {
       return ImmutableList.of();
@@ -89,7 +89,7 @@ public class CheckBackfiller {
     return result.build();
   }
 
-  public Optional<Check> getBackfilledCheckForRelevantChecker(
+  Optional<Check> getBackfilledCheckForRelevantChecker(
       CheckerUuid candidate, ChangeNotes notes, PatchSet.Id psId) throws OrmException, IOException {
     ChangeData cd = changeDataFactory.create(notes);
     if (!psId.equals(cd.change().currentPatchSetId())) {
