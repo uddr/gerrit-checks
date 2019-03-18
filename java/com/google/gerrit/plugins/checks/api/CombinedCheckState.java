@@ -33,8 +33,10 @@ public enum CombinedCheckState {
   /**
    * All relevant checks terminated, and at least one optional check failed, but no required checks
    * failed.
+   *
+   * <p>This state is considered {@link #isPassing() passing}, as in "checks passed with warnings."
    */
-  WARNING(false),
+  WARNING(true),
 
   /**
    * At least one relevant check is in a non-terminated state ({@link CheckState#NOT_STARTED},
@@ -101,8 +103,8 @@ public enum CombinedCheckState {
   /**
    * Returns whether the state represents a passing state.
    *
-   * <p>A passing state is one that is either completed successfully ({@link #SUCCESSFUL}) or simply
-   * {@link #NOT_RELEVANT}.
+   * <p>A passing state is one that is either completed successfully with or without warnings
+   * ({@link #WARNING} or {@link #SUCCESSFUL}), or is simply {@link #NOT_RELEVANT}.
    *
    * @return whether the state represents a passing state.
    */
