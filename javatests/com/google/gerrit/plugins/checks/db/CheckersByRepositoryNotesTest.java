@@ -258,6 +258,46 @@ public class CheckersByRepositoryNotesTest {
     assertThat(getRefsMetaCheckersState()).isEqualTo(commitId);
   }
 
+  @Test
+  public void getCheckersFromOldRevision() throws Exception {
+    CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
+
+    Project.NameKey project = new Project.NameKey("some-project");
+
+    CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
+    checkersByRepositoryNotes.insert(checkerUuid1, project);
+    commit(checkersByRepositoryNotes);
+    assertThat(checkersByRepositoryNotes.get(project)).containsExactly(checkerUuid1);
+
+    ObjectId oldRevision = getRefsMetaCheckersState();
+
+    CheckerUuid checkerUuid2 = CheckerUuid.parse("foo:baz");
+    checkersByRepositoryNotes.insert(checkerUuid2, project);
+    commit(checkersByRepositoryNotes);
+    assertThat(checkersByRepositoryNotes.get(project))
+        .containsExactly(checkerUuid1, checkerUuid2)
+        .inOrder();
+
+    assertThat(CheckersByRepositoryNotes.load(projectName, repository, oldRevision).get(project))
+        .containsExactly(checkerUuid1);
+  }
+
+  @Test
+  public void getCheckersFromZeroIdRevision() throws Exception {
+    assertThat(
+            CheckersByRepositoryNotes.load(projectName, repository, ObjectId.zeroId())
+                .get(new Project.NameKey("some-project")))
+        .isEmpty();
+  }
+
+  @Test
+  public void getCheckersFromNullRevision() throws Exception {
+    assertThat(
+            CheckersByRepositoryNotes.load(projectName, repository, null)
+                .get(new Project.NameKey("some-project")))
+        .isEmpty();
+  }
+
   private CheckersByRepositoryNotes loadCheckersByRepositoryNotes() throws IOException {
     return CheckersByRepositoryNotes.load(projectName, repository);
   }
