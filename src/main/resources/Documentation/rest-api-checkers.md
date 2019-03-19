@@ -218,7 +218,7 @@ to pass before submitting the change. In other words, we might say the checker
 is _required_.
 
 Technically, `STATE_NOT_PASSING` requires the combined check state on the change
-to be either `SUCCESSFUL` or `NOT_RELEVANT`.
+to be either `SUCCESSFUL`, `WARNING`, or `NOT_RELEVANT`.
 
 ## <a id="query"> Query
 
