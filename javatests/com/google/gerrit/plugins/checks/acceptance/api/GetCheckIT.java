@@ -123,6 +123,30 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void getCheckForCheckerWithUnsupportedOperatorInQuery() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).query("project:foo").create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  @Test
+  public void getCheckForCheckerWithInvalidQuery() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).query(":foo :bar").create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
+    assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  @Test
   public void getCheckForDisabledChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 

@@ -78,6 +78,28 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void canUpdateCheckForCheckerWithUnsupportedOperatorInQuery() throws Exception {
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().query("project:foo").update();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.SUCCESSFUL;
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.state).isEqualTo(CheckState.SUCCESSFUL);
+  }
+
+  @Test
+  public void canUpdateCheckForCheckerWithInvalidQuery() throws Exception {
+    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().query(":foo :bar").update();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.SUCCESSFUL;
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.state).isEqualTo(CheckState.SUCCESSFUL);
+  }
+
+  @Test
   public void canUpdateCheckForCheckerThatDoesNotApplyToTheChange() throws Exception {
     checkerOperations
         .checker(checkKey.checkerUuid())

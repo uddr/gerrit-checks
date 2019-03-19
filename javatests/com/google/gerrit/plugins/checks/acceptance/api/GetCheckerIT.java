@@ -113,6 +113,24 @@ public class GetCheckerIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void getCheckerWithUnsupportedOperatorInQuery() throws Exception {
+    String query = "project:foo";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query(query).create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.query).isEqualTo(query);
+  }
+
+  @Test
+  public void getCheckerWithInvalidQuery() throws Exception {
+    String query = ":foo :bar";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query(query).create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.query).isEqualTo(query);
+  }
+
+  @Test
   public void getNonExistingCheckerFails() throws Exception {
     CheckerUuid checkerUuid = CheckerUuid.parse("test:non-existing");
 

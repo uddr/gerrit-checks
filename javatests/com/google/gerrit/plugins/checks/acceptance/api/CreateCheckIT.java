@@ -173,6 +173,36 @@ public class CreateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void canCreateCheckForCheckerWithUnsupportedOperatorInQuery() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).query("project:foo").create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.toString();
+    input.state = CheckState.RUNNING;
+
+    checksApiFactory.revision(patchSetId).create(input);
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    assertThat(checkOperations.check(checkKey).exists()).isTrue();
+  }
+
+  @Test
+  public void canCreateCheckForCheckerWithInvalidQuery() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).query(":foo :bar").create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.toString();
+    input.state = CheckState.RUNNING;
+
+    checksApiFactory.revision(patchSetId).create(input);
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    assertThat(checkOperations.check(checkKey).exists()).isTrue();
+  }
+
+  @Test
   public void cannotCreateCheckWithoutAdministrateCheckers() throws Exception {
     requestScopeOperations.setApiUser(user.getId());
 
