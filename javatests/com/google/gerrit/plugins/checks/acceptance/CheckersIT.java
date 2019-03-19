@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
 import java.util.stream.Stream;
 import org.junit.Test;
@@ -45,19 +46,19 @@ public class CheckersIT extends AbstractCheckersTest {
 
   @Test
   public void checkersOfOmitsDisabledCheckers() throws Exception {
+    // Creates a disabled checker.
+    checkerOperations.newChecker().repository(project).status(CheckerStatus.DISABLED).create();
+    // Creates an enabled checker and then disabled it by an update.
     CheckerUuid checkerUuid1 = checkerOperations.newChecker().repository(project).create();
-    CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
     checkerOperations.checker(checkerUuid1).forUpdate().disable().update();
+    // Creates an enabled checker.
+    CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
 
     assertThat(getCheckerUuidsOf(project)).containsExactly(checkerUuid2);
   }
 
   private Stream<CheckerUuid> getCheckerUuidsOf(Project.NameKey projectName) throws Exception {
-    return plugin
-        .getSysInjector()
-        .getInstance(Checkers.class)
-        .checkersOf(projectName)
-        .stream()
+    return plugin.getSysInjector().getInstance(Checkers.class).checkersOf(projectName).stream()
         .map(Checker::getUuid);
   }
 }
