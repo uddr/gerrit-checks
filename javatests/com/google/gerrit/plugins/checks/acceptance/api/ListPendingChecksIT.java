@@ -29,6 +29,7 @@ import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.PendingCheckInfo;
 import com.google.gerrit.plugins.checks.api.PendingChecksInfo;
@@ -73,10 +74,10 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotListPendingChecksForMalformedCheckerUuid() throws Exception {
+  public void cannotListPendingChecksForInvalidCheckerUuid() throws Exception {
     exception.expect(BadRequestException.class);
-    exception.expectMessage("invalid checker UUID: malformed::checker*UUID");
-    pendingChecksApi.list("malformed::checker*UUID");
+    exception.expectMessage("invalid checker UUID: " + CheckerTestData.INVALID_UUID);
+    pendingChecksApi.list(CheckerTestData.INVALID_UUID);
   }
 
   @Test

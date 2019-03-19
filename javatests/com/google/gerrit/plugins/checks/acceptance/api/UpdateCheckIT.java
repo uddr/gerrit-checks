@@ -21,6 +21,7 @@ import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
@@ -79,7 +80,11 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void canUpdateCheckForCheckerWithUnsupportedOperatorInQuery() throws Exception {
-    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().query("project:foo").update();
+    checkerOperations
+        .checker(checkKey.checkerUuid())
+        .forUpdate()
+        .query(CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR)
+        .update();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.SUCCESSFUL;
@@ -90,7 +95,11 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void canUpdateCheckForCheckerWithInvalidQuery() throws Exception {
-    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().query(":foo :bar").update();
+    checkerOperations
+        .checker(checkKey.checkerUuid())
+        .forUpdate()
+        .query(CheckerTestData.INVALID_QUERY)
+        .update();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.SUCCESSFUL;

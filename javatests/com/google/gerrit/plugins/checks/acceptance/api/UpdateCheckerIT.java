@@ -30,6 +30,7 @@ import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperations.PerCheckerOperations;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
 import com.google.gerrit.plugins.checks.api.CheckerInput;
@@ -412,7 +413,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().name("my-checker").create();
 
     CheckerInput input = new CheckerInput();
-    input.url = "ftp://example.com/my-checker";
+    input.url = CheckerTestData.INVALID_URL;
     exception.expect(BadRequestException.class);
     exception.expectMessage("only http/https URLs supported: ftp://example.com/my-checker");
     checkersApi.id(checkerUuid).update(input);
@@ -538,12 +539,14 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     Optional<String> oldQuery = checkerOperations.checker(checkerUuid).get().getQuery();
 
     CheckerInput input = new CheckerInput();
-    input.query = "project:foo";
+    input.query = CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR;
     try {
       checkersApi.id(checkerUuid).update(input);
       assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
-      assertThat(e).hasMessageThat().isEqualTo("Unsupported operator: project");
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo("Unsupported operator: " + CheckerTestData.UNSUPPORTED_OPERATOR);
     }
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
@@ -556,7 +559,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     Optional<String> oldQuery = checkerOperations.checker(checkerUuid).get().getQuery();
 
     CheckerInput input = new CheckerInput();
-    input.query = ":foo :bar";
+    input.query = CheckerTestData.INVALID_QUERY;
     try {
       checkersApi.id(checkerUuid).update(input);
       assert_().fail("expected BadRequestException");

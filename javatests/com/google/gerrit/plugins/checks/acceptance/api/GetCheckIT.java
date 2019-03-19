@@ -28,6 +28,7 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
@@ -125,7 +126,11 @@ public class GetCheckIT extends AbstractCheckersTest {
   @Test
   public void getCheckForCheckerWithUnsupportedOperatorInQuery() throws Exception {
     CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).query("project:foo").create();
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .query(CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR)
+            .create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
@@ -137,7 +142,11 @@ public class GetCheckIT extends AbstractCheckersTest {
   @Test
   public void getCheckForCheckerWithInvalidQuery() throws Exception {
     CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).query(":foo :bar").create();
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .query(CheckerTestData.INVALID_QUERY)
+            .create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
@@ -231,8 +240,8 @@ public class GetCheckIT extends AbstractCheckersTest {
   @Test
   public void getCheckForInvalidCheckerUuid() throws Exception {
     exception.expect(BadRequestException.class);
-    exception.expectMessage("invalid checker UUID: malformed::checker*UUID");
-    checksApiFactory.revision(patchSetId).id("malformed::checker*UUID");
+    exception.expectMessage("invalid checker UUID: " + CheckerTestData.INVALID_UUID);
+    checksApiFactory.revision(patchSetId).id(CheckerTestData.INVALID_UUID);
   }
 
   @Test
