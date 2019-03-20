@@ -85,15 +85,14 @@ public class ListChecksIT extends AbstractCheckersTest {
     Collection<CheckInfo> info =
         checksApiFactory.revision(patchSetId).list(ListChecksOption.CHECKER);
 
-    Timestamp psCreated = getPatchSetCreated(patchSetId.getParentKey());
     CheckInfo expected1 = new CheckInfo();
     expected1.project = checkKey1.project().get();
     expected1.changeNumber = checkKey1.patchSet().getParentKey().get();
     expected1.patchSetId = checkKey1.patchSet().get();
     expected1.checkerUuid = checkKey1.checkerUuid().toString();
     expected1.state = CheckState.RUNNING;
-    expected1.created = psCreated;
-    expected1.updated = psCreated;
+    expected1.created = checkOperations.check(checkKey1).get().created();
+    expected1.updated = expected1.created;
     expected1.blocking = ImmutableSet.of();
     expected1.checkerStatus = CheckerStatus.ENABLED;
 
@@ -103,8 +102,8 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected2.patchSetId = checkKey2.patchSet().get();
     expected2.checkerUuid = checkKey2.checkerUuid().toString();
     expected2.state = CheckState.RUNNING;
-    expected2.created = psCreated;
-    expected2.updated = psCreated;
+    expected2.created = checkOperations.check(checkKey2).get().created();
+    expected2.updated = expected2.created;
     expected2.checkerName = "Checker Two";
     expected2.blocking = ImmutableSet.of();
     expected2.checkerStatus = CheckerStatus.ENABLED;
