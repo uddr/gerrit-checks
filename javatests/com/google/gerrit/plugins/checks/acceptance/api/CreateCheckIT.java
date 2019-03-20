@@ -16,7 +16,6 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.gerrit.acceptance.Sandboxed;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -63,10 +62,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     TestTimeUtil.useSystemTime();
   }
 
-  // TODO(gerrit-team): Investigate why this test fails due to timestamp mismatches if other tests
-  // are executed before it. To avoid this issue this test is sandboxed for now.
   @Test
-  @Sandboxed
   public void createCheck() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
@@ -74,20 +70,25 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = checkerUuid.toString();
     input.state = CheckState.RUNNING;
 
+    Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(info.checkerUuid).isEqualTo(checkerUuid.toString());
     assertThat(info.state).isEqualTo(CheckState.RUNNING);
     assertThat(info.started).isNull();
     assertThat(info.finished).isNull();
-    assertThat(info.created).isNotNull();
-    assertThat(info.updated).isNotNull();
+    assertThat(info.created).isEqualTo(expectedCreationTimestamp);
+    assertThat(info.updated).isEqualTo(info.created);
 
     CheckKey key = CheckKey.create(project, patchSetId, checkerUuid);
     PerCheckOperations perCheckOps = checkOperations.check(key);
 
     // TODO(gerrit-team) Add a Truth subject for the notes map
     Map<RevId, String> notes = perCheckOps.notesAsText();
-    assertThat(notes).containsExactly(revId, noteDbContent(checkerUuid.toString()));
+    assertThat(notes)
+        .containsExactly(
+            revId,
+            noteDbContent(
+                checkerUuid.toString(), expectedCreationTimestamp, expectedCreationTimestamp));
   }
 
   @Test
@@ -188,7 +189,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave
 
-  private String noteDbContent(String uuid) {
+  private String noteDbContent(String uuid, Timestamp created, Timestamp updated) {
     return ""
         + "{\n"
         + "  \"checks\": {\n"
@@ -196,8 +197,12 @@ public class CreateCheckIT extends AbstractCheckersTest {
         + uuid
         + "\": {\n"
         + "      \"state\": \"RUNNING\",\n"
-        + "      \"created\": \"1970-01-01T00:00:25Z\",\n"
-        + "      \"updated\": \"1970-01-01T00:00:25Z\"\n"
+        + "      \"created\": \""
+        + Instant.ofEpochMilli(created.getTime())
+        + "\",\n"
+        + "      \"updated\": \""
+        + Instant.ofEpochMilli(updated.getTime())
+        + "\"\n"
         + "    }\n"
         + "  }\n"
         + "}";
