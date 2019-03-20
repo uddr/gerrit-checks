@@ -27,9 +27,13 @@ public class ChangeCheckInfo extends PluginDefinedInfo {
 
   public ChangeCheckInfo() {}
 
-  public ChangeCheckInfo(String pluginName, CombinedCheckState combinedState) {
-    this.name = requireNonNull(pluginName);
+  public ChangeCheckInfo(CombinedCheckState combinedState) {
     this.combinedState = requireNonNull(combinedState);
+  }
+
+  public ChangeCheckInfo(String pluginName, CombinedCheckState combinedState) {
+    this(combinedState);
+    this.name = requireNonNull(pluginName);
   }
 
   @Override

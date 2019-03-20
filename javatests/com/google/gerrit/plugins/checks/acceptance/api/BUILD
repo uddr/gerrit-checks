@@ -10,6 +10,7 @@ acceptance_tests(
     deps = [
         "//java/com/google/gerrit/git/testing",
         "//java/com/google/gerrit/server/util/time",
+        "//java/com/google/gerrit/truth",
         "//javatests/com/google/gerrit/acceptance/rest/util",
         "//plugins/checks:checks__plugin",
         "//plugins/checks/java/com/google/gerrit/plugins/checks/acceptance",

@@ -23,6 +23,7 @@ import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.plugins.checks.api.ApiModule;
 import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory;
 import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory.GetChangeOptions;
+import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory.QueryChangesOptions;
 import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
 import com.google.gerrit.plugins.checks.rules.ChecksSubmitRule;
 import com.google.gerrit.server.DynamicOptions;
@@ -31,12 +32,15 @@ import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.MergeValidationListener;
 import com.google.gerrit.server.git.validators.RefOperationValidationListener;
 import com.google.gerrit.server.restapi.change.GetChange;
+import com.google.gerrit.server.restapi.change.QueryChanges;
+import com.google.gerrit.sshd.commands.Query;
 
 public class Module extends FactoryModule {
   @Override
   protected void configure() {
     factory(CheckJson.AssistedFactory.class);
     install(new NoteDbCheckersModule());
+    install(CombinedCheckStateCache.module());
 
     bind(CapabilityDefinition.class)
         .annotatedWith(Exports.named(AdministrateCheckersCapability.NAME))
@@ -56,6 +60,12 @@ public class Module extends FactoryModule {
     bind(DynamicOptions.DynamicBean.class)
         .annotatedWith(Exports.named(GetChange.class))
         .to(GetChangeOptions.class);
+    bind(DynamicOptions.DynamicBean.class)
+        .annotatedWith(Exports.named(QueryChanges.class))
+        .to(QueryChangesOptions.class);
+    bind(DynamicOptions.DynamicBean.class)
+        .annotatedWith(Exports.named(Query.class))
+        .to(QueryChangesOptions.class);
 
     install(new ApiModule());
     install(new ChecksSubmitRule.Module());
