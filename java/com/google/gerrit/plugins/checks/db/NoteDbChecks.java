@@ -15,11 +15,15 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
@@ -28,6 +32,8 @@ import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -37,45 +43,84 @@ class NoteDbChecks implements Checks {
   private final ChangeNotes.Factory changeNotesFactory;
   private final PatchSetUtil psUtil;
   private final CheckNotes.Factory checkNotesFactory;
+  private final Checkers checkers;
+  private final CheckBackfiller checkBackfiller;
 
   @Inject
   NoteDbChecks(
       ChangeNotes.Factory changeNotesFactory,
       PatchSetUtil psUtil,
-      CheckNotes.Factory checkNotesFactory) {
+      CheckNotes.Factory checkNotesFactory,
+      Checkers checkers,
+      CheckBackfiller checkBackfiller) {
     this.changeNotesFactory = changeNotesFactory;
     this.psUtil = psUtil;
     this.checkNotesFactory = checkNotesFactory;
+    this.checkers = checkers;
+    this.checkBackfiller = checkBackfiller;
   }
 
   @Override
-  public ImmutableList<Check> getChecks(Project.NameKey projectName, PatchSet.Id psId)
-      throws OrmException {
-    return getChecksAsStream(projectName, psId).collect(toImmutableList());
+  public ImmutableList<Check> getChecks(
+      Project.NameKey projectName, PatchSet.Id psId, GetCheckOptions options)
+      throws IOException, OrmException {
+    return getChecksFromNoteDb(projectName, psId, options);
   }
 
   @Override
-  public Optional<Check> getCheck(CheckKey checkKey) throws OrmException {
+  public Optional<Check> getCheck(CheckKey checkKey, GetCheckOptions options)
+      throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
-    return getChecksAsStream(checkKey.project(), checkKey.patchSet())
-        .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
-        .findAny();
+    Optional<Check> result =
+        getChecksFromNoteDb(checkKey.project(), checkKey.patchSet(), GetCheckOptions.defaults())
+            .stream()
+            .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
+            .findAny();
+
+    if (!result.isPresent() && options.backfillChecks()) {
+      ChangeNotes notes =
+          changeNotesFactory.create(checkKey.project(), checkKey.patchSet().getParentKey());
+      return checkBackfiller.getBackfilledCheckForRelevantChecker(
+          checkKey.checkerUuid(), notes, checkKey.patchSet());
+    }
+
+    return result;
   }
 
-  private Stream<Check> getChecksAsStream(Project.NameKey projectName, PatchSet.Id psId)
-      throws OrmException {
+  private ImmutableList<Check> getChecksFromNoteDb(
+      Project.NameKey projectName, PatchSet.Id psId, GetCheckOptions options)
+      throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     ChangeNotes notes = changeNotesFactory.create(projectName, psId.getParentKey());
     PatchSet patchSet = psUtil.get(notes, psId);
     CheckNotes checkNotes = checkNotesFactory.create(notes.getChange());
-
     checkNotes.load();
-    return checkNotes
-        .getChecks()
-        .getOrDefault(patchSet.getRevision(), NoteDbCheckMap.empty())
-        .checks
-        .entrySet()
-        .stream()
-        .map(e -> e.getValue().toCheck(projectName, psId, CheckerUuid.parse(e.getKey())));
+
+    ImmutableList<Check> existingChecks =
+        checkNotes.getChecks().getOrDefault(patchSet.getRevision(), NoteDbCheckMap.empty()).checks
+            .entrySet().stream()
+            .map(e -> e.getValue().toCheck(projectName, psId, CheckerUuid.parse(e.getKey())))
+            .collect(toImmutableList());
+
+    if (!options.backfillChecks()) {
+      return existingChecks;
+    }
+
+    ImmutableList<Checker> checkersForBackfiller =
+        getCheckersForBackfiller(projectName, existingChecks);
+    ImmutableList<Check> backfilledChecks =
+        checkBackfiller.getBackfilledChecksForRelevantCheckers(checkersForBackfiller, notes, psId);
+
+    return Stream.concat(existingChecks.stream(), backfilledChecks.stream())
+        .collect(toImmutableList());
+  }
+
+  private ImmutableList<Checker> getCheckersForBackfiller(
+      Project.NameKey projectName, List<Check> existingChecks) throws IOException {
+    ImmutableSet<CheckerUuid> checkersWithExistingChecks =
+        existingChecks.stream().map(c -> c.key().checkerUuid()).collect(toImmutableSet());
+    return checkers.checkersOf(projectName).stream()
+        .filter(c -> !checkersWithExistingChecks.contains(c.getUuid()))
+        .collect(toImmutableList());
   }
 }

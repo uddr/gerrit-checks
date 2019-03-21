@@ -162,8 +162,13 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
 
       CheckersByRepositoryNotes checkersByRepositoryNotes =
           CheckersByRepositoryNotes.load(allProjectsName, allProjectsRepo);
-      checkersByRepositoryNotes.insert(
-          checkerCreation.getCheckerUuid(), checkerCreation.getRepository());
+      if (!checkerUpdate.getStatus().isPresent()
+          || checkerUpdate.getStatus().get() == CheckerStatus.ENABLED) {
+        // Only inserts to the notes if the status is not set or set as "ENABLED". Does not insert
+        // if the checker is DISABLED.
+        checkersByRepositoryNotes.insert(
+            checkerCreation.getCheckerUuid(), checkerCreation.getRepository());
+      }
 
       commit(allProjectsRepo, checkerConfig, checkersByRepositoryNotes);
 

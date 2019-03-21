@@ -26,6 +26,7 @@ import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gwtorm.server.OrmException;
@@ -36,18 +37,13 @@ import java.util.Optional;
 
 @Singleton
 public class ChecksCollection implements ChildCollection<RevisionResource, CheckResource> {
-  private final CheckBackfiller checkBackfiller;
   private final Checks checks;
   private final DynamicMap<RestView<CheckResource>> views;
   private final ListChecks listChecks;
 
   @Inject
   ChecksCollection(
-      CheckBackfiller checkBackfiller,
-      Checks checks,
-      DynamicMap<RestView<CheckResource>> views,
-      ListChecks listChecks) {
-    this.checkBackfiller = checkBackfiller;
+      Checks checks, DynamicMap<RestView<CheckResource>> views, ListChecks listChecks) {
     this.checks = checks;
     this.views = views;
     this.listChecks = listChecks;
@@ -67,12 +63,7 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
                 () -> new BadRequestException(String.format("invalid checker UUID: %s", id.get())));
     CheckKey checkKey =
         CheckKey.create(parent.getProject(), parent.getPatchSet().getId(), checkerUuid);
-    Optional<Check> check = checks.getCheck(checkKey);
-    if (!check.isPresent()) {
-      check =
-          checkBackfiller.getBackfilledCheckForRelevantChecker(
-              checkerUuid, parent.getNotes(), checkKey.patchSet());
-    }
+    Optional<Check> check = checks.getCheck(checkKey, GetCheckOptions.withBackfilling());
     return new CheckResource(
         parent,
         check.orElseThrow(
