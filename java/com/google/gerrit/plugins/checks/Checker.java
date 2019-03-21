@@ -16,9 +16,18 @@ package com.google.gerrit.plugins.checks;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.index.query.IndexPredicate;
+import com.google.gerrit.index.query.Predicate;
+import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.index.change.ChangeField;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.query.change.ChangeQueryBuilder;
+import com.google.gerrit.server.query.change.ChangeStatusPredicate;
+import com.google.gwtorm.server.OrmException;
 import java.sql.Timestamp;
 import java.util.Optional;
 import org.eclipse.jgit.lib.ObjectId;
@@ -26,6 +35,7 @@ import org.eclipse.jgit.lib.ObjectId;
 /** Definition of a checker. */
 @AutoValue
 public abstract class Checker {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * Returns the UUID of the checker.
@@ -124,6 +134,42 @@ public abstract class Checker {
 
   public static Builder builder(CheckerUuid uuid) {
     return builder().setUuid(uuid);
+  }
+
+  public boolean isCheckerRelevant(ChangeData cd, ChangeQueryBuilder queryBuilder)
+      throws OrmException {
+    if (!getQuery().isPresent()) {
+      return cd.change().isNew();
+    }
+    String query = getQuery().get();
+    Predicate<ChangeData> predicate;
+    try {
+      predicate = queryBuilder.parse(query);
+    } catch (QueryParseException e) {
+      logger.atWarning().withCause(e).log(
+          "skipping invalid query for checker %s: %s", getUuid(), query);
+      return false;
+    }
+    if (!predicate.isMatchable()) {
+      // Assuming nobody modified the query behind Gerrit's back, this is programmer error:
+      // CheckerQuery should not be able to produce non-matchable queries.
+      logger.atWarning().log("skipping non-matchable query for checker %s: %s", getUuid(), query);
+      return false;
+    }
+    if (!hasStatusPredicate(predicate)) {
+      predicate = Predicate.and(ChangeStatusPredicate.open(), predicate);
+    }
+    return predicate.asMatchable().match(cd);
+  }
+
+  private static boolean hasStatusPredicate(Predicate<ChangeData> predicate) {
+    if (predicate instanceof IndexPredicate) {
+      return ((IndexPredicate<ChangeData>) predicate)
+          .getField()
+          .getName()
+          .equals(ChangeField.STATUS.getName());
+    }
+    return predicate.getChildren().stream().anyMatch(Checker::hasStatusPredicate);
   }
 
   /** A builder for an {@link Checker}. */
