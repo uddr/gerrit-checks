@@ -31,9 +31,9 @@ Request parameters:
 
 This REST endpoint only returns pending checks for current patch sets.
 
-Note that only users with the [Administrate
-Checkers](access-control.md#capability_administrateCheckers) global capability
-are permitted to list pending checks.
+Note that all users are allowed to list pending checks but the result
+includes only checks on changes that are visible to the calling user.
+This means pending checks for non-visible changes are filtered out.
 
 #### Request by checker
 

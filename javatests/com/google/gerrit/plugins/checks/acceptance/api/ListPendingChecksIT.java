@@ -16,12 +16,13 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.plugins.checks.testing.PendingChecksInfoSubject.assertThat;
+import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import com.google.common.collect.Iterables;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
-import com.google.gerrit.extensions.restapi.AuthException;
+import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
@@ -32,6 +33,7 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.PendingCheckInfo;
 import com.google.gerrit.plugins.checks.api.PendingChecksInfo;
 import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.gerrit.server.project.testing.Util;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
@@ -75,15 +77,6 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     exception.expect(BadRequestException.class);
     exception.expectMessage("invalid checker UUID: malformed::checker*UUID");
     pendingChecksApi.list("malformed::checker*UUID");
-  }
-
-  @Test
-  public void cannotListPendingChecksWithoutAdministrateCheckers() throws Exception {
-    requestScopeOperations.setApiUser(user.getId());
-
-    exception.expect(AuthException.class);
-    exception.expectMessage("not permitted");
-    pendingChecksApi.list("foo:bar");
   }
 
   @Test
@@ -320,5 +313,73 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     exception.expectMessage("Cannot list pending checks");
     exception.expectCause(instanceOf(ConfigInvalidException.class));
     pendingChecksApi.list(checkerUuid);
+  }
+
+  @Test
+  public void listPendingChecksWithoutAdministrateCheckersCapabilityWorks() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .setState(CheckState.NOT_STARTED)
+        .upsert();
+
+    requestScopeOperations.setApiUser(user.getId());
+    List<PendingChecksInfo> pendingChecksList =
+        pendingChecksApi.list(checkerUuid, CheckState.NOT_STARTED);
+    assertThat(pendingChecksList).hasSize(1);
+    PendingChecksInfo pendingChecks = Iterables.getOnlyElement(pendingChecksList);
+    assertThat(pendingChecks).hasProject(project);
+    assertThat(pendingChecks).hasPatchSet(patchSetId);
+    assertThat(pendingChecks)
+        .hasPendingChecksMapThat()
+        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.NOT_STARTED));
+  }
+
+  @Test
+  public void pendingChecksDontIncludeChecksForNonVisibleChanges() throws Exception {
+    // restrict project visibility so that it is only visible to administrators
+    try (ProjectConfigUpdate u = updateProject(project)) {
+      Util.allow(u.getConfig(), Permission.READ, adminGroupUuid(), "refs/*");
+      Util.block(u.getConfig(), Permission.READ, REGISTERED_USERS, "refs/*");
+      u.save();
+    }
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .setState(CheckState.NOT_STARTED)
+        .upsert();
+
+    // Check is returned for admin user.
+    List<PendingChecksInfo> pendingChecksList =
+        pendingChecksApi.list(checkerUuid, CheckState.NOT_STARTED);
+    assertThat(pendingChecksList).isNotEmpty();
+
+    // Check is not returned for non-admin user.
+    requestScopeOperations.setApiUser(user.getId());
+    pendingChecksList = pendingChecksApi.list(checkerUuid, CheckState.NOT_STARTED);
+    assertThat(pendingChecksList).isEmpty();
+  }
+
+  @Test
+  public void pendingChecksDontIncludeChecksForPrivateChangesOfOtherUsers() throws Exception {
+    // make change private so that it is only visible to the admin user
+    gApi.changes().id(patchSetId.getParentKey().get()).setPrivate(true);
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .setState(CheckState.NOT_STARTED)
+        .upsert();
+
+    // Check is returned for admin user.
+    List<PendingChecksInfo> pendingChecksList =
+        pendingChecksApi.list(checkerUuid, CheckState.NOT_STARTED);
+    assertThat(pendingChecksList).isNotEmpty();
+
+    // Check is not returned for non-admin user.
+    requestScopeOperations.setApiUser(user.getId());
+    pendingChecksList = pendingChecksApi.list(checkerUuid, CheckState.NOT_STARTED);
+    assertThat(pendingChecksList).isEmpty();
   }
 }
