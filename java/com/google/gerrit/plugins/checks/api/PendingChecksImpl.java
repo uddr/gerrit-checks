@@ -18,12 +18,10 @@ import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
 
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
-import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Singleton
 public class PendingChecksImpl implements PendingChecks {
@@ -35,15 +33,22 @@ public class PendingChecksImpl implements PendingChecks {
   }
 
   @Override
-  public List<PendingChecksInfo> list(CheckerUuid checkerUuid, CheckState... checkStates)
-      throws RestApiException {
+  public QueryRequest query() {
+    return new QueryRequest() {
+      @Override
+      public List<PendingChecksInfo> get() throws RestApiException {
+        return PendingChecksImpl.this.query(this);
+      }
+    };
+  }
+
+  private List<PendingChecksInfo> query(QueryRequest queryRequest) throws RestApiException {
     try {
       ListPendingChecks listPendingChecks = listPendingChecksProvider.get();
-      listPendingChecks.setChecker(checkerUuid);
-      Stream.of(checkStates).forEach(listPendingChecks::addState);
+      listPendingChecks.setQuery(queryRequest.getQuery());
       return listPendingChecks.apply(TopLevelResource.INSTANCE);
     } catch (Exception e) {
-      throw asRestApiException("Cannot list pending checks", e);
+      throw asRestApiException("Cannot query pending checks", e);
     }
   }
 }

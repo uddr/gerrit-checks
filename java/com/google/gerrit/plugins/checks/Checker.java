@@ -145,6 +145,10 @@ public abstract class Checker {
     return builder().setUuid(uuid);
   }
 
+  public boolean isDisabled() {
+    return CheckerStatus.DISABLED == getStatus();
+  }
+
   public boolean isCheckerRelevant(ChangeData cd, ChangeQueryBuilder changeQueryBuilder)
       throws OrmException {
     if (!getQuery().isPresent()) {

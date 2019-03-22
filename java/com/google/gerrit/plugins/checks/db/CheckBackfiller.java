@@ -16,11 +16,9 @@ package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.plugins.checks.Check;
-import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
-import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.AnonymousUser;
@@ -69,7 +67,7 @@ class CheckBackfiller {
     for (Checker checker : candidates) {
       if (checker.isCheckerRelevant(cd, queryBuilder)) {
         // Add synthetic check at the creation time of the patch set.
-        result.add(newBackfilledCheck(cd, ps, checker));
+        result.add(Check.newBackfilledCheck(cd.project(), ps, checker));
       }
     }
     return result.build();
@@ -95,15 +93,7 @@ class CheckBackfiller {
         || !checker.get().isCheckerRelevant(cd, newQueryBuilder())) {
       return Optional.empty();
     }
-    return Optional.of(newBackfilledCheck(cd, cd.patchSet(psId), checker.get()));
-  }
-
-  private Check newBackfilledCheck(ChangeData cd, PatchSet ps, Checker checker) {
-    return Check.builder(CheckKey.create(cd.project(), ps.getId(), checker.getUuid()))
-        .setState(CheckState.NOT_STARTED)
-        .setCreated(ps.getCreatedOn())
-        .setUpdated(ps.getCreatedOn())
-        .build();
+    return Optional.of(Check.newBackfilledCheck(cd.project(), cd.patchSet(psId), checker.get()));
   }
 
   private ChangeQueryBuilder newQueryBuilder() {

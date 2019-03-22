@@ -16,11 +16,21 @@ package com.google.gerrit.plugins.checks;
 
 import com.google.auto.value.AutoValue;
 import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.gerrit.reviewdb.client.Project;
 import java.sql.Timestamp;
 import java.util.Optional;
 
 @AutoValue
 public abstract class Check {
+  public static Check newBackfilledCheck(Project.NameKey project, PatchSet ps, Checker checker) {
+    return Check.builder(CheckKey.create(project, ps.getId(), checker.getUuid()))
+        .setState(CheckState.NOT_STARTED)
+        .setCreated(ps.getCreatedOn())
+        .setUpdated(ps.getCreatedOn())
+        .build();
+  }
+
   /** The key of the Check. */
   public abstract CheckKey key();
 

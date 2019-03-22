@@ -8,7 +8,7 @@ Please also take note of the general information on the
 
 ## <a id="pending-checks-endpoints"> Pending Checks Endpoints
 
-### <a id="get-checker"> List Pending Checks
+### <a id="list-pending-checks"> List Pending Checks
 _'GET /plugins/@PLUGIN@/checks.pending/'_
 
 Lists pending checks for a checker.
@@ -16,18 +16,24 @@ Lists pending checks for a checker.
 Checks are pending if they are in a non-final state and the external
 checker system intends to post further updates on them.
 
-By default this REST endpoint only returns checks that are in state
-`NOT_STARTED` but callers may specify the states that they are
-interested in (see [state](#state-param) request parameter).
-
 Request parameters:
 
-* <a id="checker-param"> `checker`: the UUID of the checker for which
-  pending checks should be listed (required)
-* <a id="state-param"> `state`: state that should be considered as
-  pending (optional, by default the state `NOT_STARTED` is assumed,
-  this option may be specified multiple times to request checks
-  matching any of several states)
+* <a id="query-param"> `query`: Query that should be used to match
+  pending checks (required). The query operators which can be used in
+  this query are described in the [Query Operators](#query-operators)
+  section below.
+
+Limitations for the input query:
+
+* Must contain exactly one [checker](#checker-operator) operator.
+* The `checker` operator must either be the only operator in the query
+  ('checker:<CHECKER_UUID>'), or appear at the root level as part of an
+  `AND` expression (e.g. 'checker:<CHECKER_UUID> state:<state>',
+  'checker:<CHECKER_UUID> (state:<state> OR state:<state>)').
+
+If no [state](#state-operator) is used in the input query this REST
+endpoint by default only returns checks that are in state
+`NOT_STARTED`.
 
 This REST endpoint only returns pending checks for current patch sets.
 
@@ -38,7 +44,7 @@ This means pending checks for non-visible changes are filtered out.
 #### Request by checker
 
 ```
-  GET /plugins/@PLUGIN@/checks.pending/?checker=test:my-checker&state=NOT_STARTED&state=SCHEDULED HTTP/1.0
+  GET /plugins/@PLUGIN@/checks.pending/?query=checker=test:my-checker+(state:NOT_STARTED+OR+state:SCHEDULED) HTTP/1.0
 ```
 
 As response a list of [PendingChecksInfo](#pending-checks-info)
@@ -106,3 +112,13 @@ The `PendingChecksInfo` entity describes the pending checks on patch set.
 | `patch_set`      | The patch set for checks are pending as [CheckablePatchSetInfo](#checkable-patch-set-info) entity.
 | `pending_checks` | The checks that are pending for the patch set as [checker UUID](./rest-api-checkers.md#checker-id) to [PendingCheckInfo](#pending-check-info) entity.
 
+## <a id="query-operators"> Query Operators
+
+The following query operators are supported in the input
+[query](#query-param) for the
+[List Pending Checks](#list-pending-checks) REST endpoint.
+
+* <a id="checker-operator"></a> `checker:'CHECKER_UUID'`:
+  Matches checks of the checker with the UUID 'CHECKER_UUID'.
+* <a id="state-operator"></a> `state:'STATE'`:
+  Matches checks with the state 'STATE'.
