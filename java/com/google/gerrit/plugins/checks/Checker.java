@@ -27,8 +27,8 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.index.change.ChangeField;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
+import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gerrit.server.query.change.ChangeStatusPredicate;
-import com.google.gerrit.server.query.change.InternalChangeQuery;
 import com.google.gerrit.server.query.change.ProjectPredicate;
 import com.google.gerrit.server.update.RetryHelper;
 import com.google.gerrit.server.update.RetryHelper.ActionType;
@@ -164,10 +164,10 @@ public abstract class Checker {
   public List<ChangeData> queryMatchingChanges(
       RetryHelper retryHelper,
       ChangeQueryBuilder changeQueryBuilder,
-      Provider<InternalChangeQuery> changeQueryProvider)
+      Provider<ChangeQueryProcessor> changeQueryProcessorProvider)
       throws ConfigInvalidException, OrmException {
     return executeIndexQueryWithRetry(
-        retryHelper, changeQueryProvider, createQueryPredicate(changeQueryBuilder));
+        retryHelper, changeQueryProcessorProvider, createQueryPredicate(changeQueryBuilder));
   }
 
   private Predicate<ChangeData> createQueryPredicate(ChangeQueryBuilder changeQueryBuilder)
@@ -211,16 +211,16 @@ public abstract class Checker {
     return predicate.getChildren().stream().anyMatch(Checker::hasStatusPredicate);
   }
 
-  // TODO(ekempin): Retrying the query should be done by InternalChangeQuery.
+  // TODO(ekempin): Retrying the query should be done by ChangeQueryProcessor.
   private List<ChangeData> executeIndexQueryWithRetry(
       RetryHelper retryHelper,
-      Provider<InternalChangeQuery> changeQueryProvider,
+      Provider<ChangeQueryProcessor> changeQueryProcessorProvider,
       Predicate<ChangeData> predicate)
       throws OrmException {
     try {
       return retryHelper.execute(
           ActionType.INDEX_QUERY,
-          () -> changeQueryProvider.get().query(predicate),
+          () -> changeQueryProcessorProvider.get().query(predicate).entities(),
           OrmException.class::isInstance);
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);

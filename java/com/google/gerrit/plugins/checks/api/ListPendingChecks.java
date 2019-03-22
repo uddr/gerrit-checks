@@ -21,7 +21,6 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
-import com.google.gerrit.plugins.checks.AdministrateCheckersPermission;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
@@ -31,11 +30,9 @@ import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.server.permissions.PermissionBackend;
-import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gerrit.server.query.change.InternalChangeQuery;
+import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gerrit.server.update.RetryHelper;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -48,13 +45,11 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.kohsuke.args4j.Option;
 
 public class ListPendingChecks implements RestReadView<TopLevelResource> {
-  private final PermissionBackend permissionBackend;
-  private final AdministrateCheckersPermission permission;
   private final Checkers checkers;
   private final Checks checks;
   private final RetryHelper retryHelper;
   private final Provider<ChangeQueryBuilder> queryBuilderProvider;
-  private final Provider<InternalChangeQuery> changeQueryProvider;
+  private final Provider<ChangeQueryProcessor> changeQueryProcessorProvider;
 
   private CheckerUuid checkerUuid;
   private List<CheckState> states = new ArrayList<>(CheckState.values().length);
@@ -75,28 +70,21 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
 
   @Inject
   public ListPendingChecks(
-      PermissionBackend permissionBackend,
-      AdministrateCheckersPermission permission,
       Checkers checkers,
       Checks checks,
       RetryHelper retryHelper,
       Provider<ChangeQueryBuilder> queryBuilderProvider,
-      Provider<InternalChangeQuery> changeQueryProvider) {
-    this.permissionBackend = permissionBackend;
-    this.permission = permission;
+      Provider<ChangeQueryProcessor> changeQueryProcessorProvider) {
     this.checkers = checkers;
     this.checks = checks;
     this.retryHelper = retryHelper;
     this.queryBuilderProvider = queryBuilderProvider;
-    this.changeQueryProvider = changeQueryProvider;
+    this.changeQueryProcessorProvider = changeQueryProcessorProvider;
   }
 
   @Override
   public List<PendingChecksInfo> apply(TopLevelResource resource)
-      throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException,
-          OrmException {
-    permissionBackend.currentUser().check(permission);
-
+      throws RestApiException, IOException, ConfigInvalidException, OrmException {
     if (states.isEmpty()) {
       // If no state was specified, assume NOT_STARTED by default.
       states.add(CheckState.NOT_STARTED);
@@ -121,7 +109,8 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
     // The query system can only match against the current patch set; ignore non-current patch sets
     // for now.
     List<ChangeData> changes =
-        checker.queryMatchingChanges(retryHelper, queryBuilderProvider.get(), changeQueryProvider);
+        checker.queryMatchingChanges(
+            retryHelper, queryBuilderProvider.get(), changeQueryProcessorProvider);
     List<PendingChecksInfo> pendingChecks = new ArrayList<>(changes.size());
     for (ChangeData cd : changes) {
       getPostFilteredPendingChecks(cd.project(), cd.currentPatchSet().getId())
