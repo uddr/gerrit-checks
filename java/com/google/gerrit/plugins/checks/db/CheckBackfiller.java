@@ -15,7 +15,6 @@
 package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
@@ -25,9 +24,7 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.AnonymousUser;
-import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.query.change.ChangeData.Factory;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -40,31 +37,25 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
 class CheckBackfiller {
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
-  private final ChangeData.Factory changeDataFactory;
   private final Checkers checkers;
   private final Provider<AnonymousUser> anonymousUserProvider;
   private final Provider<ChangeQueryBuilder> queryBuilderProvider;
 
   @Inject
   CheckBackfiller(
-      Factory changeDataFactory,
       Checkers checkers,
       Provider<AnonymousUser> anonymousUserProvider,
       Provider<ChangeQueryBuilder> queryBuilderProvider) {
-    this.changeDataFactory = changeDataFactory;
     this.checkers = checkers;
     this.anonymousUserProvider = anonymousUserProvider;
     this.queryBuilderProvider = queryBuilderProvider;
   }
 
   ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
-      Collection<Checker> candidates, ChangeNotes notes, PatchSet.Id psId) throws OrmException {
+      Collection<Checker> candidates, ChangeData cd, PatchSet.Id psId) throws OrmException {
     if (candidates.isEmpty()) {
       return ImmutableList.of();
     }
-    ChangeData cd = changeDataFactory.create(notes);
     if (!psId.equals(cd.change().currentPatchSetId())) {
       // The query system can only match against the current patch set; it doesn't make sense to
       // backfill checkers for old patch sets.
@@ -85,8 +76,7 @@ class CheckBackfiller {
   }
 
   Optional<Check> getBackfilledCheckForRelevantChecker(
-      CheckerUuid candidate, ChangeNotes notes, PatchSet.Id psId) throws OrmException, IOException {
-    ChangeData cd = changeDataFactory.create(notes);
+      CheckerUuid candidate, ChangeData cd, PatchSet.Id psId) throws OrmException, IOException {
     if (!psId.equals(cd.change().currentPatchSetId())) {
       // The query system can only match against the current patch set; it doesn't make sense to
       // backfill checkers for old patch sets.

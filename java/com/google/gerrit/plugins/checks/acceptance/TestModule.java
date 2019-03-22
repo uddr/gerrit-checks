@@ -14,11 +14,14 @@
 
 package com.google.gerrit.plugins.checks.acceptance;
 
+import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.plugins.checks.Module;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperationsImpl;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperations;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperationsImpl;
+import com.google.gerrit.plugins.checks.rules.ChecksSubmitRule;
+import com.google.gerrit.server.rules.SubmitRule;
 import com.google.inject.AbstractModule;
 
 public class TestModule extends AbstractModule {
@@ -30,5 +33,8 @@ public class TestModule extends AbstractModule {
     // setup in tests as realistic as possible by delegating to the original module.
     bind(CheckerOperations.class).to(CheckerOperationsImpl.class);
     bind(CheckOperations.class).to(CheckOperationsImpl.class);
+    bind(SubmitRule.class)
+        .annotatedWith(Exports.named("ChecksSubmitRule"))
+        .to(ChecksSubmitRule.class);
   }
 }
