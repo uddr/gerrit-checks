@@ -13,5 +13,6 @@ acceptance_tests(
         "//plugins/checks:checks__plugin",
         "//plugins/checks/java/com/google/gerrit/plugins/checks/acceptance",
         "//plugins/checks/java/com/google/gerrit/plugins/checks/acceptance/testsuite",
+        "//plugins/checks/java/com/google/gerrit/plugins/checks/testing",
     ],
 )

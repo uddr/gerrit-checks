@@ -16,9 +16,6 @@ package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.index.query.IndexPredicate;
-import com.google.gerrit.index.query.Predicate;
-import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
@@ -28,12 +25,10 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.AnonymousUser;
-import com.google.gerrit.server.index.change.ChangeField;
 import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.ChangeData.Factory;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gerrit.server.query.change.ChangeStatusPredicate;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -81,7 +76,7 @@ class CheckBackfiller {
     PatchSet ps = cd.patchSet(psId);
     ChangeQueryBuilder queryBuilder = newQueryBuilder();
     for (Checker checker : candidates) {
-      if (matches(checker, cd, queryBuilder)) {
+      if (checker.isCheckerRelevant(cd, queryBuilder)) {
         // Add synthetic check at the creation time of the patch set.
         result.add(newBackfilledCheck(cd, ps, checker));
       }
@@ -107,7 +102,7 @@ class CheckBackfiller {
     }
     if (!checker.isPresent()
         || checker.get().getStatus() != CheckerStatus.ENABLED
-        || !matches(checker.get(), cd, newQueryBuilder())) {
+        || !checker.get().isCheckerRelevant(cd, newQueryBuilder())) {
       return Optional.empty();
     }
     return Optional.of(newBackfilledCheck(cd, cd.patchSet(psId), checker.get()));
@@ -123,42 +118,5 @@ class CheckBackfiller {
 
   private ChangeQueryBuilder newQueryBuilder() {
     return queryBuilderProvider.get().asUser(anonymousUserProvider.get());
-  }
-
-  private static boolean matches(Checker checker, ChangeData cd, ChangeQueryBuilder queryBuilder)
-      throws OrmException {
-    if (!checker.getQuery().isPresent()) {
-      return cd.change().isNew();
-    }
-    String query = checker.getQuery().get();
-    Predicate<ChangeData> predicate;
-    try {
-      predicate = queryBuilder.parse(query);
-    } catch (QueryParseException e) {
-      logger.atWarning().withCause(e).log(
-          "skipping invalid query for checker %s: %s", checker.getUuid(), query);
-      return false;
-    }
-    if (!predicate.isMatchable()) {
-      // Assuming nobody modified the query behind Gerrit's back, this is programmer error:
-      // CheckerQuery should not be able to produce non-matchable queries.
-      logger.atWarning().log(
-          "skipping non-matchable query for checker %s: %s", checker.getUuid(), query);
-      return false;
-    }
-    if (!hasStatusPredicate(predicate)) {
-      predicate = Predicate.and(ChangeStatusPredicate.open(), predicate);
-    }
-    return predicate.asMatchable().match(cd);
-  }
-
-  private static boolean hasStatusPredicate(Predicate<ChangeData> predicate) {
-    if (predicate instanceof IndexPredicate) {
-      return ((IndexPredicate<ChangeData>) predicate)
-          .getField()
-          .getName()
-          .equals(ChangeField.STATUS.getName());
-    }
-    return predicate.getChildren().stream().anyMatch(CheckBackfiller::hasStatusPredicate);
   }
 }

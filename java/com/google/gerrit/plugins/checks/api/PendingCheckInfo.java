@@ -14,6 +14,9 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
 /**
  * REST API representation of a pending check.
  *
@@ -24,4 +27,27 @@ package com.google.gerrit.plugins.checks.api;
 public class PendingCheckInfo {
   /** State of the check. */
   public CheckState state;
+
+  public PendingCheckInfo(CheckState state) {
+    this.state = state;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(state);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof PendingCheckInfo)) {
+      return false;
+    }
+    PendingCheckInfo o = (PendingCheckInfo) obj;
+    return Objects.equals(state, o.state);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("state", state).toString();
+  }
 }
