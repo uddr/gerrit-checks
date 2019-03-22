@@ -14,15 +14,17 @@
 
 package com.google.gerrit.plugins.checks.testing;
 
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.gerrit.git.testing.ObjectIdSubject.objectIds;
+import static com.google.gerrit.truth.OptionalSubject.optionals;
 
 import com.google.common.truth.ComparableSubject;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.IterableSubject;
+import com.google.common.truth.StandardSubjectBuilder;
 import com.google.common.truth.StringSubject;
 import com.google.common.truth.Subject;
-import com.google.common.truth.Truth;
-import com.google.common.truth.Truth8;
 import com.google.gerrit.git.testing.ObjectIdSubject;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -43,64 +45,66 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
   }
 
   public void hasUuid(CheckerUuid expectedUuid) {
-    Truth.assertThat(checker().getUuid()).named("uuid").isEqualTo(expectedUuid);
+    check("uuid()").that(checker().getUuid()).isEqualTo(expectedUuid);
   }
 
   public OptionalSubject<StringSubject, String> hasNameThat() {
-    return OptionalSubject.assertThat(checker().getName(), Truth::assertThat).named("name");
+    return check("name()")
+        .about(optionals())
+        .that(checker().getName(), StandardSubjectBuilder::that);
   }
 
   public OptionalSubject<StringSubject, String> hasDescriptionThat() {
-    return OptionalSubject.assertThat(checker().getDescription(), Truth::assertThat)
-        .named("description");
+    return check("description()")
+        .about(optionals())
+        .that(checker().getDescription(), StandardSubjectBuilder::that);
   }
 
   public OptionalSubject<StringSubject, String> hasUrlThat() {
-    return OptionalSubject.assertThat(checker().getUrl(), Truth::assertThat).named("url");
+    return check("url()").about(optionals()).that(checker().getUrl(), StandardSubjectBuilder::that);
   }
 
   public void hasRepository(Project.NameKey expectedRepository) {
-    Truth.assertThat(checker().getRepository()).named("repository").isEqualTo(expectedRepository);
+    check("repository()").that(checker().getRepository()).isEqualTo(expectedRepository);
   }
 
   public void hasStatus(CheckerStatus expectedStatus) {
-    Truth.assertThat(checker().getStatus()).named("status").isEqualTo(expectedStatus);
+    check("status()").that(checker().getStatus()).isEqualTo(expectedStatus);
   }
 
   public IterableSubject hasBlockingConditionSetThat() {
-    return Truth.assertThat(checker().getBlockingConditions());
+    return check("blockingConditions()").that(checker().getBlockingConditions());
   }
 
   public void hasQuery(String expectedQuery) {
-    OptionalSubject.assertThat(checker().getQuery())
-        .named("query")
-        .value()
-        .isEqualTo(expectedQuery);
+    check("query()").about(optionals()).that(checker().getQuery()).value().isEqualTo(expectedQuery);
   }
 
   public void hasNoQuery() {
-    OptionalSubject.assertThat(checker().getQuery()).named("query").isEmpty();
+    check("query()").about(optionals()).that(checker().getQuery()).isEmpty();
   }
 
   public ComparableSubject<?, Timestamp> hasCreatedOnThat() {
-    return Truth.assertThat(checker().getCreatedOn()).named("createdOn");
+    return check("createdOn()").that(checker().getCreatedOn());
   }
 
   public ObjectIdSubject hasRefStateThat() {
-    return ObjectIdSubject.assertThat(checker().getRefState()).named("refState");
+    return check("refState()").about(objectIds()).that(checker().getRefState());
   }
 
   public IterableSubject configStringList(String name) {
     isNotNull();
-    return Truth.assertThat(actual().getConfigForTesting().getStringList("checker", null, name))
-        .asList()
-        .named("value of checker.%s", name);
+    return check("configValueOf(checker.%s)", name)
+        .that(actual().getConfigForTesting().getStringList("checker", null, name))
+        .asList();
   }
 
   private Checker checker() {
     isNotNull();
     Optional<Checker> checker = actual().getLoadedChecker();
-    Truth8.assertThat(checker).named("checker is loaded").isPresent();
+    if (!checker.isPresent()) {
+      failWithActual(simpleFact("expected checker to be loaded"));
+    }
     return checker.get();
   }
 }
