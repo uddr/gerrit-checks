@@ -19,9 +19,12 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
+import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.restapi.config.ListCapabilities;
 import com.google.gerrit.server.restapi.config.ListCapabilities.CapabilityInfo;
@@ -36,27 +39,77 @@ public class GetCheckerIT extends AbstractCheckersTest {
   @Test
   public void getChecker() throws Exception {
     String name = "my-checker";
-    CheckerUuid checkerUuid = checkerOperations.newChecker().name(name).create();
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().name(name).repository(project).query("").create();
 
     CheckerInfo info = checkersApi.id(checkerUuid).get();
     assertThat(info.uuid).isEqualTo(checkerUuid.toString());
     assertThat(info.name).isEqualTo(name);
     assertThat(info.description).isNull();
+    assertThat(info.url).isNull();
+    assertThat(info.repository).isEqualTo(project.get());
+    assertThat(info.status).isEqualTo(CheckerStatus.ENABLED);
+    assertThat(info.blocking).isEmpty();
+    assertThat(info.query).isNull();
     assertThat(info.createdOn).isNotNull();
+    assertThat(info.updatedOn).isEqualTo(info.createdOn);
   }
 
   @Test
   public void getCheckerWithDescription() throws Exception {
-    String name = "my-checker";
     String description = "some description";
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().name(name).description(description).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().description(description).create();
 
     CheckerInfo info = checkersApi.id(checkerUuid).get();
-    assertThat(info.uuid).isEqualTo(checkerUuid.toString());
-    assertThat(info.name).isEqualTo(name);
     assertThat(info.description).isEqualTo(description);
-    assertThat(info.createdOn).isNotNull();
+  }
+
+  @Test
+  public void getCheckerWithUrl() throws Exception {
+    String url = "http://foo.bar";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().url(url).create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.url).isEqualTo(url);
+  }
+
+  @Test
+  public void getCheckerWithInvalidUrl() throws Exception {
+    String url = "ftp://example.com/my-checker";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().url(url).create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.url).isEqualTo(url);
+  }
+
+  @Test
+  public void getDisabledChecker() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().status(CheckerStatus.DISABLED).create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.status).isEqualTo(CheckerStatus.DISABLED);
+  }
+
+  @Test
+  public void getCheckerWithBlockingCondition() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+            .create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
+  }
+
+  @Test
+  public void getCheckerWithQuery() throws Exception {
+    String query = "message:foo footer:bar";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().query(query).create();
+
+    CheckerInfo info = checkersApi.id(checkerUuid).get();
+    assertThat(info.query).isEqualTo(query);
   }
 
   @Test
@@ -65,6 +118,16 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
     exception.expect(ResourceNotFoundException.class);
     exception.expectMessage("Not found: " + checkerUuid);
+    checkersApi.id(checkerUuid);
+  }
+
+  @Test
+  public void getInvalidCheckerFails() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
     checkersApi.id(checkerUuid);
   }
 
