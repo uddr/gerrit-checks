@@ -532,7 +532,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void updateWithInvalidQuery() throws Exception {
+  public void updateWithUnsupportedOperatorInQuery() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().name("my-checker").repository(allProjects).create();
     Optional<String> oldQuery = checkerOperations.checker(checkerUuid).get().getQuery();
@@ -544,6 +544,24 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
       assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
       assertThat(e).hasMessageThat().isEqualTo("Unsupported operator: project");
+    }
+
+    assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
+  }
+
+  @Test
+  public void updateWithInvalidQuery() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().name("my-checker").repository(allProjects).create();
+    Optional<String> oldQuery = checkerOperations.checker(checkerUuid).get().getQuery();
+
+    CheckerInput input = new CheckerInput();
+    input.query = ":foo :bar";
+    try {
+      checkersApi.id(checkerUuid).update(input);
+      assert_().fail("expected BadRequestException");
+    } catch (BadRequestException e) {
+      assertThat(e).hasMessageThat().contains("Invalid query: " + input.query);
     }
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
