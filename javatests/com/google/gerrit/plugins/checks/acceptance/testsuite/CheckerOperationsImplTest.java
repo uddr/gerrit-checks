@@ -168,7 +168,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
   @Test
   public void requestingNoQueryIsPossibleForCheckerCreation() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().query("").create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().clearQuery().create();
 
     CheckerInfo checker = getCheckerFromServer(checkerUuid);
     assertThat(checker.query).isNull();
@@ -344,7 +344,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
   @Test
   public void emptyQueryOfExistingCheckerCanBeRetrieved() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().query("").create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().clearQuery().create();
 
     Optional<String> query = checkerOperations.checker(checkerUuid).get().getQuery();
 

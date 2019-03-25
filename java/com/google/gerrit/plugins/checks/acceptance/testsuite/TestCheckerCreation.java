@@ -89,6 +89,10 @@ public abstract class TestCheckerCreation {
 
     public abstract Builder query(String query);
 
+    public Builder clearQuery() {
+      return query("");
+    }
+
     abstract Builder checkerCreator(
         ThrowingFunction<TestCheckerCreation, CheckerUuid> checkerCreator);
 

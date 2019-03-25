@@ -135,7 +135,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckerWithoutQuery() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().query("").create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().clearQuery().create();
     assertThat(getCheckerInfo(checkerUuid).query).isNull();
   }
 

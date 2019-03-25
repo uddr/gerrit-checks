@@ -255,7 +255,8 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   @Test
   public void listPendingChecksFiltersOutChecksForClosedChangesIfQueryDoesntSpecifyStatus()
       throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).query("").create();
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).clearQuery().create();
 
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
