@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
-import java.sql.Timestamp;
 import java.util.Optional;
 
 @AutoValue
@@ -60,16 +59,6 @@ public abstract class CheckerUpdate {
   /** Defines the new query for the checker. If not specified, the query remains unchanged. */
   public abstract Optional<String> getQuery();
 
-  /**
-   * Defines the {@code Timestamp} to be used for the NoteDb commits of the update. If not
-   * specified, the current {@code Timestamp} when creating the commit will be used.
-   *
-   * <p>If this {@code CheckerUpdate} is passed next to a {@link CheckerCreation} during a checker
-   * creation, this {@code Timestamp} is used for the NoteDb commits of the new checker. Hence, the
-   * {@link Checker#getCreatedOn()} field will match this {@code Timestamp}.
-   */
-  public abstract Optional<Timestamp> getUpdatedOn();
-
   public abstract Builder toBuilder();
 
   public static Builder builder() {
@@ -92,8 +81,6 @@ public abstract class CheckerUpdate {
         ImmutableSortedSet<BlockingCondition> blockingConditions);
 
     public abstract Builder setQuery(String query);
-
-    public abstract Builder setUpdatedOn(Timestamp timestamp);
 
     public abstract CheckerUpdate build();
   }

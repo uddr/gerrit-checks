@@ -278,10 +278,7 @@ public class CheckerConfig extends VersionedMetaData {
     // Commit timestamps are internally truncated to seconds. To return the correct 'createdOn' time
     // for new checkers, we explicitly need to truncate the timestamp here.
     Timestamp commitTimestamp =
-        TimeUtil.truncateToSecond(
-            checkerUpdate
-                .flatMap(CheckerUpdate::getUpdatedOn)
-                .orElseGet(() -> new Timestamp(commit.getCommitter().getWhen().getTime())));
+        TimeUtil.truncateToSecond(new Timestamp(commit.getCommitter().getWhen().getTime()));
     commit.setAuthor(new PersonIdent(commit.getAuthor(), commitTimestamp));
     commit.setCommitter(new PersonIdent(commit.getCommitter(), commitTimestamp));
 
