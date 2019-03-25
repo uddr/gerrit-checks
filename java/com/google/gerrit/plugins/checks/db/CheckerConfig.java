@@ -279,7 +279,9 @@ public class CheckerConfig extends VersionedMetaData {
     // for new checkers, we explicitly need to truncate the timestamp here.
     Timestamp commitTimestamp =
         TimeUtil.truncateToSecond(
-            checkerUpdate.flatMap(CheckerUpdate::getUpdatedOn).orElseGet(TimeUtil::nowTs));
+            checkerUpdate
+                .flatMap(CheckerUpdate::getUpdatedOn)
+                .orElseGet(() -> new Timestamp(commit.getCommitter().getWhen().getTime())));
     commit.setAuthor(new PersonIdent(commit.getAuthor(), commitTimestamp));
     commit.setCommitter(new PersonIdent(commit.getCommitter(), commitTimestamp));
 
@@ -292,6 +294,8 @@ public class CheckerConfig extends VersionedMetaData {
 
     checkerCreation = Optional.empty();
     checkerUpdate = Optional.empty();
+
+    // TODO(ekempin): Don't create a new commit if nothing was changed.
     return true;
   }
 

@@ -39,6 +39,7 @@ import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.Optional;
@@ -65,7 +66,7 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 @Singleton
 public class CheckerOperationsImpl implements CheckerOperations {
   private final Checkers checkers;
-  private final CheckersUpdate checkersUpdate;
+  private final Provider<CheckersUpdate> checkersUpdate;
   private final GitRepositoryManager repoManager;
   private final AllProjectsName allProjectsName;
   private final CheckerJson checkerJson;
@@ -74,7 +75,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
   @Inject
   public CheckerOperationsImpl(
       Checkers checkers,
-      @ServerInitiated CheckersUpdate checkersUpdate,
+      @ServerInitiated Provider<CheckersUpdate> checkersUpdate,
       GitRepositoryManager repoManager,
       AllProjectsName allProjectsName,
       CheckerJson checkerJson) {
@@ -100,7 +101,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
       throws OrmDuplicateKeyException, ConfigInvalidException, IOException {
     CheckerCreation checkerCreation = toCheckerCreation(testCheckerCreation);
     CheckerUpdate checkerUpdate = toCheckerUpdate(testCheckerCreation);
-    Checker checker = checkersUpdate.createChecker(checkerCreation, checkerUpdate);
+    Checker checker = checkersUpdate.get().createChecker(checkerCreation, checkerUpdate);
     return checker.getUuid();
   }
 
@@ -235,7 +236,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
 
     private void updateChecker(TestCheckerUpdate testCheckerUpdate) throws Exception {
       CheckerUpdate checkerUpdate = toCheckerUpdate(testCheckerUpdate);
-      checkersUpdate.updateChecker(checkerUuid, checkerUpdate);
+      checkersUpdate.get().updateChecker(checkerUuid, checkerUpdate);
 
       if (testCheckerUpdate.forceInvalidConfig()) {
         try (Repository repo = repoManager.openRepository(allProjectsName)) {

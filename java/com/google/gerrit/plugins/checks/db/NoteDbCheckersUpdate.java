@@ -33,12 +33,10 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.update.RetryHelper;
 import com.google.gerrit.server.update.RetryHelper.ActionType;
-import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.Optional;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.BatchRefUpdate;
@@ -227,11 +225,6 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
   @Override
   public Checker updateChecker(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws NoSuchCheckerException, IOException, ConfigInvalidException {
-    Optional<Timestamp> updatedOn = checkerUpdate.getUpdatedOn();
-    if (!updatedOn.isPresent()) {
-      updatedOn = Optional.of(TimeUtil.nowTs());
-      checkerUpdate = checkerUpdate.toBuilder().setUpdatedOn(updatedOn.get()).build();
-    }
     return updateCheckerWithRetry(checkerUuid, checkerUpdate);
   }
 

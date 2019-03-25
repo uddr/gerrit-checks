@@ -32,6 +32,7 @@ import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -41,7 +42,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 
 public final class CheckOperationsImpl implements CheckOperations {
   private final Checks checks;
-  private final ChecksUpdate checksUpdate;
+  private final Provider<ChecksUpdate> checksUpdate;
   private final CheckJson.Factory checkJsonFactory;
   private final GitRepositoryManager repoManager;
 
@@ -50,7 +51,7 @@ public final class CheckOperationsImpl implements CheckOperations {
       Checks checks,
       GitRepositoryManager repoManager,
       CheckJson.Factory checkJsonFactory,
-      @ServerInitiated ChecksUpdate checksUpdate) {
+      @ServerInitiated Provider<ChecksUpdate> checksUpdate) {
     this.checks = checks;
     this.repoManager = repoManager;
     this.checkJsonFactory = checkJsonFactory;
@@ -65,7 +66,7 @@ public final class CheckOperationsImpl implements CheckOperations {
   @Override
   public TestCheckUpdate.Builder newCheck(CheckKey key) {
     return TestCheckUpdate.builder(key)
-        .setCheckUpdater(u -> checksUpdate.createCheck(key, toCheckUpdate(u)));
+        .setCheckUpdater(u -> checksUpdate.get().createCheck(key, toCheckUpdate(u)));
   }
 
   final class PerCheckOperationsImpl implements PerCheckOperations {
@@ -115,7 +116,8 @@ public final class CheckOperationsImpl implements CheckOperations {
     @Override
     public TestCheckUpdate.Builder forUpdate() {
       return TestCheckUpdate.builder(key)
-          .setCheckUpdater(testUpdate -> checksUpdate.updateCheck(key, toCheckUpdate(testUpdate)));
+          .setCheckUpdater(
+              testUpdate -> checksUpdate.get().updateCheck(key, toCheckUpdate(testUpdate)));
     }
   }
 

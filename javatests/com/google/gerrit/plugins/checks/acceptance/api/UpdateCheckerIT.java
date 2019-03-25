@@ -40,6 +40,8 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.testing.ConfigSuite;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Config;
@@ -62,6 +64,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
   @Before
   public void setTimeForTesting() {
     TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
+    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
   }
 
   @After
@@ -547,6 +550,20 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
   }
+
+  @Test
+  public void updateResultsInNewUpdatedTimestamp() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    Timestamp expectedUpdateTimestamp = TestTimeUtil.getCurrentTimestamp();
+    CheckerInput input = new CheckerInput();
+    input.name = "My Checker";
+    CheckerInfo info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.updatedOn).isEqualTo(expectedUpdateTimestamp);
+  }
+
+  // TODO(ekempin): Add test to verify that a no-op update doesn't create a new updatedOn timestamp
+  // (at the moment it does, but that's a bug)
 
   @Test
   public void updateCheckerWithoutAdministrateCheckersCapabilityFails() throws Exception {

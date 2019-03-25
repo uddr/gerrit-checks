@@ -37,6 +37,8 @@ import com.google.gerrit.plugins.checks.db.CheckersByRepositoryNotes;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
@@ -49,6 +51,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   @Before
   public void setTimeForTesting() {
     TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
+    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
   }
 
   @After
@@ -60,6 +63,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createChecker() throws Exception {
     Project.NameKey repositoryName = projectOperations.newProject().create();
 
+    Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
     input.repository = repositoryName.get();
@@ -72,7 +76,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     assertThat(info.status).isEqualTo(CheckerStatus.ENABLED);
     assertThat(info.blocking).isEmpty();
     assertThat(info.query).isEqualTo("status:open");
-    assertThat(info.createdOn).isNotNull();
+    assertThat(info.createdOn).isEqualTo(expectedCreationTimestamp);
     assertThat(info.updatedOn).isEqualTo(info.createdOn);
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);

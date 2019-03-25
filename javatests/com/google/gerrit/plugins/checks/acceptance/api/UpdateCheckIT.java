@@ -27,7 +27,12 @@ import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,11 +44,19 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Before
   public void setUp() throws Exception {
+    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
+    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
+
     patchSetId = createChange().getPatchSetId();
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
+  }
+
+  @After
+  public void resetTime() {
+    TestTimeUtil.useSystemTime();
   }
 
   @Test
@@ -53,6 +66,27 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.state).isEqualTo(CheckState.FAILED);
+  }
+
+  @Test
+  public void updateResultsInNewUpdatedTimestamp() throws Exception {
+    CheckInput input = new CheckInput();
+    input.state = CheckState.FAILED;
+
+    Timestamp expectedUpdateTimestamp = TestTimeUtil.getCurrentTimestamp();
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.updated).isEqualTo(expectedUpdateTimestamp);
+  }
+
+  @Test
+  public void noOpUpdateDoesntResultInNewUpdatedTimestamp() throws Exception {
+    CheckInput input = new CheckInput();
+    input.state = CheckState.FAILED;
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    Timestamp expectedUpdateTimestamp = info.updated;
+
+    info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.updated).isEqualTo(expectedUpdateTimestamp);
   }
 
   @Test

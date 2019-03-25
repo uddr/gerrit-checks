@@ -35,9 +35,13 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.testing.TestTimeUtil;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +52,15 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Before
   public void setUp() throws Exception {
+    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
+    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
+
     patchSetId = createChange().getPatchSetId();
+  }
+
+  @After
+  public void resetTime() {
+    TestTimeUtil.useSystemTime();
   }
 
   @Test
@@ -128,10 +140,9 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheckReturnsCreationTimestamp() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
+    Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
-
-    Timestamp expectedCreationTimestamp = checkOperations.check(checkKey).get().created();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid).created).isEqualTo(expectedCreationTimestamp);
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).created)
@@ -142,10 +153,9 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheckReturnsUpdatedTimestamp() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
+    Timestamp expectedUpdatedTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
-
-    Timestamp expectedUpdatedTimestamp = checkOperations.check(checkKey).get().updated();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid).created).isEqualTo(expectedUpdatedTimestamp);
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).created)
