@@ -84,8 +84,8 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
     check("query()").about(optionals()).that(checker().getQuery()).isEmpty();
   }
 
-  public ComparableSubject<?, Timestamp> hasCreatedOnThat() {
-    return check("createdOn()").that(checker().getCreatedOn());
+  public ComparableSubject<?, Timestamp> hasCreatedThat() {
+    return check("created()").that(checker().getCreated());
   }
 
   public ObjectIdSubject hasRefStateThat() {

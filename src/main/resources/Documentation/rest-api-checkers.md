@@ -39,7 +39,7 @@ checker.
     "repository": "examples/Foo",
     "blocking": [],
     "description": "A simple checker.",
-    "created_on": "2019-01-31 09:59:32.126000000"
+    "created": "2019-01-31 09:59:32.126000000"
   }
 ```
 
@@ -83,8 +83,8 @@ the created checker.
     "name": "MyChecker",
     "description": "A simple checker.",
     "repository": "examples/Foo",
-    "created_on": "2019-01-31 09:59:32.126000000",
-    "updated_on": "2019-01-31 09:59:32.126000000"
+    "created": "2019-01-31 09:59:32.126000000",
+    "updated": "2019-01-31 09:59:32.126000000"
   }
 ```
 
@@ -144,8 +144,8 @@ the updated checker.
     "description": "A simple checker.",
     "repository": "examples/Foo",
     "status": "ENABLED",
-    "created_on": "2019-01-31 09:59:32.126000000",
-    "updated_on": "2019-02-01 07:23:44.158000000"
+    "created": "2019-01-31 09:59:32.126000000",
+    "updated": "2019-02-01 07:23:44.158000000"
   }
 ```
 
@@ -187,8 +187,8 @@ The `CheckerInfo` entity describes a checker.
 | `status`        |          | The status of the checker; one of `ENABLED` or `DISABLED`.
 | `blocking`      |          | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
 | `query`         | optional | A [query](#query) that limits changes for which the checker is relevant.
-| `created_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
-| `updated_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
+| `created`       |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
+| `updated`       |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
 
 ### <a id="checker-input"> CheckerInput
 The `CheckerInput` entity contains information for creating a checker.

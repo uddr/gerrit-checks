@@ -253,11 +253,11 @@ public class CheckerConfig extends VersionedMetaData {
       rw.markStart(revision);
       rw.sort(RevSort.REVERSE);
       RevCommit earliestCommit = rw.next();
-      Timestamp createdOn = new Timestamp(earliestCommit.getCommitTime() * 1000L);
-      Timestamp updatedOn = new Timestamp(rw.parseCommit(revision).getCommitTime() * 1000L);
+      Timestamp created = new Timestamp(earliestCommit.getCommitTime() * 1000L);
+      Timestamp updated = new Timestamp(rw.parseCommit(revision).getCommitTime() * 1000L);
 
       config = readConfig(CHECKER_CONFIG_FILE);
-      Checker checker = createFrom(config, createdOn, updatedOn, revision.toObjectId());
+      Checker checker = createFrom(config, created, updated, revision.toObjectId());
       loadedChecker = Optional.of(checker);
       checkerUuid = Optional.of(checker.getUuid());
     }
@@ -275,7 +275,7 @@ public class CheckerConfig extends VersionedMetaData {
 
     ensureThatMandatoryPropertiesAreSet();
 
-    // Commit timestamps are internally truncated to seconds. To return the correct 'createdOn' time
+    // Commit timestamps are internally truncated to seconds. To return the correct 'created' time
     // for new checkers, we explicitly need to truncate the timestamp here.
     Timestamp commitTimestamp =
         TimeUtil.truncateToSecond(new Timestamp(commit.getCommitter().getWhen().getTime()));
@@ -329,8 +329,8 @@ public class CheckerConfig extends VersionedMetaData {
   private Checker.Builder updateChecker(Timestamp commitTimestamp)
       throws IOException, ConfigInvalidException {
     Config config = updateCheckerProperties();
-    Timestamp createdOn = loadedChecker.map(Checker::getCreatedOn).orElse(commitTimestamp);
-    return createBuilderFrom(config, createdOn, commitTimestamp);
+    Timestamp created = loadedChecker.map(Checker::getCreated).orElse(commitTimestamp);
+    return createBuilderFrom(config, created, commitTimestamp);
   }
 
   private Config updateCheckerProperties() throws IOException, ConfigInvalidException {
@@ -347,7 +347,7 @@ public class CheckerConfig extends VersionedMetaData {
     return config;
   }
 
-  private Checker.Builder createBuilderFrom(Config config, Timestamp createdOn, Timestamp updatedOn)
+  private Checker.Builder createBuilderFrom(Config config, Timestamp created, Timestamp updated)
       throws ConfigInvalidException {
     Checker.Builder checker = Checker.builder();
 
@@ -362,13 +362,12 @@ public class CheckerConfig extends VersionedMetaData {
       }
       configEntry.readFromConfig(checker.getUuid(), checker, config);
     }
-    return checker.setCreatedOn(createdOn).setUpdatedOn(updatedOn);
+    return checker.setCreated(created).setUpdated(updated);
   }
 
-  private Checker createFrom(
-      Config config, Timestamp createdOn, Timestamp updatedOn, ObjectId refState)
+  private Checker createFrom(Config config, Timestamp created, Timestamp updated, ObjectId refState)
       throws ConfigInvalidException {
-    return createBuilderFrom(config, createdOn, updatedOn).setRefState(refState).build();
+    return createBuilderFrom(config, created, updated).setRefState(refState).build();
   }
 
   private static String createCommitMessage(Optional<Checker> originalChecker) {

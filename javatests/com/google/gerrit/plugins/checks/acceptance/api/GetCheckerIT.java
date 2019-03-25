@@ -160,7 +160,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
     Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    assertThat(getCheckerInfo(checkerUuid).createdOn).isEqualTo(expectedCreationTimestamp);
+    assertThat(getCheckerInfo(checkerUuid).created).isEqualTo(expectedCreationTimestamp);
   }
 
   @Test
@@ -168,7 +168,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
     Timestamp expectedUpdatedTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    assertThat(getCheckerInfo(checkerUuid).updatedOn).isEqualTo(expectedUpdatedTimestamp);
+    assertThat(getCheckerInfo(checkerUuid).updated).isEqualTo(expectedUpdatedTimestamp);
   }
 
   @Test

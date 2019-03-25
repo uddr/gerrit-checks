@@ -217,13 +217,13 @@ public class CheckerConfigTest extends GerritBaseTests {
   }
 
   @Test
-  public void createdOnDefaultsToNow() throws Exception {
+  public void createdDefaultsToNow() throws Exception {
     // Git timestamps are only precise to the second.
     Timestamp testStart = TimeUtil.truncateToSecond(TimeUtil.nowTs());
 
     createArbitraryChecker(checkerUuid);
     CheckerConfig checkerConfig = loadChecker(checkerUuid);
-    assertThat(checkerConfig).hasCreatedOnThat().isAtLeast(testStart);
+    assertThat(checkerConfig).hasCreatedThat().isAtLeast(testStart);
   }
 
   @Test

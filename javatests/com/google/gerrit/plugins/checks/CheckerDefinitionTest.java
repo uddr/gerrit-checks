@@ -53,8 +53,8 @@ public class CheckerDefinitionTest {
         .setRepository(new NameKey("test-repo"))
         .setStatus(CheckerStatus.ENABLED)
         .setUuid(CheckerUuid.parse("schema:any-id"))
-        .setCreatedOn(TimeUtil.nowTs())
-        .setUpdatedOn(TimeUtil.nowTs())
+        .setCreated(TimeUtil.nowTs())
+        .setUpdated(TimeUtil.nowTs())
         .setRefState(ObjectId.zeroId());
   }
 }

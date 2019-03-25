@@ -76,8 +76,8 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     assertThat(foundChecker.blocking).isEmpty();
     assertThat(foundChecker.url).isNull();
     assertThat(foundChecker.description).isNull();
-    assertThat(foundChecker.createdOn).isNotNull();
-    assertThat(foundChecker.updatedOn).isNotNull();
+    assertThat(foundChecker.created).isNotNull();
+    assertThat(foundChecker.updated).isNotNull();
   }
 
   @Test
@@ -274,21 +274,21 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
-  public void createdOnOfExistingCheckerCanBeRetrieved() throws Exception {
+  public void createdOfExistingCheckerCanBeRetrieved() throws Exception {
     CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
 
-    Timestamp createdOn = checkerOperations.checker(checker.uuid).get().getCreatedOn();
+    Timestamp created = checkerOperations.checker(checker.uuid).get().getCreated();
 
-    assertThat(createdOn).isEqualTo(checker.createdOn);
+    assertThat(created).isEqualTo(checker.created);
   }
 
   @Test
-  public void updatedOnOfExistingCheckerCanBeRetrieved() throws Exception {
+  public void updatedOfExistingCheckerCanBeRetrieved() throws Exception {
     CheckerInfo checker = checkersApi.create(createArbitraryCheckerInput()).get();
 
-    Timestamp updatedOn = checkerOperations.checker(checker.uuid).get().getUpdatedOn();
+    Timestamp updated = checkerOperations.checker(checker.uuid).get().getUpdated();
 
-    assertThat(updatedOn).isEqualTo(checker.updatedOn);
+    assertThat(updated).isEqualTo(checker.updated);
   }
 
   @Test
@@ -573,8 +573,8 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     assertThat(checkerInfo.name).isEqualTo(checker.getName().get());
     assertThat(checkerInfo.description).isEqualTo(checker.getDescription().get());
     assertThat(checkerInfo.url).isEqualTo(checker.getUrl().get());
-    assertThat(checkerInfo.createdOn).isEqualTo(checker.getCreatedOn());
-    assertThat(checkerInfo.updatedOn).isEqualTo(checker.getUpdatedOn());
+    assertThat(checkerInfo.created).isEqualTo(checker.getCreated());
+    assertThat(checkerInfo.updated).isEqualTo(checker.getUpdated());
   }
 
   @Test
