@@ -200,7 +200,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(otherProject).create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid))
         .isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -212,7 +212,7 @@ public class GetCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).query("message:not-matching").create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid))
         .isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -228,7 +228,7 @@ public class GetCheckIT extends AbstractCheckersTest {
             .create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
     assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -244,7 +244,7 @@ public class GetCheckIT extends AbstractCheckersTest {
             .create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     CheckInfo checkInfo = checksApiFactory.revision(patchSetId).id(checkerUuid).get();
     assertThat(checkInfo).isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -255,7 +255,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     checkerOperations.checker(checkerUuid).forUpdate().disable().update();
 
@@ -267,7 +267,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheckForInvalidChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
 
@@ -279,7 +279,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheckForNonExistingChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
     checkerOperations.checker(checkerUuid).forUpdate().deleteRef().update();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid))
@@ -346,7 +346,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid))
         .isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -356,7 +356,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void checkForDeletedChangeDoesNotExist() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).upsert();
 
     gApi.changes().id(patchSetId.getParentKey().get()).delete();
 
