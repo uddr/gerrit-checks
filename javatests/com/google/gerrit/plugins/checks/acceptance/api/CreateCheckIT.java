@@ -25,6 +25,7 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations.PerCheckOperations;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
@@ -92,9 +93,9 @@ public class CreateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotCreateCheckForMalformedCheckerUuid() throws Exception {
+  public void cannotCreateCheckForInvalidCheckerUuid() throws Exception {
     CheckInput input = new CheckInput();
-    input.checkerUuid = "malformed::checker*UUID";
+    input.checkerUuid = CheckerTestData.INVALID_UUID;
     input.state = CheckState.RUNNING;
 
     exception.expect(BadRequestException.class);
@@ -175,7 +176,11 @@ public class CreateCheckIT extends AbstractCheckersTest {
   @Test
   public void canCreateCheckForCheckerWithUnsupportedOperatorInQuery() throws Exception {
     CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).query("project:foo").create();
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .query(CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR)
+            .create();
 
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.toString();
@@ -190,7 +195,11 @@ public class CreateCheckIT extends AbstractCheckersTest {
   @Test
   public void canCreateCheckForCheckerWithInvalidQuery() throws Exception {
     CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).query(":foo :bar").create();
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .query(CheckerTestData.INVALID_QUERY)
+            .create();
 
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.toString();

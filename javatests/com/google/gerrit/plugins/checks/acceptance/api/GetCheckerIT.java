@@ -22,6 +22,7 @@ import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
@@ -66,7 +67,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckerWithUrl() throws Exception {
-    String url = "http://foo.bar";
+    String url = "http://example.com/my-checker";
     CheckerUuid checkerUuid = checkerOperations.newChecker().url(url).create();
 
     CheckerInfo info = checkersApi.id(checkerUuid).get();
@@ -75,11 +76,11 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckerWithInvalidUrl() throws Exception {
-    String url = "ftp://example.com/my-checker";
-    CheckerUuid checkerUuid = checkerOperations.newChecker().url(url).create();
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().url(CheckerTestData.INVALID_URL).create();
 
     CheckerInfo info = checkersApi.id(checkerUuid).get();
-    assertThat(info.url).isEqualTo(url);
+    assertThat(info.url).isEqualTo(CheckerTestData.INVALID_URL);
   }
 
   @Test
@@ -114,20 +115,23 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckerWithUnsupportedOperatorInQuery() throws Exception {
-    String query = "project:foo";
-    CheckerUuid checkerUuid = checkerOperations.newChecker().query(query).create();
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .query(CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR)
+            .create();
 
     CheckerInfo info = checkersApi.id(checkerUuid).get();
-    assertThat(info.query).isEqualTo(query);
+    assertThat(info.query).isEqualTo(CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR);
   }
 
   @Test
   public void getCheckerWithInvalidQuery() throws Exception {
-    String query = ":foo :bar";
-    CheckerUuid checkerUuid = checkerOperations.newChecker().query(query).create();
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().query(CheckerTestData.INVALID_QUERY).create();
 
     CheckerInfo info = checkersApi.id(checkerUuid).get();
-    assertThat(info.query).isEqualTo(query);
+    assertThat(info.query).isEqualTo(CheckerTestData.INVALID_QUERY);
   }
 
   @Test
