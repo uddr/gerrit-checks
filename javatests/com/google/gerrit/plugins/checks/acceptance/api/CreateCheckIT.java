@@ -27,6 +27,7 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations.PerCheckOperations;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckTestData;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
@@ -139,6 +140,19 @@ public class CreateCheckIT extends AbstractCheckersTest {
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(info.url).isEqualTo(input.url);
     assertThat(getCheck(project, patchSetId, checkerUuid).url()).hasValue(input.url);
+  }
+
+  @Test
+  public void cannotCreateCheckWithInvalidUrl() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.url = CheckTestData.INVALID_URL;
+
+    exception.expect(BadRequestException.class);
+    exception.expectMessage("only http/https URLs supported: " + input.url);
+    checksApiFactory.revision(patchSetId).create(input);
   }
 
   @Test

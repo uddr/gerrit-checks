@@ -22,6 +22,7 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckTestData;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
@@ -96,6 +97,16 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.url).isEqualTo(input.url);
+  }
+
+  @Test
+  public void cannotSetInvalidUrl() throws Exception {
+    CheckInput input = new CheckInput();
+    input.url = CheckTestData.INVALID_URL;
+
+    exception.expect(BadRequestException.class);
+    exception.expectMessage("only http/https URLs supported: " + input.url);
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
   }
 
   @Test
