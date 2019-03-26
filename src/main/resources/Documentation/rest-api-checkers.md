@@ -20,7 +20,7 @@ are permitted to retrieve checkers.
 #### Request
 
 ```
-  GET /plugins/@PLUGIN@/checkers/e1f530851409c89dbba927efd0fbbaf270bfaeae HTTP/1.0
+  GET /plugins/@PLUGIN@/checkers/test%3Amy-checker HTTP/1.0
 ```
 
 As response a [CheckerInfo](#checker-info) entity is returned that describes the
@@ -121,7 +121,7 @@ are permitted to update checkers.
 #### Request
 
 ```
-  POST /plugins/@PLUGIN@/checkers/e1f530851409c89dbba927efd0fbbaf270bfaeae HTTP/1.0
+  POST /plugins/@PLUGIN@/checkers/test%3Amy-checker HTTP/1.0
   Content-Type: application/json; charset=UTF-8
   {
     "description": "A simple checker."
