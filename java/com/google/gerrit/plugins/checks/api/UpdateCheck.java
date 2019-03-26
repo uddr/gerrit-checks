@@ -46,7 +46,7 @@ public class UpdateCheck implements RestModifyView<CheckResource, CheckInput> {
     } else if (!checkResource.getCheckerUuid().get().equals(input.checkerUuid)) {
       throw new BadRequestException(
           String.format(
-              "checkerUuid must either be null or the same as on the resource:\n"
+              "checker UUID in input must either be null or the same as on the resource:\n"
                   + "the check resource belongs to checker %s,"
                   + " but in the input checker %s was specified",
               checkResource.getCheckerUuid(), input.checkerUuid));

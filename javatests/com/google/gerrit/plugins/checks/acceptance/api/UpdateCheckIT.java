@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -27,6 +28,7 @@ import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
@@ -66,6 +68,52 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.state).isEqualTo(CheckState.FAILED);
+  }
+
+  @Test
+  public void cannotUpdateCheckerUuid() throws Exception {
+    CheckInput input = new CheckInput();
+    input.checkerUuid = "foo:bar";
+
+    exception.expect(BadRequestException.class);
+    exception.expectMessage(
+        "checker UUID in input must either be null or the same as on the resource");
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+  }
+
+  @Test
+  public void specifyingCheckerUuidInInputThatMatchesTheCheckerUuidInTheUrlIsOkay()
+      throws Exception {
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkKey.checkerUuid().get();
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+  }
+
+  @Test
+  public void updateUrl() throws Exception {
+    CheckInput input = new CheckInput();
+    input.url = "http://example.com/my-check";
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.url).isEqualTo(input.url);
+  }
+
+  @Test
+  public void updateStarted() throws Exception {
+    CheckInput input = new CheckInput();
+    input.started = TimeUtil.nowTs();
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.started).isEqualTo(input.started);
+  }
+
+  @Test
+  public void updateFinished() throws Exception {
+    CheckInput input = new CheckInput();
+    input.finished = TimeUtil.nowTs();
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.finished).isEqualTo(input.finished);
   }
 
   @Test

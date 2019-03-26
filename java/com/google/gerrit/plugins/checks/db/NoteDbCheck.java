@@ -67,7 +67,7 @@ class NoteDbCheck {
       started = update.started().get();
       modified = true;
     }
-    if (update.finished().isPresent() && update.finished().get().equals(finished)) {
+    if (update.finished().isPresent() && !update.finished().get().equals(finished)) {
       finished = update.finished().get();
       modified = true;
     }
