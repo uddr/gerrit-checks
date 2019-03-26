@@ -74,7 +74,7 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
 
     // Callers shouldn't really be providing UUID. If they do, the only legal UUID is exactly the
     // current UUID.
-    if (input.uuid != null && !input.uuid.equals(resource.getChecker().getUuid().toString())) {
+    if (input.uuid != null && !input.uuid.equals(resource.getChecker().getUuid().get())) {
       throw new BadRequestException("uuid cannot be updated");
     }
 

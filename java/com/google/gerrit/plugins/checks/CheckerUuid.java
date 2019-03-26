@@ -142,13 +142,17 @@ public abstract class CheckerUuid implements Comparable<CheckerUuid> {
         scheme(), RefNames.shardUuid(Hashing.sha1().hashString(id(), UTF_8).toString()));
   }
 
-  @Override
-  public String toString() {
+  public String get() {
     return scheme() + ":" + id();
   }
 
   @Override
+  public String toString() {
+    return get();
+  }
+
+  @Override
   public int compareTo(CheckerUuid o) {
-    return toString().compareTo(o.toString());
+    return get().compareTo(o.get());
   }
 }

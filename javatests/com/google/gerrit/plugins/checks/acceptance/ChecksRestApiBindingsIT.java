@@ -50,7 +50,7 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
   @Test
   public void checkerEndpoints() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid.toString());
+    RestApiCallHelper.execute(adminRestSession, CHECKER_ENDPOINTS, checkerUuid.get());
   }
 
   @Test
@@ -76,7 +76,7 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
         SCOPED_CHECK_ENDPOINTS,
         String.valueOf(key.patchSet().changeId.id),
         String.valueOf(key.patchSet().patchSetId),
-        checkerUuid.toString());
+        checkerUuid.get());
   }
 
   @Test

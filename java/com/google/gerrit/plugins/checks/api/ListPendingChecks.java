@@ -154,7 +154,7 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
     pendingChecksInfo.patchSet.patchSetId = patchSetId.get();
 
     pendingChecksInfo.pendingChecks =
-        ImmutableMap.of(checkerUuid.toString(), new PendingCheckInfo(checkState));
+        ImmutableMap.of(checkerUuid.get(), new PendingCheckInfo(checkState));
 
     return pendingChecksInfo;
   }

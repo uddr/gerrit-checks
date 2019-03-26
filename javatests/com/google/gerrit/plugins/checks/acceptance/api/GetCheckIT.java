@@ -95,9 +95,9 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
 
-    assertThat(getCheckInfo(patchSetId, checkerUuid).checkerUuid).isEqualTo(checkerUuid.toString());
+    assertThat(getCheckInfo(patchSetId, checkerUuid).checkerUuid).isEqualTo(checkerUuid.get());
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).checkerUuid)
-        .isEqualTo(checkerUuid.toString());
+        .isEqualTo(checkerUuid.get());
   }
 
   @Test
@@ -303,7 +303,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     expected.project = checkKey.project().get();
     expected.changeNumber = checkKey.patchSet().getParentKey().get();
     expected.patchSetId = checkKey.patchSet().get();
-    expected.checkerUuid = checkKey.checkerUuid().toString();
+    expected.checkerUuid = checkKey.checkerUuid().get();
     expected.state = CheckState.NOT_STARTED;
     expected.created = psCreated;
     expected.updated = psCreated;
@@ -321,7 +321,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     expected.project = checkKey.project().get();
     expected.changeNumber = checkKey.patchSet().getParentKey().get();
     expected.patchSetId = checkKey.patchSet().get();
-    expected.checkerUuid = checkKey.checkerUuid().toString();
+    expected.checkerUuid = checkKey.checkerUuid().get();
     expected.state = CheckState.NOT_STARTED;
     expected.created = psCreated;
     expected.updated = psCreated;

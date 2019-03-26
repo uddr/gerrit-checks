@@ -135,13 +135,13 @@ class NoteDbChecks implements Checks {
     ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId);
     ImmutableMap<String, Checker> allCheckersOfProject =
         checkers.checkersOf(projectName).stream()
-            .collect(ImmutableMap.toImmutableMap(c -> c.getUuid().toString(), c -> c));
+            .collect(ImmutableMap.toImmutableMap(c -> c.getUuid().get(), c -> c));
 
     // Always backfilling checks to have a meaningful "CombinedCheckState" even when there are some
     // or all checks missing.
     ImmutableMap<String, Check> checks =
         getChecks(projectName, patchSetId, GetCheckOptions.withBackfilling()).stream()
-            .collect(ImmutableMap.toImmutableMap(c -> c.key().checkerUuid().toString(), c -> c));
+            .collect(ImmutableMap.toImmutableMap(c -> c.key().checkerUuid().get(), c -> c));
 
     ChangeQueryBuilder queryBuilder =
         queryBuilderProvider.get().asUser(anonymousUserProvider.get());

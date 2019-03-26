@@ -63,7 +63,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected1.project = checkKey1.project().get();
     expected1.changeNumber = checkKey1.patchSet().getParentKey().get();
     expected1.patchSetId = checkKey1.patchSet().get();
-    expected1.checkerUuid = checkKey1.checkerUuid().toString();
+    expected1.checkerUuid = checkKey1.checkerUuid().get();
     expected1.state = CheckState.RUNNING;
     expected1.created = checkOperations.check(checkKey1).get().created();
     expected1.updated = expected1.created;
@@ -72,7 +72,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected2.project = checkKey2.project().get();
     expected2.changeNumber = checkKey2.patchSet().getParentKey().get();
     expected2.patchSetId = checkKey2.patchSet().get();
-    expected2.checkerUuid = checkKey2.checkerUuid().toString();
+    expected2.checkerUuid = checkKey2.checkerUuid().get();
     expected2.state = CheckState.RUNNING;
     expected2.created = checkOperations.check(checkKey2).get().created();
     expected2.updated = expected2.created;
@@ -89,7 +89,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected1.project = checkKey1.project().get();
     expected1.changeNumber = checkKey1.patchSet().getParentKey().get();
     expected1.patchSetId = checkKey1.patchSet().get();
-    expected1.checkerUuid = checkKey1.checkerUuid().toString();
+    expected1.checkerUuid = checkKey1.checkerUuid().get();
     expected1.state = CheckState.RUNNING;
     expected1.created = checkOperations.check(checkKey1).get().created();
     expected1.updated = expected1.created;
@@ -100,7 +100,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected2.project = checkKey2.project().get();
     expected2.changeNumber = checkKey2.patchSet().getParentKey().get();
     expected2.patchSetId = checkKey2.patchSet().get();
-    expected2.checkerUuid = checkKey2.checkerUuid().toString();
+    expected2.checkerUuid = checkKey2.checkerUuid().get();
     expected2.state = CheckState.RUNNING;
     expected2.created = checkOperations.check(checkKey2).get().created();
     expected2.updated = expected2.created;
@@ -191,7 +191,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     checkInfo3.project = checkKey3.project().get();
     checkInfo3.changeNumber = checkKey3.patchSet().getParentKey().get();
     checkInfo3.patchSetId = checkKey3.patchSet().get();
-    checkInfo3.checkerUuid = checkKey3.checkerUuid().toString();
+    checkInfo3.checkerUuid = checkKey3.checkerUuid().get();
     checkInfo3.state = CheckState.NOT_STARTED;
     checkInfo3.created = psCreated;
     checkInfo3.updated = psCreated;
@@ -211,7 +211,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     checkInfo3.project = checkKey3.project().get();
     checkInfo3.changeNumber = checkKey3.patchSet().getParentKey().get();
     checkInfo3.patchSetId = checkKey3.patchSet().get();
-    checkInfo3.checkerUuid = checkKey3.checkerUuid().toString();
+    checkInfo3.checkerUuid = checkKey3.checkerUuid().get();
     checkInfo3.state = CheckState.NOT_STARTED;
     checkInfo3.created = psCreated;
     checkInfo3.updated = psCreated;

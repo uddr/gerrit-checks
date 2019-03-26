@@ -60,7 +60,7 @@ enum CheckerConfigEntry {
                 "%s.%s is not set in config file for checker %s",
                 SECTION_NAME, super.keyName, checkerUuid));
       }
-      if (checkerUuid != null && !configUuid.equals(checkerUuid.toString())) {
+      if (checkerUuid != null && !configUuid.equals(checkerUuid.get())) {
         throw new ConfigInvalidException(
             String.format(
                 "value of %s.%s=%s does not match expected checker UUID %s",
@@ -78,8 +78,7 @@ enum CheckerConfigEntry {
 
     @Override
     void initNewConfig(Config config, CheckerCreation checkerCreation) {
-      config.setString(
-          SECTION_NAME, null, super.keyName, checkerCreation.getCheckerUuid().toString());
+      config.setString(SECTION_NAME, null, super.keyName, checkerCreation.getCheckerUuid().get());
     }
 
     @Override

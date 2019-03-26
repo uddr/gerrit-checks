@@ -33,7 +33,7 @@ public interface Checkers {
    * @throws RestApiException if an error occurred.
    */
   default CheckerApi id(CheckerUuid checkerUuid) throws RestApiException {
-    return id(checkerUuid.toString());
+    return id(checkerUuid.get());
   }
 
   /**

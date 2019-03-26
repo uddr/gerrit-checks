@@ -57,7 +57,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
   public CheckApi id(CheckerUuid checkerUuid) throws RestApiException {
     try {
       return checkApiImplFactory.create(
-          checksCollection.parse(revisionResource, IdString.fromDecoded(checkerUuid.toString())));
+          checksCollection.parse(revisionResource, IdString.fromDecoded(checkerUuid.get())));
     } catch (Exception e) {
       throw asRestApiException("Cannot parse check", e);
     }

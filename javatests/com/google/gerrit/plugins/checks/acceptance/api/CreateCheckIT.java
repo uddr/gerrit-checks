@@ -68,12 +68,12 @@ public class CreateCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
-    assertThat(info.checkerUuid).isEqualTo(checkerUuid.toString());
+    assertThat(info.checkerUuid).isEqualTo(checkerUuid.get());
     assertThat(info.state).isEqualTo(CheckState.RUNNING);
     assertThat(info.started).isNull();
     assertThat(info.finished).isNull();
@@ -88,8 +88,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     assertThat(notes)
         .containsExactly(
             revId,
-            noteDbContent(
-                checkerUuid.toString(), expectedCreationTimestamp, expectedCreationTimestamp));
+            noteDbContent(checkerUuid.get(), expectedCreationTimestamp, expectedCreationTimestamp));
   }
 
   @Test
@@ -120,7 +119,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     exception.expect(RestApiException.class);
@@ -134,7 +133,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).status(CheckerStatus.DISABLED).create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     checksApiFactory.revision(patchSetId).create(input);
@@ -149,7 +148,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(otherProject).create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     checksApiFactory.revision(patchSetId).create(input);
@@ -164,7 +163,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).query("message:not-matching").create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     checksApiFactory.revision(patchSetId).create(input);
@@ -183,7 +182,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
             .create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     checksApiFactory.revision(patchSetId).create(input);
@@ -202,7 +201,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
             .create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     checksApiFactory.revision(patchSetId).create(input);
@@ -218,7 +217,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.toString();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
     exception.expect(AuthException.class);

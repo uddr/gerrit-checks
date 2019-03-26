@@ -296,7 +296,7 @@ public class CheckerConfig extends VersionedMetaData {
   }
 
   private String describeForError() {
-    return checkerUuid.map(CheckerUuid::toString).orElse(ref);
+    return checkerUuid.map(CheckerUuid::get).orElse(ref);
   }
 
   private void ensureThatMandatoryPropertiesAreSet() throws ConfigInvalidException {

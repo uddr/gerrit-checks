@@ -86,7 +86,7 @@ public class CheckerUuidTest extends GerritBaseTests {
   @Test
   public void parseValidUuids() {
     for (String uuidString : VALID_CHECKER_UUIDS) {
-      assertThat(CheckerUuid.tryParse(uuidString).map(CheckerUuid::toString))
+      assertThat(CheckerUuid.tryParse(uuidString).map(CheckerUuid::get))
           .named(uuidString)
           .hasValue(uuidString);
       CheckerUuid checkerUuid;
@@ -95,7 +95,7 @@ public class CheckerUuidTest extends GerritBaseTests {
       } catch (RuntimeException e) {
         throw new AssertionError("failed to parse " + uuidString, e);
       }
-      assertThat(checkerUuid.toString()).named(uuidString).isEqualTo(uuidString);
+      assertThat(checkerUuid.get()).named(uuidString).isEqualTo(uuidString);
       assertThat(Repository.isValidRefName(checkerUuid.toRefName()))
           .named("valid ref name: %s", checkerUuid.toRefName())
           .isTrue();
@@ -115,7 +115,7 @@ public class CheckerUuidTest extends GerritBaseTests {
     CheckerUuid checkerUuid = CheckerUuid.parse("test:my-checker");
     assertThat(checkerUuid.scheme()).isEqualTo("test");
     assertThat(checkerUuid.id()).isEqualTo("my-checker");
-    assertThat(checkerUuid.toString()).isEqualTo("test:my-checker");
+    assertThat(checkerUuid.get()).isEqualTo("test:my-checker");
 
     // $ echo -n my-checker | sha1sum
     // f4bf6f9d65a2069e1b23de004b626b9a08e58daa  -

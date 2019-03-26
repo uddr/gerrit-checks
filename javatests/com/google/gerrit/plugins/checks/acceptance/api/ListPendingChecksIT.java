@@ -118,7 +118,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
-        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.NOT_STARTED));
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
   }
 
   @Test
@@ -153,7 +153,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
-        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.FAILED));
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.FAILED));
   }
 
   @Test
@@ -199,14 +199,14 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecksChange2).hasPatchSet(patchSetId2);
     assertThat(pendingChecksChange2)
         .hasPendingChecksMapThat()
-        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.SCHEDULED));
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.SCHEDULED));
 
     PendingChecksInfo pendingChecksChange1 = pendingChecksList.get(1);
     assertThat(pendingChecksChange1).hasProject(project);
     assertThat(pendingChecksChange1).hasPatchSet(patchSetId);
     assertThat(pendingChecksChange1)
         .hasPendingChecksMapThat()
-        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.NOT_STARTED));
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
   }
 
   @Test
@@ -219,7 +219,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
-        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.NOT_STARTED));
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
   }
 
   @Test
@@ -334,7 +334,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
-        .containsExactly(checkerUuid.toString(), new PendingCheckInfo(CheckState.NOT_STARTED));
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
   }
 
   @Test

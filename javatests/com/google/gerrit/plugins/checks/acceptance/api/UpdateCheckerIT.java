@@ -84,7 +84,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     input.repository = repositoryName.get();
 
     CheckerInfo info = checkersApi.id(checkerUuid).update(input);
-    assertThat(info.uuid).isEqualTo(checkerUuid.toString());
+    assertThat(info.uuid).isEqualTo(checkerUuid.get());
     assertThat(info.name).isEqualTo(input.name);
     assertThat(info.description).isEqualTo(input.description);
     assertThat(info.url).isEqualTo(input.url);
@@ -121,7 +121,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
     CheckerInput input = new CheckerInput();
-    input.uuid = checkerUuid.toString();
+    input.uuid = checkerUuid.get();
     input.name = "some-name";
 
     CheckerInfo info = checkersApi.id(checkerUuid).update(input);

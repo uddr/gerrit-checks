@@ -347,7 +347,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
       CheckerUuid checkerUuid,
       Project.NameKey repositoryName)
       throws IOException {
-    String checkerUuidStr = checkerUuid.toString();
+    String checkerUuidStr = checkerUuid.get();
     ObjectId noteId = computeRepositorySha1(repositoryName);
     ImmutableSortedSet.Builder<String> newLinesBuilder = ImmutableSortedSet.naturalOrder();
     if (noteMap.contains(noteId)) {
@@ -380,7 +380,7 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
       CheckerUuid checkerUuid,
       Project.NameKey repositoryName)
       throws IOException {
-    String checkerUuidStr = checkerUuid.toString();
+    String checkerUuidStr = checkerUuid.get();
     ObjectId noteId = computeRepositorySha1(repositoryName);
     ImmutableSortedSet.Builder<String> newLinesBuilder = ImmutableSortedSet.naturalOrder();
     if (noteMap.contains(noteId)) {

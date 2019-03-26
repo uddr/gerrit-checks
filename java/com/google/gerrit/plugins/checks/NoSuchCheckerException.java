@@ -21,7 +21,7 @@ public class NoSuchCheckerException extends Exception {
   public static final String MESSAGE = "Checker Not Found: ";
 
   public NoSuchCheckerException(CheckerUuid uuid) {
-    this(uuid.toString());
+    this(uuid.get());
   }
 
   public NoSuchCheckerException(String uuid) {

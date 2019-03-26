@@ -60,7 +60,7 @@ public class CheckJson {
 
   public CheckInfo format(Check check) throws IOException {
     CheckInfo info = new CheckInfo();
-    info.checkerUuid = check.key().checkerUuid().toString();
+    info.checkerUuid = check.key().checkerUuid().get();
     info.changeNumber = check.key().patchSet().changeId.id;
     info.project = check.key().project().get();
     info.patchSetId = check.key().patchSet().patchSetId;
