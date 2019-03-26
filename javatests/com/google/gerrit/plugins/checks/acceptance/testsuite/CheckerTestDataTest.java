@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assert_;
 
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckerQuery;
-import com.google.gerrit.plugins.checks.CheckerUrl;
 import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.UrlValidator;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import org.junit.Test;
 
@@ -33,7 +33,7 @@ public class CheckerTestDataTest extends AbstractCheckersTest {
   @Test
   public void verifyTestUrls() throws Exception {
     try {
-      CheckerUrl.clean(CheckerTestData.INVALID_URL);
+      UrlValidator.clean(CheckerTestData.INVALID_URL);
       assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
       assertMessage(e, "only http/https URLs supported", CheckerTestData.INVALID_URL);

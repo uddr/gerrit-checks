@@ -21,25 +21,25 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.testing.GerritBaseTests;
 import org.junit.Test;
 
-public class CheckerUrlTest extends GerritBaseTests {
+public class UrlValidatorTest extends GerritBaseTests {
   @Test
   public void validUrls() throws Exception {
-    assertThat(CheckerUrl.clean("https://foo.com/")).isEqualTo("https://foo.com/");
-    assertThat(CheckerUrl.clean("http://foo.com/")).isEqualTo("http://foo.com/");
+    assertThat(UrlValidator.clean("https://foo.com/")).isEqualTo("https://foo.com/");
+    assertThat(UrlValidator.clean("http://foo.com/")).isEqualTo("http://foo.com/");
   }
 
   @Test
   public void emptyUrls() throws Exception {
-    assertThat(CheckerUrl.clean("")).isEqualTo("");
-    assertThat(CheckerUrl.clean(" ")).isEqualTo("");
-    assertThat(CheckerUrl.clean(" \t ")).isEqualTo("");
+    assertThat(UrlValidator.clean("")).isEqualTo("");
+    assertThat(UrlValidator.clean(" ")).isEqualTo("");
+    assertThat(UrlValidator.clean(" \t ")).isEqualTo("");
   }
 
   @Test
   public void trimUrls() throws Exception {
-    assertThat(CheckerUrl.clean(" https://foo.com/")).isEqualTo("https://foo.com/");
-    assertThat(CheckerUrl.clean("https://foo.com/ ")).isEqualTo("https://foo.com/");
-    assertThat(CheckerUrl.clean(" https://foo.com/ ")).isEqualTo("https://foo.com/");
+    assertThat(UrlValidator.clean(" https://foo.com/")).isEqualTo("https://foo.com/");
+    assertThat(UrlValidator.clean("https://foo.com/ ")).isEqualTo("https://foo.com/");
+    assertThat(UrlValidator.clean(" https://foo.com/ ")).isEqualTo("https://foo.com/");
   }
 
   @Test
@@ -61,7 +61,7 @@ public class CheckerUrlTest extends GerritBaseTests {
 
   private static void assertInvalidUrl(String url, String expectedMessage) {
     try {
-      CheckerUrl.clean(url);
+      UrlValidator.clean(url);
       assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
       assertThat(e).hasMessageThat().isEqualTo(expectedMessage);

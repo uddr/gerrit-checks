@@ -22,7 +22,7 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class CheckerUrl {
+public class UrlValidator {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
@@ -42,7 +42,7 @@ public class CheckerUrl {
     try {
       uri = new URI(trimmed);
     } catch (URISyntaxException e) {
-      logger.atFine().withCause(e).log("invalid checker URL: %s", urlString);
+      logger.atFine().withCause(e).log("invalid URL: %s", urlString);
       uri = null;
     }
     if (uri == null || Strings.isNullOrEmpty(uri.getScheme())) {
@@ -54,5 +54,5 @@ public class CheckerUrl {
     return trimmed;
   }
 
-  private CheckerUrl() {}
+  private UrlValidator() {}
 }

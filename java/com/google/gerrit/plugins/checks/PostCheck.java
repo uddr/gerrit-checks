@@ -98,7 +98,7 @@ public class PostCheck
   private static CheckUpdate toCheckUpdate(CheckInput input) throws BadRequestException {
     return CheckUpdate.builder()
         .setState(Optional.ofNullable(input.state))
-        .setUrl(input.url == null ? Optional.empty() : Optional.of(CheckerUrl.clean(input.url)))
+        .setUrl(input.url == null ? Optional.empty() : Optional.of(UrlValidator.clean(input.url)))
         .setStarted(Optional.ofNullable(input.started))
         .setFinished(Optional.ofNullable(input.finished))
         .build();

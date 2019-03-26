@@ -26,9 +26,9 @@ import com.google.gerrit.plugins.checks.CheckerJson;
 import com.google.gerrit.plugins.checks.CheckerName;
 import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
-import com.google.gerrit.plugins.checks.CheckerUrl;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.plugins.checks.NoSuchCheckerException;
+import com.google.gerrit.plugins.checks.UrlValidator;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.permissions.PermissionBackend;
@@ -91,7 +91,7 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
     }
 
     if (input.url != null) {
-      checkerUpdateBuilder.setUrl(CheckerUrl.clean(input.url));
+      checkerUpdateBuilder.setUrl(UrlValidator.clean(input.url));
     }
 
     if (input.repository != null) {
