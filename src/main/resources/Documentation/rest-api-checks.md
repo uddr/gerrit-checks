@@ -192,7 +192,7 @@ The `CheckInput` entity contains information for creating or updating a check.
 The `CheckState` enum can have the following values: `NOT_STARTED`, `FAILED`,
 `SCHEDULED`, `RUNNING`, `SUCCESSFUL` and `NOT_RELEVANT`.
 
-### <a id="query-options"> Options
+## <a id="query-options"> Options
 
 The following query options are supported in the `o` field of certain requests:
 
