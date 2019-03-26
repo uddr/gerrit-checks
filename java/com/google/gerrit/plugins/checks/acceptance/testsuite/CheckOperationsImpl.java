@@ -88,7 +88,7 @@ public final class CheckOperationsImpl implements CheckOperations {
 
     @Override
     public ImmutableMap<RevId, String> notesAsText() throws Exception {
-      try (Repository repo = repoManager.openRepository(key.project());
+      try (Repository repo = repoManager.openRepository(key.repository());
           RevWalk rw = new RevWalk(repo)) {
         Ref checkRef =
             repo.getRefDatabase().exactRef(CheckerRef.checksRef(key.patchSet().changeId));

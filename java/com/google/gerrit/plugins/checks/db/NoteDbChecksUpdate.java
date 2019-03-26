@@ -160,7 +160,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       assertCheckerIsPresent(checkKey.checkerUuid());
     }
 
-    try (Repository repo = repoManager.openRepository(checkKey.project());
+    try (Repository repo = repoManager.openRepository(checkKey.repository());
         ObjectInserter objectInserter = repo.newObjectInserter();
         RevWalk rw = new RevWalk(repo)) {
       Ref checkRef = repo.getRefDatabase().exactRef(checksRef(checkKey.patchSet().getParentKey()));
@@ -195,7 +195,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       RefUpdateUtil.checkResult(refUpdate);
 
       gitRefUpdated.fire(
-          checkKey.project(), refUpdate, currentUser.map(user -> user.state()).orElse(null));
+          checkKey.repository(), refUpdate, currentUser.map(user -> user.state()).orElse(null));
       return readSingleCheck(checkKey, repo, rw, newCommitId);
     }
   }

@@ -64,14 +64,14 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void getCheckReturnsProject() throws Exception {
+  public void getCheckReturnsRepository() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
 
-    assertThat(getCheckInfo(patchSetId, checkerUuid).project).isEqualTo(project.get());
-    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).project)
+    assertThat(getCheckInfo(patchSetId, checkerUuid).repository).isEqualTo(project.get());
+    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).repository)
         .isEqualTo(project.get());
   }
 
@@ -310,7 +310,7 @@ public class GetCheckIT extends AbstractCheckersTest {
 
     Timestamp psCreated = getPatchSetCreated(changeId);
     CheckInfo expected = new CheckInfo();
-    expected.project = checkKey.project().get();
+    expected.repository = checkKey.repository().get();
     expected.changeNumber = checkKey.patchSet().getParentKey().get();
     expected.patchSetId = checkKey.patchSet().get();
     expected.checkerUuid = checkKey.checkerUuid().get();
@@ -328,7 +328,7 @@ public class GetCheckIT extends AbstractCheckersTest {
 
     Timestamp psCreated = getPatchSetCreated(changeId);
     CheckInfo expected = new CheckInfo();
-    expected.project = checkKey.project().get();
+    expected.repository = checkKey.repository().get();
     expected.changeNumber = checkKey.patchSet().getParentKey().get();
     expected.patchSetId = checkKey.patchSet().get();
     expected.checkerUuid = checkKey.checkerUuid().get();
@@ -403,7 +403,7 @@ public class GetCheckIT extends AbstractCheckersTest {
           .hasMessageThat()
           .isEqualTo(
               String.format(
-                  "Patch set %s in project %s doesn't have check for checker %s.",
+                  "Patch set %s in repository %s doesn't have check for checker %s.",
                   patchSetId, project, checkerUuid));
     }
   }

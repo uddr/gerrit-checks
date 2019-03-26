@@ -16,8 +16,8 @@ package com.google.gerrit.plugins.checks.api;
 
 /** REST API representation of a patch set for which checks are pending. */
 public class CheckablePatchSetInfo {
-  /** Project name. */
-  public String project;
+  /** Repository name. */
+  public String repository;
 
   /** Change number. */
   public int changeNumber;

@@ -62,7 +62,7 @@ public class CheckJson {
     CheckInfo info = new CheckInfo();
     info.checkerUuid = check.key().checkerUuid().get();
     info.changeNumber = check.key().patchSet().changeId.id;
-    info.project = check.key().project().get();
+    info.repository = check.key().repository().get();
     info.patchSetId = check.key().patchSet().patchSetId;
     info.state = check.state();
 

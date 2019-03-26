@@ -34,7 +34,7 @@ checkers).
   )]}'
   [
     {
-      "project": "test-project",
+      "repository": "test-repo",
       "change_number": 1,
       "patch_set_id": 1,
       "checker_uuid": "test:my-checker",
@@ -44,7 +44,7 @@ checkers).
       "updated": "2019-01-31 09:59:32.126000000"
     },
     {
-      "project": "test-project",
+      "repository": "test-repo",
       "change_number": 1,
       "patch_set_id": 1,
       "checker_uuid": "foo:foo-checker",
@@ -82,7 +82,7 @@ check.
   Content-Type: application/json; charset=UTF-8
   )]}'
   {
-    "project": "test-project",
+    "repository": "test-repo",
     "change_number": 1,
     "patch_set_id": 1,
     "checker_uuid": "test:my-checker",
@@ -129,7 +129,7 @@ the created check.
   Content-Type: application/json; charset=UTF-8
   )]}'
   {
-    "project": "test-project",
+    "repository": "test-repo",
     "change_number": 1,
     "patch_set_id": 1,
     "checker_uuid": "test:my-checker",
@@ -163,7 +163,7 @@ The `CheckInfo` entity describes a check.
 
 | Field Name        |          | Description |
 | ----------------- | -------- | ----------- |
-| `project`         |          | The project name that this check applies to.
+| `repository`      |          | The repository name that this check applies to.
 | `change_number`   |          | The change number that this check applies to.
 | `patch_set_id`    |          | The patch set that this check applies to.
 | `checker_uuid`    |          | The [UUID](./rest-api-checkers.md#checker-id) of the checker that reported this check.

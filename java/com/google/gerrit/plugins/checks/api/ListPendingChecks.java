@@ -120,12 +120,13 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
   }
 
   private Optional<PendingChecksInfo> getPostFilteredPendingChecks(
-      Project.NameKey project, PatchSet.Id patchSetId) throws OrmException, IOException {
-    CheckState checkState = getCheckState(project, patchSetId);
+      Project.NameKey repositoryName, PatchSet.Id patchSetId) throws OrmException, IOException {
+    CheckState checkState = getCheckState(repositoryName, patchSetId);
     if (!states.contains(checkState)) {
       return Optional.empty();
     }
-    return Optional.of(createPendingChecksInfo(project, patchSetId, checkerUuid, checkState));
+    return Optional.of(
+        createPendingChecksInfo(repositoryName, patchSetId, checkerUuid, checkState));
   }
 
   private CheckState getCheckState(Project.NameKey project, PatchSet.Id patchSetId)
@@ -142,14 +143,14 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
   }
 
   private static PendingChecksInfo createPendingChecksInfo(
-      Project.NameKey project,
+      Project.NameKey repositoryName,
       PatchSet.Id patchSetId,
       CheckerUuid checkerUuid,
       CheckState checkState) {
     PendingChecksInfo pendingChecksInfo = new PendingChecksInfo();
 
     pendingChecksInfo.patchSet = new CheckablePatchSetInfo();
-    pendingChecksInfo.patchSet.project = project.get();
+    pendingChecksInfo.patchSet.repository = repositoryName.get();
     pendingChecksInfo.patchSet.changeNumber = patchSetId.getParentKey().get();
     pendingChecksInfo.patchSet.patchSetId = patchSetId.get();
 

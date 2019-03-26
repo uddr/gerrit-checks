@@ -22,8 +22,8 @@ import java.util.Set;
 
 /** REST API representation of a {@link com.google.gerrit.plugins.checks.Check}. */
 public class CheckInfo {
-  /** Project name that this check applies to. */
-  public String project;
+  /** Repository name that this check applies to. */
+  public String repository;
   /** Change number that this check applies to. */
   public int changeNumber;
   /** Patch set ID that this check applies to. */
@@ -60,7 +60,7 @@ public class CheckInfo {
       return false;
     }
     CheckInfo other = (CheckInfo) o;
-    return Objects.equals(other.project, project)
+    return Objects.equals(other.repository, repository)
         && Objects.equals(other.changeNumber, changeNumber)
         && Objects.equals(other.patchSetId, patchSetId)
         && Objects.equals(other.checkerUuid, checkerUuid)
@@ -78,7 +78,7 @@ public class CheckInfo {
   @Override
   public int hashCode() {
     return Objects.hash(
-        project,
+        repository,
         changeNumber,
         patchSetId,
         checkerUuid,
@@ -96,7 +96,7 @@ public class CheckInfo {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("project", project)
+        .add("repository", repository)
         .add("changeNumber", changeNumber)
         .add("patchSetId", patchSetId)
         .add("checkerUuid", checkerUuid)

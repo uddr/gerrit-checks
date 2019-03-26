@@ -114,7 +114,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     List<PendingChecksInfo> pendingChecksList = pendingChecksApi.list(checkerUuid);
     assertThat(pendingChecksList).hasSize(1);
     PendingChecksInfo pendingChecks = Iterables.getOnlyElement(pendingChecksList);
-    assertThat(pendingChecks).hasProject(project);
+    assertThat(pendingChecks).hasRepository(project);
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
@@ -149,7 +149,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
         pendingChecksApi.list(checkerUuid, CheckState.FAILED);
     assertThat(pendingChecksList).hasSize(1);
     PendingChecksInfo pendingChecks = Iterables.getOnlyElement(pendingChecksList);
-    assertThat(pendingChecks).hasProject(project);
+    assertThat(pendingChecks).hasRepository(project);
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
@@ -195,14 +195,14 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     // returned from the change index, which is by last updated timestamp. Use this knowledge here
     // to do the assertions although the REST endpoint doesn't document a guaranteed sort order.
     PendingChecksInfo pendingChecksChange2 = pendingChecksList.get(0);
-    assertThat(pendingChecksChange2).hasProject(project);
+    assertThat(pendingChecksChange2).hasRepository(project);
     assertThat(pendingChecksChange2).hasPatchSet(patchSetId2);
     assertThat(pendingChecksChange2)
         .hasPendingChecksMapThat()
         .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.SCHEDULED));
 
     PendingChecksInfo pendingChecksChange1 = pendingChecksList.get(1);
-    assertThat(pendingChecksChange1).hasProject(project);
+    assertThat(pendingChecksChange1).hasRepository(project);
     assertThat(pendingChecksChange1).hasPatchSet(patchSetId);
     assertThat(pendingChecksChange1)
         .hasPendingChecksMapThat()
@@ -215,7 +215,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
     List<PendingChecksInfo> pendingChecksList = pendingChecksApi.list(checkerUuid);
     assertThat(pendingChecksList).hasSize(1);
     PendingChecksInfo pendingChecks = Iterables.getOnlyElement(pendingChecksList);
-    assertThat(pendingChecks).hasProject(project);
+    assertThat(pendingChecks).hasRepository(project);
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
@@ -330,7 +330,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
         pendingChecksApi.list(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).hasSize(1);
     PendingChecksInfo pendingChecks = Iterables.getOnlyElement(pendingChecksList);
-    assertThat(pendingChecks).hasProject(project);
+    assertThat(pendingChecks).hasRepository(project);
     assertThat(pendingChecks).hasPatchSet(patchSetId);
     assertThat(pendingChecks)
         .hasPendingChecksMapThat()
