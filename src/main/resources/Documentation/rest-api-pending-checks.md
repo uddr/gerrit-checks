@@ -1,4 +1,4 @@
-# @PLUGIN@ - /checks.pending/ REST API
+# @PLUGIN@ - /plugins/@PLUGIN@/checks.pending/ REST API
 
 This page describes the pending-checks-related REST endpoints that are
 added by the @PLUGIN@ plugin.
@@ -9,7 +9,7 @@ Please also take note of the general information on the
 ## <a id="pending-checks-endpoints"> Pending Checks Endpoints
 
 ### <a id="get-checker"> List Pending Checks
-_'GET /checks.pending/'_
+_'GET /plugins/@PLUGIN@/checks.pending/'_
 
 Lists pending checks for a checker.
 
@@ -38,7 +38,7 @@ This means pending checks for non-visible changes are filtered out.
 #### Request by checker
 
 ```
-  GET /checks.pending/?checker=test:my-checker&state=NOT_STARTED&state=SCHEDULED HTTP/1.0
+  GET /plugins/@PLUGIN@/checks.pending/?checker=test:my-checker&state=NOT_STARTED&state=SCHEDULED HTTP/1.0
 ```
 
 As response a list of [PendingChecksInfo](#pending-checks-info)

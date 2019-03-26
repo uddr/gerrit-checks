@@ -1,4 +1,4 @@
-# @PLUGIN@ - /checkers/ REST API
+# @PLUGIN@ - /plugins/@PLUGIN@/checkers/ REST API
 
 This page describes the checker-related REST endpoints that are added by the
 @PLUGIN@ plugin.
@@ -9,7 +9,7 @@ Please also take note of the general information on the
 ## <a id="checker-endpoints"> Checker Endpoints
 
 ### <a id="get-checker"> Get Checker
-_'GET /checkers/[\{checker-id\}](#checker-id)'_
+_'GET /plugins/@PLUGIN@/checkers/[\{checker-id\}](#checker-id)'_
 
 Retrieves a checker.
 
@@ -20,7 +20,7 @@ are permitted to retrieve checkers.
 #### Request
 
 ```
-  GET /checkers/e1f530851409c89dbba927efd0fbbaf270bfaeae HTTP/1.0
+  GET /plugins/@PLUGIN@/checkers/e1f530851409c89dbba927efd0fbbaf270bfaeae HTTP/1.0
 ```
 
 As response a [CheckerInfo](#checker-info) entity is returned that describes the
@@ -44,7 +44,7 @@ checker.
 ```
 
 ### <a id="create-checker"> Create Checker
-_'POST /checkers/'_
+_'POST /plugins/@PLUGIN@/checkers/'_
 
 Creates a new checker.
 
@@ -58,7 +58,7 @@ are permitted to create checkers.
 #### Request
 
 ```
-  POST /checkers/ HTTP/1.0
+  POST /plugins/@PLUGIN@/checkers/ HTTP/1.0
   Content-Type: application/json; charset=UTF-8
   {
     "uuid": "test:my-checker",
@@ -89,7 +89,7 @@ the created checker.
 ```
 
 ### <a id="update-checker"> Update Checker
-_'POST /checkers/[\{checker-id\}](#checker-id)'_
+_'POST /plugins/@PLUGIN@/checkers/[\{checker-id\}](#checker-id)'_
 
 Updates a checker.
 
@@ -121,7 +121,7 @@ are permitted to update checkers.
 #### Request
 
 ```
-  POST /checkers/e1f530851409c89dbba927efd0fbbaf270bfaeae HTTP/1.0
+  POST /plugins/@PLUGIN@/checkers/e1f530851409c89dbba927efd0fbbaf270bfaeae HTTP/1.0
   Content-Type: application/json; charset=UTF-8
   {
     "description": "A simple checker."
