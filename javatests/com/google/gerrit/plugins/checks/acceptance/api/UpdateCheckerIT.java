@@ -526,8 +526,17 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     assertThat(info.updated).isEqualTo(expectedUpdateTimestamp);
   }
 
-  // TODO(ekempin): Add test to verify that a no-op update doesn't create a new updated timestamp
-  // (at the moment it does, but that's a bug)
+  @Test
+  public void noOpUpdateDoesntResultInNewUpdatedTimestamp() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().name("My Checker").create();
+
+    Timestamp expectedUpdateTimestamp = checkerOperations.checker(checkerUuid).get().getUpdated();
+
+    CheckerInput input = new CheckerInput();
+    input.name = "My Checker";
+    CheckerInfo info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.updated).isEqualTo(expectedUpdateTimestamp);
+  }
 
   @Test
   public void updateCheckerWithoutAdministrateCheckersCapabilityFails() throws Exception {

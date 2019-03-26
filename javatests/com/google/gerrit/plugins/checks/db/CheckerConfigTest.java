@@ -492,6 +492,24 @@ public class CheckerConfigTest extends GerritBaseTests {
     assertThat(updatedChecker).hasRefStateThat().isEqualTo(expectedRefStateAfterUpdate);
   }
 
+  @Test
+  public void noNewCommitOnNoOpUpdate() throws Exception {
+    CheckerCreation checkerCreation =
+        getPrefilledCheckerCreationBuilder().setCheckerUuid(checkerUuid).build();
+    createChecker(checkerCreation);
+    ObjectId refState = getCheckerRefState(checkerUuid);
+
+    // Setting a description updates the ref.
+    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setDescription("A description.").build();
+    updateChecker(checkerUuid, checkerUpdate);
+    ObjectId refState2 = getCheckerRefState(checkerUuid);
+    assertThat(refState2).isNotEqualTo(refState);
+
+    // Setting the same description again is a no-op and the ref is not updated.
+    updateChecker(checkerUuid, checkerUpdate);
+    assertThat(getCheckerRefState(checkerUuid)).isEqualTo(refState2);
+  }
+
   private CheckerConfig createArbitraryChecker(CheckerUuid checkerUuid) throws Exception {
     CheckerCreation checkerCreation =
         getPrefilledCheckerCreationBuilder().setCheckerUuid(checkerUuid).build();
