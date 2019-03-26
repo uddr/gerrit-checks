@@ -117,6 +117,16 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void updateWithEmptyInput() throws Exception {
+    assertThat(
+            checksApiFactory
+                .revision(patchSetId)
+                .id(checkKey.checkerUuid())
+                .update(new CheckInput()))
+        .isNotNull();
+  }
+
+  @Test
   public void updateResultsInNewUpdatedTimestamp() throws Exception {
     CheckInput input = new CheckInput();
     input.state = CheckState.FAILED;
