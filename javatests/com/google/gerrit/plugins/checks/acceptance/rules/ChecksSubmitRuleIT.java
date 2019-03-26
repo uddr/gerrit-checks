@@ -28,8 +28,6 @@ import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
-import com.google.gerrit.server.config.AllProjectsName;
-import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +40,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
       new SubmitRequirementInfo(
           "NOT_READY", "All required checks must pass", "checks_pass", ImmutableMap.of());
 
-  @Inject private AllProjectsName allProjects;
   private String testChangeId;
   private PatchSet.Id testPatchSetId;
 
