@@ -166,7 +166,7 @@ public class CheckerConfig extends VersionedMetaData {
   private Optional<CheckerCreation> checkerCreation = Optional.empty();
   private Optional<CheckerUpdate> checkerUpdate = Optional.empty();
   private Optional<Checker.Builder> updatedCheckerBuilder = Optional.empty();
-  private Config config;
+  private Optional<Config> loadedConfig = Optional.empty();
   private boolean isLoaded = false;
 
   private CheckerConfig(String ref) {
@@ -242,8 +242,8 @@ public class CheckerConfig extends VersionedMetaData {
   }
 
   @VisibleForTesting
-  public Config getConfigForTesting() {
-    return config;
+  public Optional<Config> getConfigForTesting() {
+    return loadedConfig;
   }
 
   @Override
@@ -256,9 +256,10 @@ public class CheckerConfig extends VersionedMetaData {
       Timestamp created = new Timestamp(earliestCommit.getCommitTime() * 1000L);
       Timestamp updated = new Timestamp(rw.parseCommit(revision).getCommitTime() * 1000L);
 
-      config = readConfig(CHECKER_CONFIG_FILE);
-      Checker checker = createFrom(config, created, updated, revision.toObjectId());
+      Config checkerConfig = readConfig(CHECKER_CONFIG_FILE);
+      Checker checker = createFrom(checkerConfig, created, updated, revision.toObjectId());
       loadedChecker = Optional.of(checker);
+      loadedConfig = Optional.of(checkerConfig);
       checkerUuid = Optional.of(checker.getUuid());
     }
 

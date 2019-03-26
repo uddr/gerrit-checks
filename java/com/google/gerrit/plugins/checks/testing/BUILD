@@ -10,6 +10,7 @@ java_library(
         "//java/com/google/gerrit/git/testing",
         "//java/com/google/gerrit/reviewdb:server",
         "//java/com/google/gerrit/truth",
+        "//lib/jgit/org.eclipse.jgit:jgit",
         "//lib/truth",
         "//lib/truth:truth-java8-extension",
         "//plugins:plugin-api",
