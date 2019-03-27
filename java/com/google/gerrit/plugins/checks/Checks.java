@@ -78,6 +78,18 @@ public interface Checks {
   CombinedCheckState getCombinedCheckState(Project.NameKey projectName, PatchSet.Id patchSetId)
       throws IOException, StorageException;
 
+  /**
+   * Returns whether all required checks have passed.
+   *
+   * @param projectName the name of the project.
+   * @param patchSetId the ID of the patch set
+   * @return true if all required checks have passed.
+   * @throws IOException if failed to check if all required checks have passed.
+   * @throws StorageException if failed to check if all required checks have passed.
+   */
+  boolean areAllRequiredCheckersPassing(Project.NameKey projectName, PatchSet.Id patchSetId)
+      throws IOException, StorageException;
+
   @AutoValue
   abstract class GetCheckOptions {
     public static GetCheckOptions defaults() {

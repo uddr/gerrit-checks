@@ -32,6 +32,7 @@ import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
+import com.google.gerrit.plugins.checks.api.CombinedCheckState.CheckStateCount;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSet.Id;
 import com.google.gerrit.reviewdb.client.Project;
@@ -128,8 +129,24 @@ class NoteDbChecks implements Checks {
   @Override
   public CombinedCheckState getCombinedCheckState(NameKey projectName, Id patchSetId)
       throws IOException, StorageException {
+    ImmutableListMultimap<CheckState, Boolean> statesAndRequired =
+        getStatesAndRequiredMap(projectName, patchSetId);
+    return CombinedCheckState.combine(statesAndRequired);
+  }
+
+  @Override
+  public boolean areAllRequiredCheckersPassing(NameKey projectName, Id patchSetId)
+      throws IOException, StorageException {
+    ImmutableListMultimap<CheckState, Boolean> statesAndRequired =
+        getStatesAndRequiredMap(projectName, patchSetId);
+    CheckStateCount checkStateCount = CheckStateCount.create(statesAndRequired);
+    return checkStateCount.failedRequiredCount() == 0
+        && checkStateCount.inProgressRequiredCount() == 0;
+  }
+
+  private ImmutableListMultimap<CheckState, Boolean> getStatesAndRequiredMap(
+      NameKey projectName, Id patchSetId) throws IOException, StorageException {
     ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId());
-    CheckerQuery checkerQuery = checkerQueryProvider.get();
     ImmutableMap<String, Checker> allCheckersOfProject =
         checkers.checkersOf(projectName).stream()
             .collect(ImmutableMap.toImmutableMap(c -> c.getUuid().get(), c -> c));
@@ -157,11 +174,11 @@ class NoteDbChecks implements Checks {
       boolean isRequired =
           checker.getStatus() == CheckerStatus.ENABLED
               && checker.isRequired()
-              && checkerQuery.isCheckerRelevant(checker, changeData);
+              && checkerQueryProvider.get().isCheckerRelevant(checker, changeData);
       statesAndRequired.put(check.state(), isRequired);
     }
 
-    return CombinedCheckState.combine(statesAndRequired.build());
+    return statesAndRequired.build();
   }
 
   private ImmutableList<Checker> getCheckersForBackfiller(
