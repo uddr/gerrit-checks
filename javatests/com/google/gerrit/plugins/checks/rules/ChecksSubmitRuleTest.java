@@ -21,7 +21,7 @@ import static org.easymock.EasyMock.replay;
 
 import com.google.common.collect.Iterables;
 import com.google.gerrit.common.data.SubmitRecord;
-import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
+import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
@@ -29,6 +29,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.project.SubmitRuleOptions;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.util.time.TimeUtil;
+import java.io.IOException;
 import java.util.Collection;
 import org.easymock.EasyMock;
 import org.eclipse.jgit.lib.ObjectId;
@@ -38,7 +39,7 @@ public class ChecksSubmitRuleTest {
   @Test
   public void loadingCurrentPatchSetFails() throws Exception {
     ChecksSubmitRule checksSubmitRule =
-        new ChecksSubmitRule(EasyMock.createStrictMock(CombinedCheckStateCache.class));
+        new ChecksSubmitRule(EasyMock.createStrictMock(Checks.class));
 
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);
     expect(cd.project()).andReturn(Project.nameKey("My-Project"));
@@ -53,12 +54,12 @@ public class ChecksSubmitRuleTest {
 
   @Test
   public void getCombinedCheckStateFails() throws Exception {
-    CombinedCheckStateCache cache = EasyMock.createStrictMock(CombinedCheckStateCache.class);
-    expect(cache.reload(anyObject(), anyObject()))
-        .andThrow(new IllegalStateException("Fail for test"));
-    replay(cache);
+    Checks checks = EasyMock.createStrictMock(Checks.class);
+    expect(checks.areAllRequiredCheckersPassing(anyObject(), anyObject()))
+        .andThrow(new IOException("Fail for test"));
+    replay(checks);
 
-    ChecksSubmitRule checksSubmitRule = new ChecksSubmitRule(cache);
+    ChecksSubmitRule checksSubmitRule = new ChecksSubmitRule(checks);
 
     Change.Id changeId = Change.id(1);
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);

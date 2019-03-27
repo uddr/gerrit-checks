@@ -22,8 +22,7 @@ import com.google.gerrit.common.data.SubmitRecord.Status;
 import com.google.gerrit.common.data.SubmitRequirement;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.FactoryModule;
-import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
-import com.google.gerrit.plugins.checks.api.CombinedCheckState;
+import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
@@ -32,6 +31,7 @@ import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.SubmitRule;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.io.IOException;
 import java.util.Collection;
 
 @Singleton
@@ -53,11 +53,11 @@ public class ChecksSubmitRule implements SubmitRule {
     }
   }
 
-  private final CombinedCheckStateCache combinedCheckStateCache;
+  private final Checks checks;
 
   @Inject
-  public ChecksSubmitRule(CombinedCheckStateCache combinedCheckStateCache) {
-    this.combinedCheckStateCache = combinedCheckStateCache;
+  public ChecksSubmitRule(Checks checks) {
+    this.checks = checks;
   }
 
   @Override
@@ -75,11 +75,11 @@ public class ChecksSubmitRule implements SubmitRule {
       return singletonRecordForRuleError(errorMessage);
     }
 
-    CombinedCheckState combinedCheckState;
+    boolean areAllRequiredCheckersPassing;
     try {
-      // Reload value in cache to fix up inconsistencies between cache and actual state.
-      combinedCheckState = combinedCheckStateCache.reload(project, currentPathSetId);
-    } catch (RuntimeException e) {
+      areAllRequiredCheckersPassing =
+          checks.areAllRequiredCheckersPassing(project, currentPathSetId);
+    } catch (IOException e) {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
@@ -87,7 +87,7 @@ public class ChecksSubmitRule implements SubmitRule {
     }
 
     SubmitRecord submitRecord = new SubmitRecord();
-    if (combinedCheckState.isPassing()) {
+    if (areAllRequiredCheckersPassing) {
       submitRecord.status = Status.OK;
       return ImmutableList.of(submitRecord);
     }

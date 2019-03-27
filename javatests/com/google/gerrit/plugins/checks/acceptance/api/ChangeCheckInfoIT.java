@@ -118,16 +118,17 @@ public class ChangeCheckInfoIT extends AbstractCheckersTest {
 
     assertThat(queryChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    // Cache was prepopulated during update.
-    assertThat(cache.getStats()).since(start).hasHitCount(1);
-    assertThat(cache.getStats()).since(start).hasMissCount(0);
+    // Cache hasn't yet populated during update.
+    // TODO(xchangcheng): still initialize the cache early without doing in the submit rule.
+    assertThat(cache.getStats()).since(start).hasHitCount(0);
+    assertThat(cache.getStats()).since(start).hasMissCount(1);
     assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
     assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(0);
 
     assertThat(queryChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    assertThat(cache.getStats()).since(start).hasHitCount(2);
-    assertThat(cache.getStats()).since(start).hasMissCount(0);
+    assertThat(cache.getStats()).since(start).hasHitCount(1);
+    assertThat(cache.getStats()).since(start).hasMissCount(1);
     assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
     assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(0);
   }
@@ -149,17 +150,17 @@ public class ChangeCheckInfoIT extends AbstractCheckersTest {
 
     assertThat(getChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    // Incurs reloads in both submit rule and attribute factory paths.
-    assertThat(cache.getStats()).since(start).hasHitCount(3);
+    // Incurs reloads in attribute factory paths.
+    assertThat(cache.getStats()).since(start).hasHitCount(2);
     assertThat(cache.getStats()).since(start).hasMissCount(0);
-    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(1);
+    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
     assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
 
     assertThat(queryChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    assertThat(cache.getStats()).since(start).hasHitCount(4);
+    assertThat(cache.getStats()).since(start).hasHitCount(3);
     assertThat(cache.getStats()).since(start).hasMissCount(0);
-    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(1);
+    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
     assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
   }
 
@@ -206,25 +207,25 @@ public class ChangeCheckInfoIT extends AbstractCheckersTest {
 
     assertThat(getChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    // Incurs reloads in both submit rule and attribute factory paths.
+    // Incurs reloads in attribute factory paths.
+    assertThat(cache.getStats()).since(start).hasHitCount(0);
+    assertThat(cache.getStats()).since(start).hasMissCount(1);
+    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
+    assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
+
+    assertThat(getChangeCheckInfo(changeId))
+        .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
+    assertThat(cache.getStats()).since(start).hasHitCount(1);
+    assertThat(cache.getStats()).since(start).hasMissCount(1);
+    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(1);
+    assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
+
+    assertThat(getChangeCheckInfo(changeId))
+        .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
     assertThat(cache.getStats()).since(start).hasHitCount(2);
-    assertThat(cache.getStats()).since(start).hasMissCount(0);
+    assertThat(cache.getStats()).since(start).hasMissCount(1);
     assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(2);
-    assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(0);
-
-    assertThat(getChangeCheckInfo(changeId))
-        .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    assertThat(cache.getStats()).since(start).hasHitCount(4);
-    assertThat(cache.getStats()).since(start).hasMissCount(0);
-    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(4);
-    assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(0);
-
-    assertThat(getChangeCheckInfo(changeId))
-        .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.NOT_RELEVANT));
-    assertThat(cache.getStats()).since(start).hasHitCount(6);
-    assertThat(cache.getStats()).since(start).hasMissCount(0);
-    assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(6);
-    assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(0);
+    assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
   }
 
   private Optional<ChangeCheckInfo> getChangeCheckInfo(Change.Id id) throws Exception {
