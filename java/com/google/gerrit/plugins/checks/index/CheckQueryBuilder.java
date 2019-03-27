@@ -38,6 +38,13 @@ public class CheckQueryBuilder extends QueryBuilder<Check> {
   }
 
   @Operator
+  public Predicate<Check> is(String value) throws QueryParseException {
+    return CheckStatePredicate.tryParse(value)
+        .orElseThrow(
+            () -> new QueryParseException(String.format("unsupported operator: is:%s", value)));
+  }
+
+  @Operator
   public Predicate<Check> state(String state) throws QueryParseException {
     return CheckStatePredicate.parse(state);
   }

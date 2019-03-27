@@ -21,14 +21,17 @@ import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gwtorm.server.OrmException;
+import java.util.Optional;
 
 public class CheckStatePredicate extends CheckPredicate {
   public static CheckStatePredicate parse(String value) throws QueryParseException {
-    return new CheckStatePredicate(
-        Enums.getIfPresent(CheckState.class, value)
-            .toJavaUtil()
-            .orElseThrow(
-                () -> new QueryParseException(String.format("invalid check state: %s", value))));
+    return tryParse(value)
+        .orElseThrow(
+            () -> new QueryParseException(String.format("invalid check state: %s", value)));
+  }
+
+  public static Optional<CheckStatePredicate> tryParse(String value) {
+    return Enums.getIfPresent(CheckState.class, value).toJavaUtil().map(CheckStatePredicate::new);
   }
 
   private final CheckState checkState;
