@@ -187,6 +187,14 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void requestingNoBlockingConditionsIsPossibleForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().clearBlockingConditions().create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.blocking).isEmpty();
+  }
+
+  @Test
   public void existingCheckerCanBeCheckedForExistence() throws Exception {
     CheckerUuid checkerUuid = createCheckerInServer(createArbitraryCheckerInput());
 
