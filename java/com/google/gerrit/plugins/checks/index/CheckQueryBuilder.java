@@ -14,11 +14,15 @@
 
 package com.google.gerrit.plugins.checks.index;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryBuilder;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
+import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.inject.Inject;
+import java.util.Arrays;
 
 public class CheckQueryBuilder extends QueryBuilder<Check> {
   public static final String FIELD_CHECKER = "checker";
@@ -39,6 +43,14 @@ public class CheckQueryBuilder extends QueryBuilder<Check> {
 
   @Operator
   public Predicate<Check> is(String value) throws QueryParseException {
+    if ("inprogress".equalsIgnoreCase(value)) {
+      return Predicate.or(
+          Arrays.stream(CheckState.values())
+              .filter(CheckState::isInProgress)
+              .map(CheckStatePredicate::new)
+              .collect(toList()));
+    }
+
     return CheckStatePredicate.tryParse(value)
         .orElseThrow(
             () -> new QueryParseException(String.format("unsupported operator: is:%s", value)));

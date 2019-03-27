@@ -122,5 +122,8 @@ The following query operators are supported in the input
   Matches checks of the checker with the UUID 'CHECKER_UUID'.
 * <a id="is-operator"></a> `is:'STATE'`:
   Matches checks with the state 'STATE'.
+* <a id="is-inprogress-operator"></a> `is:inprogress`:
+  Matches checks with non-final states (`NOT_STARTED`, `SCHEDULED` and
+  `RUNNING`).
 * <a id="state-operator"></a> `state:'STATE'`:
   Matches checks with the state 'STATE'.
