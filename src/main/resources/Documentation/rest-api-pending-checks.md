@@ -8,10 +8,10 @@ Please also take note of the general information on the
 
 ## <a id="pending-checks-endpoints"> Pending Checks Endpoints
 
-### <a id="list-pending-checks"> List Pending Checks
+### <a id="query-pending-checks"> Query Pending Checks
 _'GET /plugins/@PLUGIN@/checks.pending/'_
 
-Lists pending checks for a checker.
+Queries pending checks for a checker.
 
 Checks are pending if they are in a non-final state and the external
 checker system intends to post further updates on them.
@@ -37,7 +37,7 @@ endpoint by default only returns checks that are in state
 
 This REST endpoint only returns pending checks for current patch sets.
 
-Note that all users are allowed to list pending checks but the result
+Note that all users are allowed to query pending checks but the result
 includes only checks on changes that are visible to the calling user.
 This means pending checks for non-visible changes are filtered out.
 
@@ -116,7 +116,7 @@ The `PendingChecksInfo` entity describes the pending checks on patch set.
 
 The following query operators are supported in the input
 [query](#query-param) for the
-[List Pending Checks](#list-pending-checks) REST endpoint.
+[Query Pending Checks](#query-pending-checks) REST endpoint.
 
 * <a id="checker-operator"></a> `checker:'CHECKER_UUID'`:
   Matches checks of the checker with the UUID 'CHECKER_UUID'.

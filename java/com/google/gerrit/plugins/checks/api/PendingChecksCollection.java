@@ -28,18 +28,18 @@ import com.google.inject.Singleton;
 public class PendingChecksCollection
     implements ChildCollection<TopLevelResource, PendingCheckResource> {
   private final DynamicMap<RestView<PendingCheckResource>> views;
-  private final ListPendingChecks listPendingChecks;
+  private final QueryPendingChecks queryPendingChecks;
 
   @Inject
   public PendingChecksCollection(
-      DynamicMap<RestView<PendingCheckResource>> views, ListPendingChecks listPendingChecks) {
+      DynamicMap<RestView<PendingCheckResource>> views, QueryPendingChecks queryPendingChecks) {
     this.views = views;
-    this.listPendingChecks = listPendingChecks;
+    this.queryPendingChecks = queryPendingChecks;
   }
 
   @Override
   public RestView<TopLevelResource> list() throws RestApiException {
-    return listPendingChecks;
+    return queryPendingChecks;
   }
 
   @Override

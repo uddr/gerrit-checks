@@ -51,7 +51,7 @@ import java.util.Optional;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.kohsuke.args4j.Option;
 
-public class ListPendingChecks implements RestReadView<TopLevelResource> {
+public class QueryPendingChecks implements RestReadView<TopLevelResource> {
   private final CheckQueryBuilder checkQueryBuilder;
   private final Checkers checkers;
   private final Checks checks;
@@ -71,7 +71,7 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
   }
 
   @Inject
-  public ListPendingChecks(
+  public QueryPendingChecks(
       CheckQueryBuilder checkQueryBuilder,
       Checkers checkers,
       Checks checks,
@@ -175,7 +175,7 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
     if (predicate.getChildCount() == 0) {
       return false;
     }
-    return predicate.getChildren().stream().anyMatch(ListPendingChecks::hasStatePredicate);
+    return predicate.getChildren().stream().anyMatch(QueryPendingChecks::hasStatePredicate);
   }
 
   /**
@@ -194,7 +194,7 @@ public class ListPendingChecks implements RestReadView<TopLevelResource> {
       return 0;
     }
     return predicate.getChildren().stream()
-        .mapToInt(ListPendingChecks::countCheckerPredicates)
+        .mapToInt(QueryPendingChecks::countCheckerPredicates)
         .sum();
   }
 

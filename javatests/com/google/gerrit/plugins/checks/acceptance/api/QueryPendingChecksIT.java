@@ -47,7 +47,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ListPendingChecksIT extends AbstractCheckersTest {
+public class QueryPendingChecksIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
 
   private PatchSet.Id patchSetId;
@@ -86,7 +86,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotListPendingChecksForInvalidCheckerUuid() throws Exception {
+  public void cannotQueryPendingChecksForInvalidCheckerUuid() throws Exception {
     assertInvalidQuery(
         "checker:" + CheckerTestData.INVALID_UUID,
         "invalid checker UUID: " + CheckerTestData.INVALID_UUID);
@@ -166,12 +166,12 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForNonExistingChecker() throws Exception {
+  public void queryPendingChecksForNonExistingChecker() throws Exception {
     assertThat(pendingChecksApi.query("checker:\"non:existing\"").get()).isEmpty();
   }
 
   @Test
-  public void listPendingChecksNotStartedStateAssumed() throws Exception {
+  public void queryPendingChecksNotStartedStateAssumed() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     // Create a check with state "NOT_STARTED" that we expect to be returned.
@@ -205,7 +205,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForSpecifiedState() throws Exception {
+  public void queryPendingChecksForSpecifiedState() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     // Create a check with state "FAILED" that we expect to be returned.
@@ -239,7 +239,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForMultipleSpecifiedStates() throws Exception {
+  public void queryPendingChecksForMultipleSpecifiedStates() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     // Create a check with state "NOT_STARTED" that we expect to be returned.
@@ -292,7 +292,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForSpecifiedStateDifferentCases() throws Exception {
+  public void queryPendingChecksForSpecifiedStateDifferentCases() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:NOT_STARTED")).hasSize(1);
@@ -327,7 +327,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForDisabledChecker() throws Exception {
+  public void queryPendingChecksForDisabledChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
@@ -344,7 +344,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksFiltersOutChecksForClosedChangesIfQueryDoesntSpecifyStatus()
+  public void queryPendingChecksFiltersOutChecksForClosedChangesIfQueryDoesntSpecifyStatus()
       throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).clearQuery().create();
@@ -371,7 +371,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksReturnsChecksForClosedChangesIfQuerySpecifiesStatus()
+  public void queryPendingChecksReturnsChecksForClosedChangesIfQuerySpecifiesStatus()
       throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).query("is:open OR is:closed").create();
@@ -398,7 +398,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForInvalidCheckerFails() throws Exception {
+  public void queryPendingChecksForInvalidCheckerFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
 
@@ -409,7 +409,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksForCheckerWithInvalidQueryFails() throws Exception {
+  public void queryPendingChecksForCheckerWithInvalidQueryFails() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations
             .newChecker()
@@ -424,7 +424,7 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void listPendingChecksWithoutAdministrateCheckersCapabilityWorks() throws Exception {
+  public void queryPendingChecksWithoutAdministrateCheckersCapabilityWorks() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))

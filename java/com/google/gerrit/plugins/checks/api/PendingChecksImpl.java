@@ -25,11 +25,11 @@ import java.util.List;
 
 @Singleton
 public class PendingChecksImpl implements PendingChecks {
-  private final Provider<ListPendingChecks> listPendingChecksProvider;
+  private final Provider<QueryPendingChecks> queryPendingChecksProvider;
 
   @Inject
-  PendingChecksImpl(Provider<ListPendingChecks> listPendingChecksProvider) {
-    this.listPendingChecksProvider = listPendingChecksProvider;
+  PendingChecksImpl(Provider<QueryPendingChecks> queryPendingChecksProvider) {
+    this.queryPendingChecksProvider = queryPendingChecksProvider;
   }
 
   @Override
@@ -44,9 +44,9 @@ public class PendingChecksImpl implements PendingChecks {
 
   private List<PendingChecksInfo> query(QueryRequest queryRequest) throws RestApiException {
     try {
-      ListPendingChecks listPendingChecks = listPendingChecksProvider.get();
-      listPendingChecks.setQuery(queryRequest.getQuery());
-      return listPendingChecks.apply(TopLevelResource.INSTANCE);
+      QueryPendingChecks queryPendingChecks = queryPendingChecksProvider.get();
+      queryPendingChecks.setQuery(queryRequest.getQuery());
+      return queryPendingChecks.apply(TopLevelResource.INSTANCE);
     } catch (Exception e) {
       throw asRestApiException("Cannot query pending checks", e);
     }
