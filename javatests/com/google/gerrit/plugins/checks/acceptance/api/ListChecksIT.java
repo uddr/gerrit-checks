@@ -57,7 +57,7 @@ public class ListChecksIT extends AbstractCheckersTest {
 
   @Test
   public void listAll() throws Exception {
-    Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
+    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
 
     CheckInfo expected1 = new CheckInfo();
     expected1.project = checkKey1.project().get();
@@ -77,12 +77,12 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected2.created = checkOperations.check(checkKey2).get().created();
     expected2.updated = expected2.created;
 
-    assertThat(info).containsExactly(expected1, expected2);
+    assertThat(checks).containsExactly(expected1, expected2);
   }
 
   @Test
   public void listAllWithOptions() throws Exception {
-    Collection<CheckInfo> info =
+    Collection<CheckInfo> checks =
         checksApiFactory.revision(patchSetId).list(ListChecksOption.CHECKER);
 
     CheckInfo expected1 = new CheckInfo();
@@ -108,7 +108,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     expected2.blocking = ImmutableSet.of();
     expected2.checkerStatus = CheckerStatus.ENABLED;
 
-    assertThat(info).containsExactly(expected1, expected2);
+    assertThat(checks).containsExactly(expected1, expected2);
   }
 
   @Test
@@ -120,8 +120,8 @@ public class ListChecksIT extends AbstractCheckersTest {
         .repository(otherProject)
         .update();
 
-    Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
-    assertThat(info)
+    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
+    assertThat(checks)
         .containsExactly(
             checkOperations.check(checkKey1).asInfo(), checkOperations.check(checkKey2).asInfo());
   }
@@ -134,8 +134,8 @@ public class ListChecksIT extends AbstractCheckersTest {
         .query("message:not-matching")
         .update();
 
-    Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
-    assertThat(info)
+    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
+    assertThat(checks)
         .containsExactly(
             checkOperations.check(checkKey1).asInfo(), checkOperations.check(checkKey2).asInfo());
   }
@@ -144,8 +144,8 @@ public class ListChecksIT extends AbstractCheckersTest {
   public void listIncludesCheckFromDisabledChecker() throws Exception {
     checkerOperations.checker(checkKey2.checkerUuid()).forUpdate().disable().update();
 
-    Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
-    assertThat(info)
+    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
+    assertThat(checks)
         .containsExactly(
             checkOperations.check(checkKey1).asInfo(), checkOperations.check(checkKey2).asInfo());
   }
@@ -154,8 +154,8 @@ public class ListChecksIT extends AbstractCheckersTest {
   public void listIncludesCheckFromInvalidChecker() throws Exception {
     checkerOperations.checker(checkKey2.checkerUuid()).forUpdate().forceInvalidConfig().update();
 
-    Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
-    assertThat(info)
+    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
+    assertThat(checks)
         .containsExactly(
             checkOperations.check(checkKey1).asInfo(), checkOperations.check(checkKey2).asInfo());
   }
@@ -164,8 +164,8 @@ public class ListChecksIT extends AbstractCheckersTest {
   public void listIncludesCheckFromNonExistingChecker() throws Exception {
     checkerOperations.checker(checkKey2.checkerUuid()).forUpdate().deleteRef().update();
 
-    Collection<CheckInfo> info = checksApiFactory.revision(patchSetId).list();
-    assertThat(info)
+    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
+    assertThat(checks)
         .containsExactly(
             checkOperations.check(checkKey1).asInfo(), checkOperations.check(checkKey2).asInfo());
   }
