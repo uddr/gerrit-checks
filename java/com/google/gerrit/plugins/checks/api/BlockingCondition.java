@@ -21,10 +21,7 @@ import java.util.Set;
  * blocks submission of a change.
  */
 public enum BlockingCondition {
-  /**
-   * Block submission unless the combined state for all checks on the change {@link
-   * CombinedCheckState#isPassing() is passing}.
-   */
+  /** Block submission unless all required checks on the change is passing. */
   STATE_NOT_PASSING;
 
   public static Boolean isRequired(Set<BlockingCondition> blocking) {

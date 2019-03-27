@@ -29,28 +29,26 @@ import java.util.Map;
  */
 public enum CombinedCheckState {
   /** At least one required check failed; other checks may have passed, or still be running. */
-  FAILED(false),
+  FAILED,
 
   /**
    * All relevant checks terminated, and at least one optional check failed, but no required checks
    * failed.
-   *
-   * <p>This state is considered {@link #isPassing() passing}, as in "checks passed with warnings."
    */
-  WARNING(true),
+  WARNING,
 
   /**
    * At least one relevant check is in a non-terminated state ({@link CheckState#NOT_STARTED},
    * {@link CheckState#SCHEDULED}, {@link CheckState#RUNNING}), and no required checks failed. Some
    * optional checks may have failed.
    */
-  IN_PROGRESS(false),
+  IN_PROGRESS,
 
   /** All relevant checks terminated successfully. */
-  SUCCESSFUL(true),
+  SUCCESSFUL,
 
   /** No checks are relevant to this change. */
-  NOT_RELEVANT(true);
+  NOT_RELEVANT;
 
   /**
    * Combines multiple per-check states into a single combined state.
@@ -95,24 +93,6 @@ public enum CombinedCheckState {
     }
 
     return NOT_RELEVANT;
-  }
-
-  private final boolean passing;
-
-  CombinedCheckState(boolean passing) {
-    this.passing = passing;
-  }
-
-  /**
-   * Returns whether the state represents a passing state.
-   *
-   * <p>A passing state is one that is either completed successfully with or without warnings
-   * ({@link #WARNING} or {@link #SUCCESSFUL}), or is simply {@link #NOT_RELEVANT}.
-   *
-   * @return whether the state represents a passing state.
-   */
-  public boolean isPassing() {
-    return passing;
   }
 
   @AutoValue
