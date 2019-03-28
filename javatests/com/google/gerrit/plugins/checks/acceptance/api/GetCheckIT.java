@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
 
+import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -48,6 +49,7 @@ import org.junit.Test;
 public class GetCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
 
+  private String changeId;
   private PatchSet.Id patchSetId;
 
   @Before
@@ -55,7 +57,9 @@ public class GetCheckIT extends AbstractCheckersTest {
     TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
     TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
 
-    patchSetId = createChange().getPatchSetId();
+    PushOneCommit.Result r = createChange();
+    changeId = r.getChangeId();
+    patchSetId = r.getPatchSetId();
   }
 
   @After
@@ -305,6 +309,49 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void noBackfillForInvalidChecker() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    assertThat(getCheckInfo(patchSetId, checkerUuid)).isNotNull();
+
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    assertCheckNotFound(patchSetId, checkerUuid);
+  }
+
+  @Test
+  public void getChecksForMultiplePatchSets() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey1).setState(CheckState.FAILED).upsert();
+
+    PatchSet.Id currentPatchSetId = createPatchSet();
+    CheckKey checkKey2 = CheckKey.create(project, currentPatchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey2).setState(CheckState.RUNNING).upsert();
+
+    // get check for the old patch set
+    assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get())
+        .isEqualTo(checkOperations.check(checkKey1).asInfo());
+
+    // get check for the current patch set (2 ways)
+    assertThat(checksApiFactory.revision(currentPatchSetId).id(checkerUuid).get())
+        .isEqualTo(checkOperations.check(checkKey2).asInfo());
+    assertThat(
+            checksApiFactory
+                .currentRevision(currentPatchSetId.getParentKey())
+                .id(checkerUuid)
+                .get())
+        .isEqualTo(checkOperations.check(checkKey2).asInfo());
+  }
+
+  @Test
+  public void noBackfillForNonCurrentPatchSet() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    PatchSet.Id currentPatchSetId = createPatchSet();
+    assertCheckNotFound(patchSetId, checkerUuid);
+    assertThat(getCheckInfo(currentPatchSetId, checkerUuid)).isNotNull();
+  }
+
+  @Test
   public void getCheckForNonExistingChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
@@ -420,5 +467,13 @@ public class GetCheckIT extends AbstractCheckersTest {
                   "Patch set %s in repository %s doesn't have check for checker %s.",
                   patchSetId, project, checkerUuid));
     }
+  }
+
+  private PatchSet.Id createPatchSet() throws Exception {
+    PushOneCommit.Result r = amendChange(changeId);
+    PatchSet.Id currentPatchSetId = r.getPatchSetId();
+    assertThat(patchSetId.changeId).isEqualTo(currentPatchSetId.changeId);
+    assertThat(patchSetId.get()).isLessThan(currentPatchSetId.get());
+    return currentPatchSetId;
   }
 }
