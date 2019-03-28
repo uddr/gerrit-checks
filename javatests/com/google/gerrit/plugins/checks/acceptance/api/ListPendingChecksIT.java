@@ -318,6 +318,21 @@ public class ListPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void listPendingChecksForCheckerWithInvalidQueryFails() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .query(CheckerTestData.INVALID_QUERY)
+            .create();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot list pending checks");
+    exception.expectCause(instanceOf(ConfigInvalidException.class));
+    pendingChecksApi.list(checkerUuid);
+  }
+
+  @Test
   public void listPendingChecksWithoutAdministrateCheckersCapabilityWorks() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
