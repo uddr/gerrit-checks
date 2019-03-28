@@ -70,8 +70,6 @@
       <div class="no-content">
         <h2>No checks ran for this code review</h2>
         <p>Configure checkers to view the results here.</p>
-        <gr-checks-configure-link configure-path="[[configurePath]]">
-        </gr-checks-configure-link>
       </div>
     </template>
 
@@ -79,16 +77,12 @@
       <div class="no-content">
         <h2>Code review checks not configured</h2>
         <p>Configure checkers to view the results here.</p>
-        <gr-checks-configure-link configure-path="[[configurePath]]">
-        </gr-checks-configure-link>
       </div>
     </template>
 
     <template is="dom-if" if="[[_hasResults(_status)]]">
       <header>
         <h3>Latest checks for Patchset [[revision._number]]</h3>
-        <gr-checks-configure-link configure-path="[[configurePath]]">
-        </gr-checks-configure-link>
       </header>
 
       <table>
@@ -97,7 +91,7 @@
             <th class="topHeader">Name</th>
             <th class="topHeader"><!-- required for merge --></th>
             <th class="topHeader">Status</th>
-            <th class="topHeader">Checking system</th>
+            <th class="topHeader"><!--Checking system--></th>
             <th class="topHeader">Started</th>
             <th class="topHeader">Duration</th>
             <th class="topHeader"><!-- actions --></th>
@@ -105,7 +99,7 @@
         </thead>
         <tbody>
           <template is="dom-repeat" items="[[_checks]]" as="check">
-            <gr-checks-item check="[[check]]" retry-check="[[retryCheck]]" get-checker="[[getChecker]]"></gr-checks-item>
+            <gr-checks-item check="[[check]]" retry-check="[[retryCheck]]"></gr-checks-item>
           </template>
         </tbody>
       </table>

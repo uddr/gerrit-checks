@@ -5,24 +5,42 @@
 <link rel="import" href="gr-checks-change-list-item-cell-view.html">
 <link rel="import" href="gr-checks-change-list-header-view.html">
 <link rel="import" href="gr-checks-change-view-tab-header-view.html">
-<link rel="import" href="gr-checks-configure-link.html">
 
 <dom-module id="gr-checks">
   <script>
     Gerrit.install(plugin => {
-      plugin.registerDynamicCustomComponent(
-          'change-list-header',
-          'gr-checks-change-list-header-view');
-      plugin.registerDynamicCustomComponent(
-          'change-list-item-cell',
-          'gr-checks-change-list-item-cell-view');
+
+      const getChecks = (change, revision) => {
+        return plugin.restApi().get(
+            '/changes/' + change + '/revisions/' + revision + '/checks?o=CHECKER');
+      };
+
+      // TODO(brohlfs): Enable this dashboard column when search queries start
+      // returning checks.
+      // plugin.registerDynamicCustomComponent(
+      //     'change-list-header',
+      //     'gr-checks-change-list-header-view');
+      // plugin.registerDynamicCustomComponent(
+      //     'change-list-item-cell',
+      //     'gr-checks-change-list-item-cell-view');
+      plugin.registerCustomComponent(
+          'commit-container',
+          'gr-checks-chip-view').onAttached(
+          view => {
+            view['getChecks'] = getChecks;
+          });
       plugin.registerDynamicCustomComponent(
           'change-view-tab-header',
           'gr-checks-change-view-tab-header-view');
       plugin.registerDynamicCustomComponent(
           'change-view-tab-content',
           'gr-checks-view').onAttached(
-          view => console.log('gr-checks-view attached'));
+          view => {
+            view['isConfigured'] = (repository) => Promise.resolve(true);
+            // TODO(brohlfs): Implement retry.
+            view['retryCheck'] = (buildId) => undefined;
+            view['getChecks'] = getChecks;
+          });
     });
   </script>
 </dom-module>

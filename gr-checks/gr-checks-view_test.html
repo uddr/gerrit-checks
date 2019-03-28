@@ -12,10 +12,8 @@
     <gr-checks-view
       change="[[change]]"
       revision="[[revision]]"
-      configure-path="[[configurePath]]"
       get-checks="[[getChecks]]"
       is-configured="[[isConfigured]]"
-      get-checker="[[getChecker]]"
       retry-check="[[retryCheck]]">
     </gr-checks-view>
   </template>
@@ -49,7 +47,6 @@ suite('gr-checks-view tests', () => {
   let sandbox;
   let getChecksSpy;
   let getChecksResolve;
-  let getCheckerSpy;
   let retryCheckSpy;
   let isConfiguredSpy;
   let isConfiguredResolve;
@@ -69,17 +66,13 @@ suite('gr-checks-view tests', () => {
     });
     isConfiguredSpy.returns(isConfiguredPromise);
 
-    getCheckerSpy = sinon.stub();
-    getCheckerSpy.returns(Promise.resolve({description: 'test checker name'}));
     retryCheckSpy = sinon.stub();
     retryCheckSpy.returns(Promise.resolve());
 
     element = fixture('basic', {
-      getChecker: getCheckerSpy,
       retryCheck: retryCheckSpy,
       getChecks: getChecksSpy,
       isConfigured: isConfiguredSpy,
-      configurePath: 'http://example.com/test-configure',
       change: {
         'project': 'test-repository',
         'revisions': {
@@ -124,11 +117,6 @@ suite('gr-checks-view tests', () => {
         const header = element.$$('h2');
         assert.equal(header.textContent.trim(), 'Code review checks not configured');
       });
-
-      test('renders the link to configure a check', () => {
-        const configureLink = element.$$('gr-checks-configure-link');
-        assert.exists(configureLink);
-      });
     });
 
     suite('no checks ran', () => {
@@ -140,11 +128,6 @@ suite('gr-checks-view tests', () => {
       test('renders checks not configured', () => {
         const header = element.$$('h2');
         assert.equal(header.textContent.trim(), 'No checks ran for this code review');
-      });
-
-      test('renders the link to configure a check', () => {
-        const configureLink = element.$$('gr-checks-configure-link');
-        assert.exists(configureLink);
       });
     });
   });
@@ -162,11 +145,6 @@ suite('gr-checks-view tests', () => {
     test('renders the header', () => {
       const header = element.$$('header > h3');
       assert.equal(header.textContent.trim(), 'Latest checks for Patchset 3');
-    });
-
-    test('renders the link to configure a check', () => {
-      const configureLink = element.$$('header > gr-checks-configure-link');
-      assert.exists(configureLink);
     });
 
     test('renders a table of all the checks', () => {

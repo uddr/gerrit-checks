@@ -11,7 +11,6 @@
   <template is="dom-template">
     <gr-checks-item
       check="{{check}}"
-      get-checker="[[getChecker]]"
       retry-check="[[retryCheck]]">
     </gr-checks-item>
   </template>
@@ -21,24 +20,14 @@
   suite('gr-checks-item tests', () => {
     let element;
     let sandbox;
-    let getCheckerSpy;
-    let resolveGetChecker;
-    let rejectGetChecker;
     let retryCheckSpy;
 
     setup((done) => {
       sandbox = sinon.sandbox.create();
-      const getCheckerPromise = new Promise((resolve, reject) => {
-        resolveGetChecker = resolve;
-        rejectGetChecker = reject;
-      });
-      getCheckerSpy = sinon.stub();
-      getCheckerSpy.returns(getCheckerPromise);
       retryCheckSpy = sinon.stub();
       retryCheckSpy.returns(Promise.resolve());
 
       element = fixture('basic', {
-        getChecker: getCheckerSpy,
         retryCheck: retryCheckSpy,
         check: {
           checkId: 'test-check-id',
@@ -51,51 +40,6 @@
     });
 
     teardown(() => { sandbox.restore(); });
-
-    suite('checker name', () => {
-      test('calls getChecker', () => {
-        assert.isTrue(getCheckerSpy.called);
-        assert.isTrue(getCheckerSpy.calledWith('test-check-id'));
-      });
-
-      function assertCheckerText(text) {
-        const name = element.$$('td:nth-child(1)');
-        assert.equal(name.textContent.trim(), text);
-      }
-
-      suite('on success', () => {
-        setup(done => {
-          resolveGetChecker({description: 'test checker name'});
-          flush(done);
-        });
-
-        test('renders the checker name on success', () => {
-          assertCheckerText('test checker name');
-        });
-      });
-
-      suite('on empty response', () => {
-        setup(done => {
-          resolveGetChecker();
-          flush(done);
-        });
-
-        test('renders the id when there is no description', () => {
-          assertCheckerText('test-check-id');
-        });
-      });
-
-      suite('on error', () => {
-        setup(done => {
-          rejectGetChecker(new Error('broken'));
-          flush(done);
-        });
-
-        test('renders the id when the call fails', () => {
-          assertCheckerText('test-check-id');
-        });
-      });
-    });
 
     test('renders the status', () => {
       const status = element.$$('td:nth-child(3) > gr-checks-status');

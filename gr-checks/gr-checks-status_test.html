@@ -56,9 +56,8 @@
       });
     }
 
-    testStatus('successful', 'Successful', ['SUCCESS']);
-    testStatus('failed', 'Failed', ['FAILURE', 'INTERNAL_ERROR', 'TIMEOUT']);
-    testStatus('in-progress', 'In progress', ['QUEUING', 'QUEUED', 'WORKING']);
-    testStatus('unevaluated', 'Unevaluated', ['STATUS_UNKNOWN', 'CANCELLED']);
+    testStatus('successful', 'Successful', ['SUCCESSFUL']);
+    testStatus('failed', 'Failed', ['FAILED']);
+    testStatus('in-progress', 'In progress', ['NOT_STARTED', 'SCHEDULED', 'RUNNING']);
   });
 </script>

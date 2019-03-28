@@ -19,7 +19,7 @@
     logUrl: 'http://example.com/test-log-url',
     startTime: "2019-02-06T22:25:19.269Z",
     finishTime: "2019-02-06T22:25:44.574Z",
-    status: 'SUCCESS',
+    status: 'SUCCESSFUL',
   };
 
   const CHECK2 = {
@@ -27,7 +27,7 @@
     logUrl: 'http://example.com/test-log-url',
     startTime: "2019-02-06T22:25:19.269Z",
     finishTime: "2019-02-06T22:25:44.574Z",
-    status: 'FAILURE',
+    status: 'FAILED',
   };
 
   suite('gr-checks-chip-view tests', () => {
@@ -44,13 +44,11 @@
       element = fixture('basic', {
         getChecks: getChecksSpy,
         change: {
-          'project': 'test-repository',
-          'revisions': {
-            'first-sha': "test-revision",
-            'second-sha': "test-revision2",
-          }
+          '_number': 314,
         },
-        revision: 'test-revision2',
+        revision: {
+          '_number': 271,
+        },
       });
       flush(done);
     });
@@ -64,7 +62,7 @@
     suite('builds chip contents', () => {
       test('queries the checks', () => {
         assert.isTrue(getChecksSpy.called);
-        assert.isTrue(getChecksSpy.calledWith('test-repository', 'second-sha'));
+        assert.isTrue(getChecksSpy.calledWith(314, 271));
       });
 
       test('renders the text of failed checks', () => {

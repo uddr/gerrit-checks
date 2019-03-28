@@ -4,12 +4,20 @@
   const Defs = {};
   /**
    * @typedef {{
- *   id: string,
- *   projectId: string,
- *   checkerId: string,
- *   startTime: string,
- *   finishTime: string,
- * }}
+   *   project: string,
+   *   change_number: number,
+   *   patch_set_id: number,
+   *   checker_uuid: string,
+   *   state: string,
+   *   url: string,
+   *   started: string,
+   *   finished: string,
+   *   created: string,
+   *   updated: string,
+   *   checker_name: string,
+   *   checker_status: string,
+   *   blocking: Array<Object>,
+   * }}
    */
   Defs.Check;
 
@@ -17,12 +25,10 @@
     is: 'gr-checks-item',
 
     properties: {
+      /** @type {Defs.Check} */
       check: Object,
       /** @type {function(string): !Promise<!Object>} */
-      getChecker: Function,
-      /** @type {function(string): !Promise<!Object>} */
       retryCheck: Function,
-      _checkerDescription: String,
       _startTime: {
         type: String,
         computed: '_computeStartTime(check)',
@@ -33,29 +39,12 @@
       },
     },
 
-    observers: [
-      '_updateCheckerName(check, getChecker)',
-    ],
-
-    /**
-     * @param {!Defs.Check} check
-     * @param {function(string): !Promise<!Object>} getChecker
-     */
-    _updateCheckerName(check, getChecker) {
-      const checkerId = check.checker_uuid;
-      getChecker(checkerId).then(
-          checker => checker && checker.description || checkerId,
-          () => checkerId).then(checkerDescription => {
-        this.set('_checkerDescription', checkerDescription);
-      });
-    },
-
     /**
      * @param {!Defs.Check} check
      * @return {string}
      */
     _computeStartTime(check) {
-      return moment(check.created).format('l');
+      return moment(check.started).format('LTS');
     },
 
     /**
@@ -63,8 +52,8 @@
      * @return {string}
      */
     _computeDuration(check) {
-      const startTime = moment(check.created);
-      const finishTime = moment(check.updated);
+      const startTime = moment(check.started);
+      const finishTime = check.finished ? moment(check.finished) : moment();
       return generateDurationString(
           moment.duration(finishTime.diff(startTime)));
     },
@@ -87,25 +76,25 @@
     }
 
     const durationSegments = [];
-    if (duration.seconds()) {
-      durationSegments.push(`${duration.seconds()} sec`);
-    }
-    if (duration.minutes()) {
-      durationSegments.push(`${duration.minutes()} min`);
-    }
-    if (duration.hours()) {
-      const hours = pluralize(duration.hours(), 'hour', 'hours');
-      durationSegments.push(`${duration.hours()} ${hours}`);
+    if (duration.months()) {
+      const months = pluralize(duration.months(), 'month', 'months');
+      durationSegments.push(`${duration.months()} ${months}`);
     }
     if (duration.days()) {
       const days = pluralize(duration.days(), 'day', 'days');
       durationSegments.push(`${duration.days()} ${days}`);
     }
-    if (duration.months()) {
-      const months = pluralize(duration.months(), 'month', 'months');
-      durationSegments.push(`${duration.months()} ${months}`);
+    if (duration.hours()) {
+      const hours = pluralize(duration.hours(), 'hour', 'hours');
+      durationSegments.push(`${duration.hours()} ${hours}`);
     }
-    return durationSegments.join(' ');
+    if (duration.minutes()) {
+      durationSegments.push(`${duration.minutes()} min`);
+    }
+    if (duration.seconds()) {
+      durationSegments.push(`${duration.seconds()} sec`);
+    }
+    return durationSegments.slice(0, 2).join(' ');
   }
 
   /**
