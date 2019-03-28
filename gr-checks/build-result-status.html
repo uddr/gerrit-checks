@@ -1,0 +1,67 @@
+<dom-module id="build-result-status">
+  <template>
+      <style>
+        :host {
+          display: inline-block;
+        }
+        i {
+          border-radius: 50%;
+          color: white;
+          display: inline-block;
+          font-style: normal;
+          height: 16px;
+          margin-right: 4px;
+          text-align: center;
+          width: 16px;
+        }
+        .successful > i {
+          background-color: #00C752;
+        }
+        .failed > i {
+          background-color: #DA4236;
+        }
+        .in-progress > i {
+          background-color: #ddd;
+        }
+        .unevaluated > i {
+          background-color: black;
+        }
+      </style>
+    <span class$="[[_className]]">
+      <template is="dom-if" if="[[_isUnevaluated(status)]]">
+        <i>⏹</i>
+        <template is="dom-if" if="[[showText]]">
+          <span>
+            Unevaluated
+          </span>
+        </template>
+      </template>
+      <template is="dom-if" if="[[_isInProgress(status)]]">
+        <i>…</i>
+        <template is="dom-if" if="[[showText]]">
+          <span>
+            In progress
+          </span>
+        </template>
+      </template>
+      <template is="dom-if" if="[[_isSuccessful(status)]]">
+        <i>✓</i>
+        <template is="dom-if" if="[[showText]]">
+          <span>
+            Successful
+          </span>
+        </template>
+      </template>
+      <template is="dom-if" if="[[_isFailed(status)]]">
+        <i>!</i>
+        <template is="dom-if" if="[[showText]]">
+          <span>
+            Failed
+          </span>
+        </template>
+      </template>
+    </span>
+  </template>
+  <script src="all-statuses.js"></script>
+  <script src="build-result-status.js"></script>
+</dom-module>

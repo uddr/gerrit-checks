@@ -1,0 +1,46 @@
+<dom-module id="build-result-item">
+  <template>
+      <style>
+        :host {
+          border-top: 1px solid #ddd;
+        }
+
+        td:first-child {
+          padding-left: 1rem;
+        }
+
+        td {
+          padding: 1px 32px 1px 0;
+          white-space: nowrap;
+        }
+
+        a.log {
+          margin-right: 16px;
+          display: inline-block;
+        }
+      </style>
+
+      <td>[[_triggerDescription]]</td>
+      <td><!-- required for merge--></td>
+      <td>
+        <build-result-status show-text status="[[build.status]]"></build-result-status>
+      </td>
+      <td>Google Cloud Build</td>
+      <td>[[_startTime]]</td>
+      <td>[[_duration]]</td>
+      <td>
+        <a href$="[[build.logUrl]]" target="_blank" class="log">
+          <gr-button link no-uppercase>
+            View log
+          </gr-button>
+        </a>
+        <gr-button
+          link
+          no-uppercase
+          on-tap="handleClick">
+          Re-run
+        </gr-button>
+      </td>
+  </template>
+  <script src="build-result-item.js"></script>
+</dom-module>

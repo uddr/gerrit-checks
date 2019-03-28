@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>builds-results-change-view-tab-header-view</title>
+<link rel="import" href="webcomponent_lib/builds-results-change-view-tab-header-view.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <builds-results-change-view-tab-header-view></builds-results-change-view-tab-header-view>
+  </template>
+</test-fixture>
+
+<script>
+  suite('builds-results-change-view-tab-header-view tests', () => {
+    let element;
+    let sandbox;
+
+    setup((done) => {
+      sandbox = sinon.sandbox.create();
+
+
+      element = fixture('basic');
+      flush(done);
+    });
+
+    teardown(() => { sandbox.restore(); });
+
+    test('renders the header', () => {
+      assert.include(element.textContent.trim(), 'Checks');
+    });
+  });
+</script>

@@ -1,0 +1,18 @@
+<dom-module id="build-results-configure-link">
+  <template>
+    <style>
+      iron-icon {
+        height: 1.2rem;
+        margin-right: 4px;
+        width: 1.2rem;
+      }
+    </style>
+    <a href$="[[configurePath]]">
+      <gr-button link no-uppercase>
+        <iron-icon icon="gr-icons:settings"></iron-icon>
+        Configure checks
+      </gr-button>
+    </a>
+  </template>
+  <script src="build-results-configure-link.js"></script>
+</dom-module>

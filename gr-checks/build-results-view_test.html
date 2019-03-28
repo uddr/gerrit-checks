@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>build-result-item</title>
+<link rel="import" href="webcomponent_lib/build-results-view.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <build-results-view
+      change="[[change]]"
+      revision="[[revision]]"
+      configure-path="[[configurePath]]"
+      get-build-results="[[getBuildResults]]"
+      is-configured="[[isConfigured]]"
+      get-trigger="[[getTrigger]]"
+      retry-build="[[retryBuild]]">
+    </build-results-view>
+  </template>
+</test-fixture>
+
+<script>
+  const BUILD1 = {
+    buildTriggerId: 'test-build-trigger-id',
+    logUrl: 'http://example.com/test-log-url',
+    startTime: "2019-02-06T22:25:19.269Z",
+    finishTime: "2019-02-06T22:25:44.574Z",
+  };
+const REVISION = {
+  "kind": "REWORK",
+  "_number": 3,
+  "created": "2018-05-15 21:56:13.000000000",
+  "uploader": {
+    "_account_id": 1000000,
+  },
+  "ref": "refs/changes/00/1000/1",
+  "commit": {
+    "parents": [],
+    "subject": "added test file",
+    "message": "added test file\n\nChange-Id: I8df212a28ae23cc239afd10ee4f506887e03ab70\n",
+    "commit": "1c9a1dfd38ea51dc7880f3ddf669100710f0c91b"
+  },
+};
+
+suite('build-results-view tests', () => {
+  let element;
+  let sandbox;
+  let getBuildResultsSpy;
+  let getBuildResultsResolve;
+  let getTriggerSpy;
+  let retryBuildSpy;
+  let isConfiguredSpy;
+  let isConfiguredResolve;
+
+  setup((done) => {
+    sandbox = sinon.sandbox.create();
+
+    getBuildResultsSpy = sinon.stub();
+    const getBuildResultsPromise = new Promise((resolve, reject) => {
+      getBuildResultsResolve = resolve;
+    });
+    getBuildResultsSpy.returns(getBuildResultsPromise);
+
+    isConfiguredSpy = sinon.stub();
+    const isConfiguredPromise = new Promise((resolve, reject) => {
+      isConfiguredResolve = resolve;
+    });
+    isConfiguredSpy.returns(isConfiguredPromise);
+
+    getTriggerSpy = sinon.stub();
+    getTriggerSpy.returns(Promise.resolve({description: 'test trigger name'}));
+    retryBuildSpy = sinon.stub();
+    retryBuildSpy.returns(Promise.resolve());
+
+    element = fixture('basic', {
+      getTrigger: getTriggerSpy,
+      retryBuild: retryBuildSpy,
+      getBuildResults: getBuildResultsSpy,
+      isConfigured: isConfiguredSpy,
+      configurePath: 'http://example.com/test-configure',
+      change: {
+        'project': 'test-repository',
+        'revisions': {
+          'first-sha': "test-revision",
+          'second-sha': REVISION,
+        }
+      },
+      revision: REVISION,
+    });
+    flush(done);
+  });
+
+  teardown(() => { sandbox.restore(); });
+
+  test('renders loading', () => {
+    assert.equal(element.textContent.trim(), 'Loading...');
+  });
+
+  test('queries the builds', () => {
+    assert.isTrue(getBuildResultsSpy.called);
+    assert.isTrue(getBuildResultsSpy.calledWith('test-repository', 'second-sha'));
+  });
+
+  suite('no builds returned', () => {
+    setup((done) => {
+      getBuildResultsResolve([]);
+      flush(done);
+    });
+
+    test('it calls to check if the builds are configured', () => {
+      assert.isTrue(isConfiguredSpy.called);
+      assert.isTrue(isConfiguredSpy.calledWith('test-repository'));
+    });
+
+    suite('not configured', () => {
+      setup((done) => {
+        isConfiguredResolve(false);
+        flush(done);
+      });
+
+      test('renders checks not configured', () => {
+        const header = element.$$('h2');
+        assert.equal(header.textContent.trim(), 'Code review checks not configured');
+      });
+
+      test('renders the link to configure a build', () => {
+        const configureLink = element.$$('build-results-configure-link');
+        assert.exists(configureLink);
+      });
+    });
+
+    suite('no checks ran', () => {
+      setup((done) => {
+        isConfiguredResolve(true);
+        flush(done);
+      });
+
+      test('renders checks not configured', () => {
+        const header = element.$$('h2');
+        assert.equal(header.textContent.trim(), 'No checks ran for this code review');
+      });
+
+      test('renders the link to configure a build', () => {
+        const configureLink = element.$$('build-results-configure-link');
+        assert.exists(configureLink);
+      });
+    });
+  });
+
+  suite('with build results', () => {
+    setup(done => {
+      getBuildResultsResolve([BUILD1, BUILD1, BUILD1]);
+      flush(done);
+    });
+
+    test('it calls to check if the builds are configured', () => {
+      assert.isFalse(isConfiguredSpy.called);
+    });
+
+    test('renders the header', () => {
+      const header = element.$$('header > h3');
+      assert.equal(header.textContent.trim(), 'Latest checks for Patchset 3');
+    });
+
+    test('renders the link to configure a build', () => {
+      const configureLink = element.$$('header > build-results-configure-link');
+      assert.exists(configureLink);
+    });
+
+    test('renders a table of all the builds', () => {
+      const tbody = element.$$('table > tbody');
+      assert.lengthOf(tbody.querySelectorAll('build-result-item'), 3)
+    });
+  });
+});
+</script>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>build-results-configure-link</title>
+<link rel="import" href="webcomponent_lib/build-results-configure-link.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <build-results-configure-link configure-path="[[configurePath]]"></build-results-configure-link>
+  </template>
+</test-fixture>
+
+<script>
+  suite('build-results-configure-link tests', () => {
+    let element;
+    let sandbox;
+
+    setup((done) => {
+      sandbox = sinon.sandbox.create();
+      element = fixture('basic', {
+        configurePath: 'http://example.com/test-configure',
+      });
+      flush(done);
+    });
+
+    teardown(() => { sandbox.restore(); });
+
+    test('renders the link to configure a build', () => {
+      const configureLink = element.$$('a');
+      assert.equal(configureLink.getAttribute('href'), 'http://example.com/test-configure');
+      assert.equal(configureLink.textContent.trim(), 'Configure checks');
+    });
+  });
+</script>

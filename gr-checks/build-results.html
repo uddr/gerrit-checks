@@ -1,0 +1,28 @@
+<link rel="import" href="build-results-view.html">
+<link rel="import" href="build-result-item.html">
+<link rel="import" href="build-result-status.html">
+<link rel="import" href="builds-chip-view.html">
+<link rel="import" href="builds-results-change-list-item-cell-view.html">
+<link rel="import" href="builds-results-change-list-header-view.html">
+<link rel="import" href="builds-results-change-view-tab-header-view.html">
+<link rel="import" href="build-results-configure-link.html">
+
+<dom-module id="build-results">
+  <script>
+    Gerrit.install(plugin => {
+      plugin.registerDynamicCustomComponent(
+          'change-list-header',
+          'builds-results-change-list-header-view');
+      plugin.registerDynamicCustomComponent(
+          'change-list-item-cell',
+          'builds-results-change-list-item-cell-view');
+      plugin.registerDynamicCustomComponent(
+          'change-view-tab-header',
+          'builds-results-change-view-tab-header-view');
+      plugin.registerDynamicCustomComponent(
+          'change-view-tab-content',
+          'build-results-view').onAttached(
+          buildResultsView => console.log('build-results-view attached'));
+    });
+  </script>
+</dom-module>

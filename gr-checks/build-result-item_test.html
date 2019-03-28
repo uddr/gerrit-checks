@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>build-result-item</title>
+<link rel="import" href="webcomponent_lib/build-result-item.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <build-result-item
+      build="{{build}}"
+      get-trigger="[[getTrigger]]"
+      retry-build="[[retryBuild]]">
+    </build-result-item>
+  </template>
+</test-fixture>
+
+<script>
+  suite('build-result-item tests', () => {
+    let element;
+    let sandbox;
+    let getTriggerSpy;
+    let resolveGetTrigger;
+    let rejectGetTrigger;
+    let retryBuildSpy;
+
+    setup((done) => {
+      sandbox = sinon.sandbox.create();
+      const getTriggerPromise = new Promise((resolve, reject) => {
+        resolveGetTrigger = resolve;
+        rejectGetTrigger = reject;
+      });
+      getTriggerSpy = sinon.stub();
+      getTriggerSpy.returns(getTriggerPromise);
+      retryBuildSpy = sinon.stub();
+      retryBuildSpy.returns(Promise.resolve());
+
+      element = fixture('basic', {
+        getTrigger: getTriggerSpy,
+        retryBuild: retryBuildSpy,
+        build: {
+          buildTriggerId: 'test-build-trigger-id',
+          logUrl: 'http://example.com/test-log-url',
+          startTime: "2019-02-06T22:25:19.269Z",
+          finishTime: "2019-02-06T22:25:44.574Z",
+        },
+      });
+      flush(done);
+    });
+
+    teardown(() => { sandbox.restore(); });
+
+    suite('trigger name', () => {
+      test('calls getTrigger', () => {
+        assert.isTrue(getTriggerSpy.called);
+        assert.isTrue(getTriggerSpy.calledWith('test-build-trigger-id'));
+      });
+
+      function assertTriggerText(text) {
+        const name = element.$$('td:nth-child(1)');
+        assert.equal(name.textContent.trim(), text);
+      }
+
+      suite('on success', () => {
+        setup(done => {
+          resolveGetTrigger({description: 'test trigger name'});
+          flush(done);
+        });
+
+        test('renders the trigger name on success', () => {
+          assertTriggerText('test trigger name');
+        });
+      });
+
+      suite('on empty response', () => {
+        setup(done => {
+          resolveGetTrigger();
+          flush(done);
+        });
+
+        test('renders the id when there is no description', () => {
+          assertTriggerText('test-build-trigger-id');
+        });
+      });
+
+      suite('on error', () => {
+        setup(done => {
+          rejectGetTrigger(new Error('broken'));
+          flush(done);
+        });
+
+        test('renders the id when the call fails', () => {
+          assertTriggerText('test-build-trigger-id');
+        });
+      });
+    });
+
+    test('renders the status', () => {
+      const status = element.$$('td:nth-child(3) > build-result-status');
+      assert.exists(status);
+    });
+
+    test('renders the checking system', () => {
+      const checkingSystem = element.$$('td:nth-child(4)');
+      assert.equal(checkingSystem .textContent.trim(), "Google Cloud Build");
+    });
+
+    test('renders the run date', () => {
+      const name = element.$$('td:nth-child(5)');
+      assert.equal(name .textContent.trim(), "2/6/2019");
+    });
+
+    suite('duration', () => {
+      test('renders the run duration', () => {
+        const name = element.$$('td:nth-child(6)');
+        assert.equal(name .textContent.trim(), "25 sec");
+      });
+
+      test('renders 0 sec when the start and end time are the same', () => {
+        element.build = {
+          buildTriggerId: 'test-build-trigger-id',
+          logUrl: 'http://example.com/test-log-url',
+          startTime: "2019-02-06T22:25:19.269Z",
+          finishTime: "2019-02-06T22:25:19.269Z",
+        };
+        const name = element.$$('td:nth-child(6)');
+        assert.equal(name .textContent.trim(), "0 sec");
+      });
+    });
+
+    test('renders a link to the log', () => {
+      const logLink = element.$$('td:nth-child(7) > a');
+      assert.equal(logLink.getAttribute('href'), "http://example.com/test-log-url");
+      assert.equal(logLink.textContent.trim(), "View log");
+    });
+
+    suite('retryBuild', () => {
+      let retryBuildLink;
+
+      setup(() => {
+        retryBuildLink = element.$$('td:nth-child(7) > gr-button');
+      });
+
+      test('shows a link to the log url', () => {
+        assert.equal(retryBuildLink.textContent.trim(), "Re-run");
+      });
+
+      test('clicking on the link calls the retryBuild property', () => {
+        assert.isFalse(retryBuildSpy.called);
+        retryBuildLink.click();
+        assert.isTrue(retryBuildSpy.called);
+      });
+    });
+  });
+</script>
