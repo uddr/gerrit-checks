@@ -4,26 +4,26 @@
 <script src="webcomponentsjs/webcomponents-lite.js"></script>
 <link rel="import" href="polymer/polymer.html">
 
-<title>build-result-item</title>
-<link rel="import" href="webcomponent_lib/build-results-view.html">
+<title>gr-checks-item</title>
+<link rel="import" href="webcomponent_lib/gr-checks-view.html">
 
 <test-fixture id="basic">
   <template is="dom-template">
-    <build-results-view
+    <gr-checks-view
       change="[[change]]"
       revision="[[revision]]"
       configure-path="[[configurePath]]"
-      get-build-results="[[getBuildResults]]"
+      get-checks="[[getChecks]]"
       is-configured="[[isConfigured]]"
-      get-trigger="[[getTrigger]]"
-      retry-build="[[retryBuild]]">
-    </build-results-view>
+      get-checker="[[getChecker]]"
+      retry-check="[[retryCheck]]">
+    </gr-checks-view>
   </template>
 </test-fixture>
 
 <script>
-  const BUILD1 = {
-    buildTriggerId: 'test-build-trigger-id',
+  const CHECK1 = {
+    checkId: 'test-check-id',
     logUrl: 'http://example.com/test-log-url',
     startTime: "2019-02-06T22:25:19.269Z",
     finishTime: "2019-02-06T22:25:44.574Z",
@@ -44,24 +44,24 @@ const REVISION = {
   },
 };
 
-suite('build-results-view tests', () => {
+suite('gr-checks-view tests', () => {
   let element;
   let sandbox;
-  let getBuildResultsSpy;
-  let getBuildResultsResolve;
-  let getTriggerSpy;
-  let retryBuildSpy;
+  let getChecksSpy;
+  let getChecksResolve;
+  let getCheckerSpy;
+  let retryCheckSpy;
   let isConfiguredSpy;
   let isConfiguredResolve;
 
   setup((done) => {
     sandbox = sinon.sandbox.create();
 
-    getBuildResultsSpy = sinon.stub();
-    const getBuildResultsPromise = new Promise((resolve, reject) => {
-      getBuildResultsResolve = resolve;
+    getChecksSpy = sinon.stub();
+    const getChecksPromise = new Promise((resolve, reject) => {
+      getChecksResolve = resolve;
     });
-    getBuildResultsSpy.returns(getBuildResultsPromise);
+    getChecksSpy.returns(getChecksPromise);
 
     isConfiguredSpy = sinon.stub();
     const isConfiguredPromise = new Promise((resolve, reject) => {
@@ -69,15 +69,15 @@ suite('build-results-view tests', () => {
     });
     isConfiguredSpy.returns(isConfiguredPromise);
 
-    getTriggerSpy = sinon.stub();
-    getTriggerSpy.returns(Promise.resolve({description: 'test trigger name'}));
-    retryBuildSpy = sinon.stub();
-    retryBuildSpy.returns(Promise.resolve());
+    getCheckerSpy = sinon.stub();
+    getCheckerSpy.returns(Promise.resolve({description: 'test checker name'}));
+    retryCheckSpy = sinon.stub();
+    retryCheckSpy.returns(Promise.resolve());
 
     element = fixture('basic', {
-      getTrigger: getTriggerSpy,
-      retryBuild: retryBuildSpy,
-      getBuildResults: getBuildResultsSpy,
+      getChecker: getCheckerSpy,
+      retryCheck: retryCheckSpy,
+      getChecks: getChecksSpy,
       isConfigured: isConfiguredSpy,
       configurePath: 'http://example.com/test-configure',
       change: {
@@ -98,18 +98,18 @@ suite('build-results-view tests', () => {
     assert.equal(element.textContent.trim(), 'Loading...');
   });
 
-  test('queries the builds', () => {
-    assert.isTrue(getBuildResultsSpy.called);
-    assert.isTrue(getBuildResultsSpy.calledWith('test-repository', 'second-sha'));
+  test('queries the checks', () => {
+    assert.isTrue(getChecksSpy.called);
+    assert.isTrue(getChecksSpy.calledWith('test-repository', 'second-sha'));
   });
 
-  suite('no builds returned', () => {
+  suite('no checks returned', () => {
     setup((done) => {
-      getBuildResultsResolve([]);
+      getChecksResolve([]);
       flush(done);
     });
 
-    test('it calls to check if the builds are configured', () => {
+    test('it calls to check if the checks are configured', () => {
       assert.isTrue(isConfiguredSpy.called);
       assert.isTrue(isConfiguredSpy.calledWith('test-repository'));
     });
@@ -125,8 +125,8 @@ suite('build-results-view tests', () => {
         assert.equal(header.textContent.trim(), 'Code review checks not configured');
       });
 
-      test('renders the link to configure a build', () => {
-        const configureLink = element.$$('build-results-configure-link');
+      test('renders the link to configure a check', () => {
+        const configureLink = element.$$('gr-checks-configure-link');
         assert.exists(configureLink);
       });
     });
@@ -142,20 +142,20 @@ suite('build-results-view tests', () => {
         assert.equal(header.textContent.trim(), 'No checks ran for this code review');
       });
 
-      test('renders the link to configure a build', () => {
-        const configureLink = element.$$('build-results-configure-link');
+      test('renders the link to configure a check', () => {
+        const configureLink = element.$$('gr-checks-configure-link');
         assert.exists(configureLink);
       });
     });
   });
 
-  suite('with build results', () => {
+  suite('with checks', () => {
     setup(done => {
-      getBuildResultsResolve([BUILD1, BUILD1, BUILD1]);
+      getChecksResolve([CHECK1, CHECK1, CHECK1]);
       flush(done);
     });
 
-    test('it calls to check if the builds are configured', () => {
+    test('it calls to check if the checks are configured', () => {
       assert.isFalse(isConfiguredSpy.called);
     });
 
@@ -164,14 +164,14 @@ suite('build-results-view tests', () => {
       assert.equal(header.textContent.trim(), 'Latest checks for Patchset 3');
     });
 
-    test('renders the link to configure a build', () => {
-      const configureLink = element.$$('header > build-results-configure-link');
+    test('renders the link to configure a check', () => {
+      const configureLink = element.$$('header > gr-checks-configure-link');
       assert.exists(configureLink);
     });
 
-    test('renders a table of all the builds', () => {
+    test('renders a table of all the checks', () => {
       const tbody = element.$$('table > tbody');
-      assert.lengthOf(tbody.querySelectorAll('build-result-item'), 3)
+      assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 3)
     });
   });
 });

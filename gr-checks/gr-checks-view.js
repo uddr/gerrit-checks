@@ -27,27 +27,27 @@ const LoadingStatus = {
 };
 
 Polymer({
-  is: 'build-results-view',
+  is: 'gr-checks-view',
 
   properties: {
     revision: Object,
     change: Object,
-    // TODO(brohlfs): Implement getBuildResults based on Checks Rest API.
+    // TODO(brohlfs): Implement getChecks based on Checks Rest API.
     /** @type {function(string, (string|undefined)): !Promise<!Object>} */
-    getBuildResults: Function,
+    getChecks: Function,
     // TODO(brohlfs): Implement isConfigured based on Checks Rest API.
     /** @type {function(string): !Promise<!Object>} */
     isConfigured: Function,
-    // TODO(brohlfs): Implement getTrigger based on Checks Rest API.
+    // TODO(brohlfs): Implement getChecker based on Checks Rest API.
     /** @type {function(string, string): !Promise<!Object>} */
-    getTrigger: Function,
-    // TODO(brohlfs): Implement retryBuild based on Checks Rest API.
+    getChecker: Function,
+    // TODO(brohlfs): Implement retryCheck based on Checks Rest API.
     /** @type {function(string, string): !Promise<!Object>} */
-    retryBuild: Function,
+    retryCheck: Function,
     // TODO(brohlfs): Implement configurePath based on Checks Rest API.
-    // The url path to configure code review triggers.
+    // The url path to configure checkers.
     configurePath: String,
-    _buildResults: Object,
+    _checks: Object,
     _status: {
       type: Object,
       value: LoadingStatus.LOADING,
@@ -55,22 +55,22 @@ Polymer({
   },
 
   observers: [
-    '_fetchBuildResults(change, revision, getBuildResults)',
+    '_fetchChecks(change, revision, getChecks)',
   ],
 
   /**
    * @param {!Defs.Change} change The current CL.
    * @param {!Object} revision The current patchset.
    * @param {function(string, (string|undefined)): !Promise<!Object>}
-   *     getBuildResults function to get build results.
+   *     getChecks function to get checks.
    */
-  _fetchBuildResults(change, revision, getBuildResults) {
+  _fetchChecks(change, revision, getChecks) {
     const repository = change['project'];
     const gitSha = currentRevisionSha(change, revision);
 
-    getBuildResults(repository, gitSha).then(buildResults => {
-      if (buildResults && buildResults.length) {
-        this.set('_buildResults', buildResults);
+    getChecks(repository, gitSha).then(checks => {
+      if (checks && checks.length) {
+        this.set('_checks', checks);
         this.set('_status', LoadingStatus.RESULTS);
       } else {
         this._checkConfigured();

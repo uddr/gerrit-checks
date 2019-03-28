@@ -4,45 +4,45 @@
 <script src="webcomponentsjs/webcomponents-lite.js"></script>
 <link rel="import" href="polymer/polymer.html">
 
-<title>builds-chip-view</title>
-<link rel="import" href="webcomponent_lib/builds-chip-view.html">
+<title>gr-checks-chip-view</title>
+<link rel="import" href="webcomponent_lib/gr-checks-chip-view.html">
 
 <test-fixture id="basic">
   <template is="dom-template">
-    <builds-chip-view change="[[change]]" revision="[[revision]]" get-build-results="[[getBuildResults]]"></builds-chip-view>
+    <gr-checks-chip-view change="[[change]]" revision="[[revision]]" get-gr-checks="[[getChecks]]"></gr-checks-chip-view>
   </template>
 </test-fixture>
 
 <script>
-  const BUILD1 = {
-    buildTriggerId: 'test-build-trigger-id',
+  const CHECK1 = {
+    checkId: 'test-check-id',
     logUrl: 'http://example.com/test-log-url',
     startTime: "2019-02-06T22:25:19.269Z",
     finishTime: "2019-02-06T22:25:44.574Z",
     status: 'SUCCESS',
   };
 
-  const BUILD2 = {
-    buildTriggerId: 'test-build-trigger-id-2',
+  const CHECK2 = {
+    checkId: 'test-check-id-2',
     logUrl: 'http://example.com/test-log-url',
     startTime: "2019-02-06T22:25:19.269Z",
     finishTime: "2019-02-06T22:25:44.574Z",
     status: 'FAILURE',
   };
 
-  suite('build-chip-view tests', () => {
+  suite('gr-checks-chip-view tests', () => {
     let element;
     let sandbox;
-    let getBuildResultsSpy;
+    let getChecksSpy;
 
     setup((done) => {
       sandbox = sinon.sandbox.create();
 
-      getBuildResultsSpy = sinon.stub();
-      getBuildResultsSpy.returns(Promise.resolve([BUILD1, BUILD2, BUILD1]));
+      getChecksSpy = sinon.stub();
+      getChecksSpy.returns(Promise.resolve([CHECK1, CHECK2, CHECK1]));
 
       element = fixture('basic', {
-        getBuildResults: getBuildResultsSpy,
+        getChecks: getChecksSpy,
         change: {
           'project': 'test-repository',
           'revisions': {
@@ -62,14 +62,14 @@
     });
 
     suite('builds chip contents', () => {
-      test('queries the builds', () => {
-        assert.isTrue(getBuildResultsSpy.called);
-        assert.isTrue(getBuildResultsSpy.calledWith('test-repository', 'second-sha'));
+      test('queries the checks', () => {
+        assert.isTrue(getChecksSpy.called);
+        assert.isTrue(getChecksSpy.calledWith('test-repository', 'second-sha'));
       });
 
-      test('renders the text of failed builds', () => {
+      test('renders the text of failed checks', () => {
         const chip = element.$$('.chip');
-        assert.equal(chip.textContent.trim(), '1 of 3 builds failed');
+        assert.equal(chip.textContent.trim(), '1 of 3 checks failed');
       });
     });
   });

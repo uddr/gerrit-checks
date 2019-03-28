@@ -8,9 +8,9 @@ package(default_visibility = [":visibility"])
 load("//tools/bzl:js.bzl", "bundle_assets", "polygerrit_plugin")
 
 polygerrit_plugin(
-    name = "build_results",
-    app = "build-results.html",
-    plugin_name = "build_results",
+    name = "gr-checks",
+    app = "gr-checks.html",
+    plugin_name = "checks",
     externs = ["externs.js"],
     srcs = glob([
             "*.html",

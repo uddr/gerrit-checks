@@ -1,0 +1,28 @@
+<link rel="import" href="gr-checks-view.html">
+<link rel="import" href="gr-checks-item.html">
+<link rel="import" href="gr-checks-status.html">
+<link rel="import" href="gr-checks-chip-view.html">
+<link rel="import" href="gr-checks-change-list-item-cell-view.html">
+<link rel="import" href="gr-checks-change-list-header-view.html">
+<link rel="import" href="gr-checks-change-view-tab-header-view.html">
+<link rel="import" href="gr-checks-configure-link.html">
+
+<dom-module id="gr-checks">
+  <script>
+    Gerrit.install(plugin => {
+      plugin.registerDynamicCustomComponent(
+          'change-list-header',
+          'gr-checks-change-list-header-view');
+      plugin.registerDynamicCustomComponent(
+          'change-list-item-cell',
+          'gr-checks-change-list-item-cell-view');
+      plugin.registerDynamicCustomComponent(
+          'change-view-tab-header',
+          'gr-checks-change-view-tab-header-view');
+      plugin.registerDynamicCustomComponent(
+          'change-view-tab-content',
+          'gr-checks-view').onAttached(
+          view => console.log('gr-checks-view attached'));
+    });
+  </script>
+</dom-module>

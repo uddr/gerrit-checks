@@ -1,4 +1,4 @@
-<dom-module id="build-result-item">
+<dom-module id="gr-checks-item">
   <template>
       <style>
         :host {
@@ -20,16 +20,16 @@
         }
       </style>
 
-      <td>[[_triggerDescription]]</td>
+      <td>[[_checkerDescription]]</td>
       <td><!-- required for merge--></td>
       <td>
-        <build-result-status show-text status="[[build.status]]"></build-result-status>
+        <gr-checks-status show-text status="[[check.state]]"></gr-checks-status>
       </td>
-      <td>Google Cloud Build</td>
+      <td>Check System</td>
       <td>[[_startTime]]</td>
       <td>[[_duration]]</td>
       <td>
-        <a href$="[[build.logUrl]]" target="_blank" class="log">
+        <a href$="[[check.url]]" target="_blank" class="log">
           <gr-button link no-uppercase>
             View log
           </gr-button>
@@ -42,5 +42,5 @@
         </gr-button>
       </td>
   </template>
-  <script src="build-result-item.js"></script>
+  <script src="gr-checks-item.js"></script>
 </dom-module>

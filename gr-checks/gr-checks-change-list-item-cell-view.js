@@ -2,7 +2,7 @@
 'use strict';
 
 Polymer({
-  is: 'builds-results-change-list-item-cell-view',
+  is: 'gr-checks-change-list-item-cell-view',
 
   properties: {
     change: Object,

@@ -2,10 +2,10 @@
 'use strict';
 
 window.Gerrit = (window.Gerrit || {});
-window.Gerrit.BuildResults = (window.Gerrit.BuildResults || {});
+window.Gerrit.Checks = (window.Gerrit.Checks || {});
 
 // Prevent redefinition.
-if (window.Gerrit.BuildResults.Statuses) return;
+if (window.Gerrit.Checks.Statuses) return;
 
 const Statuses = {
   // non-terminal statuses
@@ -63,10 +63,10 @@ function statusClass(status) {
   return 'unevaluated';
 }
 
-window.Gerrit.BuildResults.Statuses = Statuses;
-window.Gerrit.BuildResults.isUnevaluated = isUnevaluated;
-window.Gerrit.BuildResults.isInProgress = isInProgress;
-window.Gerrit.BuildResults.isSuccessful = isSuccessful;
-window.Gerrit.BuildResults.isFailed = isFailed;
-window.Gerrit.BuildResults.statusClass = statusClass;
+window.Gerrit.Checks.Statuses = Statuses;
+window.Gerrit.Checks.isUnevaluated = isUnevaluated;
+window.Gerrit.Checks.isInProgress = isInProgress;
+window.Gerrit.Checks.isSuccessful = isSuccessful;
+window.Gerrit.Checks.isFailed = isFailed;
+window.Gerrit.Checks.statusClass = statusClass;
 })();

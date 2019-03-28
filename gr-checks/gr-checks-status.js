@@ -2,7 +2,7 @@
 'use strict';
 
 Polymer({
-  is: 'build-result-status',
+  is: 'gr-checks-status',
 
   properties: {
     showText: {
@@ -15,23 +15,23 @@ Polymer({
   },
 
   _isUnevaluated(status) {
-    return window.Gerrit.BuildResults.isUnevaluated(status);
+    return window.Gerrit.Checks.isUnevaluated(status);
   },
 
   _isInProgress(status) {
-    return window.Gerrit.BuildResults.isInProgress(status);
+    return window.Gerrit.Checks.isInProgress(status);
   },
 
   _isSuccessful(status) {
-    return window.Gerrit.BuildResults.isSuccessful(status);
+    return window.Gerrit.Checks.isSuccessful(status);
   },
 
   _isFailed(status) {
-    return window.Gerrit.BuildResults.isFailed(status);
+    return window.Gerrit.Checks.isFailed(status);
   },
 
   _computeClassName(status) {
-    return window.Gerrit.BuildResults.statusClass(status);
+    return window.Gerrit.Checks.statusClass(status);
   },
 });
 })();

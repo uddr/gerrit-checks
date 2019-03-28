@@ -2,7 +2,7 @@
 'use strict';
 
 Polymer({
-  is: 'build-results-configure-link',
+  is: 'gr-checks-configure-link',
 
   properties: {
     configurePath: String,

@@ -2,6 +2,6 @@
 'use strict';
 
 Polymer({
-  is: 'builds-results-change-list-header-view',
+  is: 'gr-checks-change-list-header-view',
 });
 })();

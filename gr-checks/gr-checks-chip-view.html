@@ -1,4 +1,4 @@
-<dom-module id="builds-chip-view">
+<dom-module id="gr-checks-chip-view">
   <template>
     <style>
 
@@ -17,15 +17,15 @@
         border-color: #DA4236;
       }
     </style>
-    <template is="dom-if" if="[[_hasBuilds]]">
+    <template is="dom-if" if="[[_hasChecks]]">
       Checks:
       <span class$="[[_chipClasses]]">
-        <build-result-status status="[[_status]]"></build-result-status>
+        <gr-checks-status status="[[_status]]"></gr-checks-status>
         [[_statusString]]
       </span>
     </template>
   </template>
 
-  <script src="all-statuses.js"></script>
-  <script src="builds-chip-view.js"></script>
+  <script src="gr-checks-all-statuses.js"></script>
+  <script src="gr-checks-chip-view.js"></script>
 </dom-module>

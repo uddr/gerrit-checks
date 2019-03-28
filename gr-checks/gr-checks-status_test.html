@@ -4,17 +4,17 @@
 <script src="webcomponentsjs/webcomponents-lite.js"></script>
 <link rel="import" href="polymer/polymer.html">
 
-<title>build-result-item</title>
-<link rel="import" href="webcomponent_lib/build-result-status.html">
+<title>gr-checks-item</title>
+<link rel="import" href="webcomponent_lib/gr-checks-status.html">
 
 <test-fixture id="basic">
   <template is="dom-template">
-    <build-result-status show-text="{{showText}}" status="{{status}}"></build-result-status>
+    <gr-checks-status show-text="{{showText}}" status="{{status}}"></gr-checks-status>
   </template>
 </test-fixture>
 
 <script>
-  suite('build-result-status tests', () => {
+  suite('gr-checks-status tests', () => {
     let element;
     let sandbox;
 

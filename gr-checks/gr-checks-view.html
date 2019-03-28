@@ -1,4 +1,4 @@
-<dom-module id="build-results-view">
+<dom-module id="gr-checks-view">
   <template>
     <style>
       :host {
@@ -10,7 +10,7 @@
         width: 100%;
       }
 
-      build-result-item {
+      gr-checks-item {
         display: table-row;
       }
 
@@ -69,26 +69,26 @@
     <template is="dom-if" if="[[_isEmpty(_status)]]">
       <div class="no-content">
         <h2>No checks ran for this code review</h2>
-        <p>Configure code review checks to view the results here.</p>
-        <build-results-configure-link configure-path="[[configurePath]]">
-        </build-results-configure-link>
+        <p>Configure checkers to view the results here.</p>
+        <gr-checks-configure-link configure-path="[[configurePath]]">
+        </gr-checks-configure-link>
       </div>
     </template>
 
     <template is="dom-if" if="[[_isNotConfigured(_status)]]">
       <div class="no-content">
         <h2>Code review checks not configured</h2>
-        <p>Configure code review checks to view the results here.</p>
-        <build-results-configure-link configure-path="[[configurePath]]">
-        </build-results-configure-link>
+        <p>Configure checkers to view the results here.</p>
+        <gr-checks-configure-link configure-path="[[configurePath]]">
+        </gr-checks-configure-link>
       </div>
     </template>
 
     <template is="dom-if" if="[[_hasResults(_status)]]">
       <header>
         <h3>Latest checks for Patchset [[revision._number]]</h3>
-        <build-results-configure-link configure-path="[[configurePath]]">
-        </build-results-configure-link>
+        <gr-checks-configure-link configure-path="[[configurePath]]">
+        </gr-checks-configure-link>
       </header>
 
       <table>
@@ -104,13 +104,13 @@
           </tr>
         </thead>
         <tbody>
-          <template is="dom-repeat" items="[[_buildResults]]" as="build">
-            <build-result-item build="[[build]]" retry-build="[[retryBuild]]" get-trigger="[[getTrigger]]"></build-result-item>
+          <template is="dom-repeat" items="[[_checks]]" as="check">
+            <gr-checks-item check="[[check]]" retry-check="[[retryCheck]]" get-checker="[[getChecker]]"></gr-checks-item>
           </template>
         </tbody>
       </table>
     </template>
   </template>
 
-  <script src="build-results-view.js"></script>
+  <script src="gr-checks-view.js"></script>
 </dom-module>
