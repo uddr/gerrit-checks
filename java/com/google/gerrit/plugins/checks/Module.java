@@ -24,6 +24,7 @@ import com.google.gerrit.plugins.checks.api.ApiModule;
 import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory;
 import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory.GetChangeOptions;
 import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
+import com.google.gerrit.plugins.checks.rules.ChecksSubmitRule;
 import com.google.gerrit.server.DynamicOptions;
 import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
@@ -57,5 +58,6 @@ public class Module extends FactoryModule {
         .to(GetChangeOptions.class);
 
     install(new ApiModule());
+    install(new ChecksSubmitRule.Module());
   }
 }
