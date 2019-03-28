@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -39,11 +40,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ListChecksIT extends AbstractCheckersTest {
+  private String changeId;
   private PatchSet.Id patchSetId;
 
   @Before
   public void setUp() throws Exception {
-    patchSetId = createChange().getPatchSetId();
+    PushOneCommit.Result r = createChange();
+    changeId = r.getChangeId();
+    patchSetId = r.getPatchSetId();
   }
 
   @Test
@@ -247,9 +251,54 @@ public class ListChecksIT extends AbstractCheckersTest {
     assertThat(checksApiFactory.revision(patchSetId).list()).isEmpty();
   }
 
+  @Test
+  public void listForMultiplePatchSets() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    // create check on the first patch set
+    CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey1).setState(CheckState.SUCCESSFUL).upsert();
+
+    // create a second patch set
+    PatchSet.Id currentPatchSet = createPatchSet();
+
+    // create check on the second patch set, we expect that this check is not returned for the first
+    // patch set
+    CheckKey checkKey2 = CheckKey.create(project, currentPatchSet, checkerUuid);
+    checkOperations.newCheck(checkKey2).setState(CheckState.RUNNING).upsert();
+
+    // list checks for the old patch set
+    assertThat(checksApiFactory.revision(patchSetId).list())
+        .containsExactly(checkOperations.check(checkKey1).asInfo());
+
+    // list checks for the new patch set (2 ways)
+    assertThat(checksApiFactory.currentRevision(currentPatchSet.getParentKey()).list())
+        .containsExactly(checkOperations.check(checkKey2).asInfo());
+    assertThat(checksApiFactory.revision(currentPatchSet).list())
+        .containsExactly(checkOperations.check(checkKey2).asInfo());
+  }
+
+  @Test
+  public void noBackfillForNonCurrentPatchSet() throws Exception {
+    checkerOperations.newChecker().repository(project).create();
+
+    PatchSet.Id currentPatchSet = createPatchSet();
+
+    assertThat(checksApiFactory.revision(patchSetId).list()).isEmpty();
+    assertThat(checksApiFactory.revision(currentPatchSet).list()).hasSize(1);
+  }
+
   private Timestamp getPatchSetCreated(Change.Id changeId) throws RestApiException {
     return getOnlyElement(
             gApi.changes().id(changeId.get()).get(CURRENT_REVISION).revisions.values())
         .created;
+  }
+
+  private PatchSet.Id createPatchSet() throws Exception {
+    PushOneCommit.Result r = amendChange(changeId);
+    PatchSet.Id currentPatchSetId = r.getPatchSetId();
+    assertThat(patchSetId.changeId).isEqualTo(currentPatchSetId.changeId);
+    assertThat(patchSetId.get()).isLessThan(currentPatchSetId.get());
+    return currentPatchSetId;
   }
 }
