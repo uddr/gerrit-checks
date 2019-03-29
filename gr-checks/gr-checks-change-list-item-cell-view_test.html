@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>gr-checks-change-list-item-cell-view</title>
+<link rel="import" href="webcomponent_lib/gr-checks-change-list-item-cell-view.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <gr-checks-change-list-item-cell-view change="[[change]]"></gr-checks-change-list-item-cell-view>
+  </template>
+</test-fixture>
+
+<script>
+
+  suite('gr-checks-change-list-item-cell-view tests', () => {
+    let element;
+    let sandbox;
+
+    setup((done) => {
+      sandbox = sinon.sandbox.create();
+
+
+      element = fixture('basic', {
+        change: {
+          'project': 'test-repository',
+          'revisions': {
+            'first-sha': "test-revision",
+            'second-sha': "test-revision2",
+          }
+        },
+      });
+      flush(done);
+    });
+
+    teardown(() => { sandbox.restore(); });
+
+    test('renders the element', () => {
+      assert.exists(element);
+    });
+  });
+</script>

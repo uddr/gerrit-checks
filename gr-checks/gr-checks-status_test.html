@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>gr-checks-item</title>
+<link rel="import" href="webcomponent_lib/gr-checks-status.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <gr-checks-status show-text="{{showText}}" status="{{status}}"></gr-checks-status>
+  </template>
+</test-fixture>
+
+<script>
+  suite('gr-checks-status tests', () => {
+    let element;
+    let sandbox;
+
+    setup(() => {
+      sandbox = sinon.sandbox.create();
+    });
+
+    teardown(() => { sandbox.restore(); });
+
+    function testStatus(expectedStatusClass, statusText, statusesToTest) {
+      suite(expectedStatusClass, () => {
+
+        for(let statusToTest of statusesToTest) {
+          test(`renders ${expectedStatusClass} for ${statusToTest}`, (done) => {
+            const element = fixture('basic', {
+              status: statusToTest,
+              showText: false,
+            });
+
+            flush(() => {
+              const icon = element.$$(`span.${expectedStatusClass} i`);
+              assert.exists(icon);
+              done();
+            });
+          });
+          test(`renders ${expectedStatusClass} for ${statusToTest} rendering text ${statusText}`, (done) => {
+            const element = fixture('basic', {
+              status: statusToTest,
+              showText: true,
+            });
+
+            flush(() => {
+              const text = element.$$(`span.${expectedStatusClass} span`);
+              assert.equal(text.textContent.trim(), statusText);
+              done();
+            });
+          });
+        }
+      });
+    }
+
+    testStatus('successful', 'Successful', ['SUCCESS']);
+    testStatus('failed', 'Failed', ['FAILURE', 'INTERNAL_ERROR', 'TIMEOUT']);
+    testStatus('in-progress', 'In progress', ['QUEUING', 'QUEUED', 'WORKING']);
+    testStatus('unevaluated', 'Unevaluated', ['STATUS_UNKNOWN', 'CANCELLED']);
+  });
+</script>

@@ -1,0 +1,116 @@
+<dom-module id="gr-checks-view">
+  <template>
+    <style>
+      :host {
+        display: block;
+        width: 100%;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      gr-checks-item {
+        display: table-row;
+      }
+
+      .headerRow {
+        border-bottom: 1px solid #ddd;
+      }
+
+      .topHeader {
+        padding-bottom: 4px;
+        text-align: left;
+        white-space: nowrap;
+      }
+
+      th.topHeader:last-child {
+        width: 100%;
+      }
+
+      h2 {
+        font-size: 1.17em;
+        font-weight: 500;
+      }
+
+      h3 {
+        flex: 1;
+        font-size: 1.17em;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+      }
+
+      header {
+        display: flex;
+        margin: 1rem 1rem 0;
+      }
+
+      table {
+        margin-bottom: 16px;
+      }
+
+      th:first-child {
+        padding-left: 1rem;
+      }
+
+      .no-content {
+        min-height: 106px;
+        padding: 24px 0;
+        text-align: center;
+      }
+    </style>
+
+    <template is="dom-if" if="[[_isLoading(_status)]]">
+      <div class="no-content">
+        <p>Loading...</p>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[_isEmpty(_status)]]">
+      <div class="no-content">
+        <h2>No checks ran for this code review</h2>
+        <p>Configure checkers to view the results here.</p>
+        <gr-checks-configure-link configure-path="[[configurePath]]">
+        </gr-checks-configure-link>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[_isNotConfigured(_status)]]">
+      <div class="no-content">
+        <h2>Code review checks not configured</h2>
+        <p>Configure checkers to view the results here.</p>
+        <gr-checks-configure-link configure-path="[[configurePath]]">
+        </gr-checks-configure-link>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[_hasResults(_status)]]">
+      <header>
+        <h3>Latest checks for Patchset [[revision._number]]</h3>
+        <gr-checks-configure-link configure-path="[[configurePath]]">
+        </gr-checks-configure-link>
+      </header>
+
+      <table>
+        <thead>
+          <tr class="headerRow">
+            <th class="topHeader">Name</th>
+            <th class="topHeader"><!-- required for merge --></th>
+            <th class="topHeader">Status</th>
+            <th class="topHeader">Checking system</th>
+            <th class="topHeader">Started</th>
+            <th class="topHeader">Duration</th>
+            <th class="topHeader"><!-- actions --></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template is="dom-repeat" items="[[_checks]]" as="check">
+            <gr-checks-item check="[[check]]" retry-check="[[retryCheck]]" get-checker="[[getChecker]]"></gr-checks-item>
+          </template>
+        </tbody>
+      </table>
+    </template>
+  </template>
+
+  <script src="gr-checks-view.js"></script>
+</dom-module>

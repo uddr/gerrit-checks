@@ -1,0 +1,46 @@
+<dom-module id="gr-checks-item">
+  <template>
+      <style>
+        :host {
+          border-top: 1px solid #ddd;
+        }
+
+        td:first-child {
+          padding-left: 1rem;
+        }
+
+        td {
+          padding: 1px 32px 1px 0;
+          white-space: nowrap;
+        }
+
+        a.log {
+          margin-right: 16px;
+          display: inline-block;
+        }
+      </style>
+
+      <td>[[_checkerDescription]]</td>
+      <td><!-- required for merge--></td>
+      <td>
+        <gr-checks-status show-text status="[[check.state]]"></gr-checks-status>
+      </td>
+      <td>Check System</td>
+      <td>[[_startTime]]</td>
+      <td>[[_duration]]</td>
+      <td>
+        <a href$="[[check.url]]" target="_blank" class="log">
+          <gr-button link no-uppercase>
+            View log
+          </gr-button>
+        </a>
+        <gr-button
+          link
+          no-uppercase
+          on-tap="handleClick">
+          Re-run
+        </gr-button>
+      </td>
+  </template>
+  <script src="gr-checks-item.js"></script>
+</dom-module>

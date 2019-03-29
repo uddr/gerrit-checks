@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<script src="imports.js"></script>
+<script src="webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="polymer/polymer.html">
+
+<title>gr-checks-chip-view</title>
+<link rel="import" href="webcomponent_lib/gr-checks-chip-view.html">
+
+<test-fixture id="basic">
+  <template is="dom-template">
+    <gr-checks-chip-view change="[[change]]" revision="[[revision]]" get-gr-checks="[[getChecks]]"></gr-checks-chip-view>
+  </template>
+</test-fixture>
+
+<script>
+  const CHECK1 = {
+    checkId: 'test-check-id',
+    logUrl: 'http://example.com/test-log-url',
+    startTime: "2019-02-06T22:25:19.269Z",
+    finishTime: "2019-02-06T22:25:44.574Z",
+    status: 'SUCCESS',
+  };
+
+  const CHECK2 = {
+    checkId: 'test-check-id-2',
+    logUrl: 'http://example.com/test-log-url',
+    startTime: "2019-02-06T22:25:19.269Z",
+    finishTime: "2019-02-06T22:25:44.574Z",
+    status: 'FAILURE',
+  };
+
+  suite('gr-checks-chip-view tests', () => {
+    let element;
+    let sandbox;
+    let getChecksSpy;
+
+    setup((done) => {
+      sandbox = sinon.sandbox.create();
+
+      getChecksSpy = sinon.stub();
+      getChecksSpy.returns(Promise.resolve([CHECK1, CHECK2, CHECK1]));
+
+      element = fixture('basic', {
+        getChecks: getChecksSpy,
+        change: {
+          'project': 'test-repository',
+          'revisions': {
+            'first-sha': "test-revision",
+            'second-sha': "test-revision2",
+          }
+        },
+        revision: 'test-revision2',
+      });
+      flush(done);
+    });
+
+    teardown(() => { sandbox.restore(); });
+
+    test('renders the checks prefix', () => {
+      assert.include(element.textContent.trim(), 'Checks:');
+    });
+
+    suite('builds chip contents', () => {
+      test('queries the checks', () => {
+        assert.isTrue(getChecksSpy.called);
+        assert.isTrue(getChecksSpy.calledWith('test-repository', 'second-sha'));
+      });
+
+      test('renders the text of failed checks', () => {
+        const chip = element.$$('.chip');
+        assert.equal(chip.textContent.trim(), '1 of 3 checks failed');
+      });
+    });
+  });
+</script>
