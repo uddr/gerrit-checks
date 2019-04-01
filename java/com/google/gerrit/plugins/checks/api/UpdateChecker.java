@@ -103,9 +103,8 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
       checkerUpdateBuilder.setStatus(input.status);
     }
 
-    if (input.blockingConditions != null) {
-      checkerUpdateBuilder.setBlockingConditions(
-          ImmutableSortedSet.copyOf(input.blockingConditions));
+    if (input.blocking != null) {
+      checkerUpdateBuilder.setBlockingConditions(ImmutableSortedSet.copyOf(input.blocking));
     }
 
     if (input.query != null) {

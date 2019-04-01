@@ -440,7 +440,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
     CheckerInput input = new CheckerInput();
-    input.blockingConditions = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
+    input.blocking = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
     CheckerInfo info = checkersApi.id(checkerUuid).update(input);
     assertThat(info.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
   }

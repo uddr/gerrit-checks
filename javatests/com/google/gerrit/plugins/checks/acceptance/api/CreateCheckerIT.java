@@ -326,7 +326,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
     input.repository = allProjects.get();
-    input.blockingConditions = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
+    input.blocking = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
 
     CheckerInfo info = checkersApi.create(input).get();
     assertThat(info.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
