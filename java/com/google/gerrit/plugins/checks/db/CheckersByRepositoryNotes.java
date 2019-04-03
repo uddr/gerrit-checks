@@ -146,10 +146,10 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
       return load();
     }
     if (ObjectId.zeroId().equals(rev)) {
-      load(allProjectsName, repo, null);
+      super.load(allProjectsName, repo, null);
       return this;
     }
-    load(allProjectsName, repo, rev);
+    super.load(allProjectsName, repo, rev);
     return this;
   }
 

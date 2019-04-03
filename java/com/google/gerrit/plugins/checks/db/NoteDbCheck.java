@@ -38,8 +38,8 @@ class NoteDbCheck {
     return newCheck.build();
   }
 
-  Check toCheck(Project.NameKey project, PatchSet.Id patchSetId, CheckerUuid checkerUuid) {
-    CheckKey key = CheckKey.create(project, patchSetId, checkerUuid);
+  Check toCheck(Project.NameKey repositoryName, PatchSet.Id patchSetId, CheckerUuid checkerUuid) {
+    CheckKey key = CheckKey.create(repositoryName, patchSetId, checkerUuid);
     return toCheck(key);
   }
 
@@ -67,7 +67,7 @@ class NoteDbCheck {
       started = update.started().get();
       modified = true;
     }
-    if (update.finished().isPresent() && update.finished().get().equals(finished)) {
+    if (update.finished().isPresent() && !update.finished().get().equals(finished)) {
       finished = update.finished().get();
       modified = true;
     }

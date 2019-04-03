@@ -22,9 +22,9 @@ import java.util.Objects;
 /** Input to create or update a {@link com.google.gerrit.plugins.checks.Check}. */
 public class CheckInput {
   /** UUID of the checker. */
-  public String checkerUuid;
+  @Nullable public String checkerUuid;
   /** State of the check. */
-  public CheckState state;
+  @Nullable public CheckState state;
   /** Fully qualified URL to detailed result on the Checker's service. */
   @Nullable public String url;
   /** Date/Time at which the checker started processing this check. */

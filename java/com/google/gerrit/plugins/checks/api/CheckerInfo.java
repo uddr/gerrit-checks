@@ -28,13 +28,13 @@ public class CheckerInfo {
   public CheckerStatus status;
   public Set<BlockingCondition> blocking;
   public String query;
-  public Timestamp createdOn;
-  public Timestamp updatedOn;
+  public Timestamp created;
+  public Timestamp updated;
 
   @Override
   public int hashCode() {
     return Objects.hash(
-        uuid, name, description, url, repository, status, blocking, query, createdOn, updatedOn);
+        uuid, name, description, url, repository, status, blocking, query, created, updated);
   }
 
   @Override
@@ -51,8 +51,8 @@ public class CheckerInfo {
         && Objects.equals(status, o.status)
         && Objects.equals(blocking, o.blocking)
         && Objects.equals(query, o.query)
-        && Objects.equals(createdOn, o.createdOn)
-        && Objects.equals(updatedOn, o.updatedOn);
+        && Objects.equals(created, o.created)
+        && Objects.equals(updated, o.updated);
   }
 
   @Override
@@ -66,8 +66,8 @@ public class CheckerInfo {
         .add("status", status)
         .add("blockingConditions", blocking)
         .add("query", query)
-        .add("createdOn", createdOn)
-        .add("updatedOn", updatedOn)
+        .add("created", created)
+        .add("updated", updated)
         .toString();
   }
 }

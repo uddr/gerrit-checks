@@ -70,8 +70,8 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
             () ->
                 new ResourceNotFoundException(
                     String.format(
-                        "Patch set %s in project %s doesn't have check for checker %s.",
-                        checkKey.patchSet(), checkKey.project(), checkerUuid))));
+                        "Patch set %s in repository %s doesn't have check for checker %s.",
+                        checkKey.patchSet(), checkKey.repository(), checkerUuid))));
   }
 
   @Override

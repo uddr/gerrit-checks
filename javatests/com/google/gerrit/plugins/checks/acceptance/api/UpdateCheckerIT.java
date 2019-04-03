@@ -40,6 +40,8 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.testing.ConfigSuite;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Config;
@@ -62,6 +64,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
   @Before
   public void setTimeForTesting() {
     TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
+    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
   }
 
   @After
@@ -89,15 +92,12 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     assertThat(info.description).isEqualTo(input.description);
     assertThat(info.url).isEqualTo(input.url);
     assertThat(info.repository).isEqualTo(input.repository);
-    assertThat(info.createdOn).isEqualTo(checker.getCreatedOn());
-    assertThat(info.createdOn).isLessThan(info.updatedOn);
+    assertThat(info.created).isEqualTo(checker.getCreated());
+    assertThat(info.created).isLessThan(info.updated);
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
     assertThat(checkerOperations.sha1sOfRepositoriesWithCheckers())
         .containsExactly(CheckersByRepositoryNotes.computeRepositorySha1(repositoryName));
     assertThat(checkerOperations.checkersOf(repositoryName))
@@ -141,10 +141,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -185,10 +182,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -203,10 +197,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -221,10 +212,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -239,10 +227,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -257,10 +242,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -275,10 +257,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -294,10 +273,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -313,10 +289,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -331,10 +304,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
   }
 
   @Test
@@ -351,10 +321,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(checkerUuid);
     assertCommit(
-        perCheckerOps.commit(),
-        "Update checker",
-        info.updatedOn,
-        perCheckerOps.get().getRefState());
+        perCheckerOps.commit(), "Update checker", info.updated, perCheckerOps.get().getRefState());
     assertThat(checkerOperations.sha1sOfRepositoriesWithCheckers())
         .containsExactly(CheckersByRepositoryNotes.computeRepositorySha1(repositoryName));
     assertThat(checkerOperations.checkersOf(repositoryName))
@@ -473,7 +440,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
     CheckerInput input = new CheckerInput();
-    input.blockingConditions = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
+    input.blocking = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
     CheckerInfo info = checkersApi.id(checkerUuid).update(input);
     assertThat(info.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
   }
@@ -546,6 +513,29 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     }
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
+  }
+
+  @Test
+  public void updateResultsInNewUpdatedTimestamp() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    Timestamp expectedUpdateTimestamp = TestTimeUtil.getCurrentTimestamp();
+    CheckerInput input = new CheckerInput();
+    input.name = "My Checker";
+    CheckerInfo info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.updated).isEqualTo(expectedUpdateTimestamp);
+  }
+
+  @Test
+  public void noOpUpdateDoesntResultInNewUpdatedTimestamp() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().name("My Checker").create();
+
+    Timestamp expectedUpdateTimestamp = checkerOperations.checker(checkerUuid).get().getUpdated();
+
+    CheckerInput input = new CheckerInput();
+    input.name = "My Checker";
+    CheckerInfo info = checkersApi.id(checkerUuid).update(input);
+    assertThat(info.updated).isEqualTo(expectedUpdateTimestamp);
   }
 
   @Test

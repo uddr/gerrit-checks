@@ -15,16 +15,19 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations.PerCheckOperations;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckTestData;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
@@ -33,6 +36,7 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RevId;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
@@ -75,6 +79,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(info.checkerUuid).isEqualTo(checkerUuid.get());
     assertThat(info.state).isEqualTo(CheckState.RUNNING);
+    assertThat(info.url).isNull();
     assertThat(info.started).isNull();
     assertThat(info.finished).isNull();
     assertThat(info.created).isEqualTo(expectedCreationTimestamp);
@@ -89,6 +94,91 @@ public class CreateCheckIT extends AbstractCheckersTest {
         .containsExactly(
             revId,
             noteDbContent(checkerUuid.get(), expectedCreationTimestamp, expectedCreationTimestamp));
+  }
+
+  @Test
+  public void cannotCreateCheckWithoutCheckerUuid() throws Exception {
+    exception.expect(BadRequestException.class);
+    exception.expectMessage("checker UUID is required");
+    checksApiFactory.revision(patchSetId).create(new CheckInput());
+  }
+
+  @Test
+  public void createCheckWithStateNotStarted() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.state = CheckState.NOT_STARTED;
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(info.state).isEqualTo(input.state);
+    assertThat(getCheck(project, patchSetId, checkerUuid).state()).isEqualTo(input.state);
+  }
+
+  @Test
+  public void createCheckWithoutState() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(info.state).isEqualTo(CheckState.NOT_STARTED);
+    assertThat(getCheck(project, patchSetId, checkerUuid).state())
+        .isEqualTo(CheckState.NOT_STARTED);
+  }
+
+  @Test
+  public void createCheckWithUrl() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.url = "http://example.com/my-check";
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(info.url).isEqualTo(input.url);
+    assertThat(getCheck(project, patchSetId, checkerUuid).url()).hasValue(input.url);
+  }
+
+  @Test
+  public void cannotCreateCheckWithInvalidUrl() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.url = CheckTestData.INVALID_URL;
+
+    exception.expect(BadRequestException.class);
+    exception.expectMessage("only http/https URLs supported: " + input.url);
+    checksApiFactory.revision(patchSetId).create(input);
+  }
+
+  @Test
+  public void createCheckWithStarted() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.started = TimeUtil.nowTs();
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(info.started).isEqualTo(input.started);
+    assertThat(getCheck(project, patchSetId, checkerUuid).started()).hasValue(input.started);
+  }
+
+  @Test
+  public void createCheckWithFinished() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.finished = TimeUtil.nowTs();
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(info.finished).isEqualTo(input.finished);
+    assertThat(getCheck(project, patchSetId, checkerUuid).finished()).hasValue(input.finished);
   }
 
   @Test
@@ -226,6 +316,11 @@ public class CreateCheckIT extends AbstractCheckersTest {
   }
 
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave
+
+  private Check getCheck(Project.NameKey project, PatchSet.Id patchSetId, CheckerUuid checkerUuid)
+      throws Exception {
+    return checkOperations.check(CheckKey.create(project, patchSetId, checkerUuid)).get();
+  }
 
   private String noteDbContent(String uuid, Timestamp created, Timestamp updated) {
     return ""

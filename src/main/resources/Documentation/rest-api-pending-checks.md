@@ -54,7 +54,7 @@ entities is returned that describes the pending checks.
   [
     {
       "patch_set": {
-        "project": "test-project",
+        "repository": "test-repo",
         "change_number": 1,
         "patch_set_id": 1,
       }
@@ -66,7 +66,7 @@ entities is returned that describes the pending checks.
     },
     {
       "patch_set": {
-        "project": "test-project",
+        "repository": "test-repo",
         "change_number": 5,
         "patch_set_id": 2,
       }
@@ -87,7 +87,7 @@ checks are pending.
 
 | Field Name      | Description |
 | --------------- | ----------- |
-| `project`       | The project name that this pending check applies to.
+| `repository`    | The repository name that this pending check applies to.
 | `change_number` | The change number that this pending check applies to.
 | `patch_set_id`  | The ID of the patch set that this pending check applies to.
 

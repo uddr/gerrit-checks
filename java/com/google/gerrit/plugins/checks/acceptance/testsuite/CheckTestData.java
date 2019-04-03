@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.gerrit.plugins.checks.api;
+package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
-/** REST API representation of a patch set for which checks are pending. */
-public class CheckablePatchSetInfo {
-  /** Repository name. */
-  public String repository;
+public class CheckTestData {
+  /** An invalid check URL that is not allowed to be set for a check. */
+  public static final String INVALID_URL = "ftp://example.com/my-check";
 
-  /** Change number. */
-  public int changeNumber;
-
-  /** Patch set ID. */
-  public int patchSetId;
+  private CheckTestData() {}
 }

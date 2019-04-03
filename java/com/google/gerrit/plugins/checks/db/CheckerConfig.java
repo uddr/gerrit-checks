@@ -166,7 +166,7 @@ public class CheckerConfig extends VersionedMetaData {
   private Optional<CheckerCreation> checkerCreation = Optional.empty();
   private Optional<CheckerUpdate> checkerUpdate = Optional.empty();
   private Optional<Checker.Builder> updatedCheckerBuilder = Optional.empty();
-  private Config config;
+  private Optional<Config> loadedConfig = Optional.empty();
   private boolean isLoaded = false;
 
   private CheckerConfig(String ref) {
@@ -242,8 +242,8 @@ public class CheckerConfig extends VersionedMetaData {
   }
 
   @VisibleForTesting
-  public Config getConfigForTesting() {
-    return config;
+  public Optional<Config> getConfigForTesting() {
+    return loadedConfig;
   }
 
   @Override
@@ -253,12 +253,13 @@ public class CheckerConfig extends VersionedMetaData {
       rw.markStart(revision);
       rw.sort(RevSort.REVERSE);
       RevCommit earliestCommit = rw.next();
-      Timestamp createdOn = new Timestamp(earliestCommit.getCommitTime() * 1000L);
-      Timestamp updatedOn = new Timestamp(rw.parseCommit(revision).getCommitTime() * 1000L);
+      Timestamp created = new Timestamp(earliestCommit.getCommitTime() * 1000L);
+      Timestamp updated = new Timestamp(rw.parseCommit(revision).getCommitTime() * 1000L);
 
-      config = readConfig(CHECKER_CONFIG_FILE);
-      Checker checker = createFrom(config, createdOn, updatedOn, revision.toObjectId());
+      Config checkerConfig = readConfig(CHECKER_CONFIG_FILE);
+      Checker checker = createFrom(checkerConfig, created, updated, revision.toObjectId());
       loadedChecker = Optional.of(checker);
+      loadedConfig = Optional.of(checkerConfig);
       checkerUuid = Optional.of(checker.getUuid());
     }
 
@@ -275,23 +276,33 @@ public class CheckerConfig extends VersionedMetaData {
 
     ensureThatMandatoryPropertiesAreSet();
 
-    // Commit timestamps are internally truncated to seconds. To return the correct 'createdOn' time
+    // Commit timestamps are internally truncated to seconds. To return the correct 'created' time
     // for new checkers, we explicitly need to truncate the timestamp here.
     Timestamp commitTimestamp =
-        TimeUtil.truncateToSecond(
-            checkerUpdate.flatMap(CheckerUpdate::getUpdatedOn).orElseGet(TimeUtil::nowTs));
+        TimeUtil.truncateToSecond(new Timestamp(commit.getCommitter().getWhen().getTime()));
     commit.setAuthor(new PersonIdent(commit.getAuthor(), commitTimestamp));
     commit.setCommitter(new PersonIdent(commit.getCommitter(), commitTimestamp));
 
-    Checker.Builder checker = updateChecker(commitTimestamp);
+    Config oldConfig = copyOrElseNew(loadedConfig);
+    Config newConfig = copyOrElseNew(loadedConfig);
+
+    Checker.Builder checker = updateChecker(newConfig, commitTimestamp);
+
+    if (oldConfig.toText().equals(newConfig.toText())) {
+      // Don't create a new commit if nothing was changed.
+      return false;
+    }
+
     updatedCheckerBuilder = Optional.of(checker);
     checkerUuid = Optional.of(checker.getUuid());
+    loadedConfig = Optional.of(newConfig);
 
     String commitMessage = createCommitMessage(loadedChecker);
     commit.setMessage(commitMessage);
 
     checkerCreation = Optional.empty();
     checkerUpdate = Optional.empty();
+
     return true;
   }
 
@@ -325,15 +336,14 @@ public class CheckerConfig extends VersionedMetaData {
     return Optional.empty();
   }
 
-  private Checker.Builder updateChecker(Timestamp commitTimestamp)
+  private Checker.Builder updateChecker(Config config, Timestamp commitTimestamp)
       throws IOException, ConfigInvalidException {
-    Config config = updateCheckerProperties();
-    Timestamp createdOn = loadedChecker.map(Checker::getCreatedOn).orElse(commitTimestamp);
-    return createBuilderFrom(config, createdOn, commitTimestamp);
+    updateCheckerProperties(config);
+    Timestamp created = loadedChecker.map(Checker::getCreated).orElse(commitTimestamp);
+    return createBuilderFrom(config, created, commitTimestamp);
   }
 
-  private Config updateCheckerProperties() throws IOException, ConfigInvalidException {
-    Config config = readConfig(CHECKER_CONFIG_FILE);
+  private void updateCheckerProperties(Config config) throws IOException {
     checkerCreation.ifPresent(
         checkerCreation ->
             Arrays.stream(CheckerConfigEntry.values())
@@ -343,10 +353,9 @@ public class CheckerConfig extends VersionedMetaData {
             Arrays.stream(CheckerConfigEntry.values())
                 .forEach(configEntry -> configEntry.updateConfigValue(config, checkerUpdate)));
     saveConfig(CHECKER_CONFIG_FILE, config);
-    return config;
   }
 
-  private Checker.Builder createBuilderFrom(Config config, Timestamp createdOn, Timestamp updatedOn)
+  private Checker.Builder createBuilderFrom(Config config, Timestamp created, Timestamp updated)
       throws ConfigInvalidException {
     Checker.Builder checker = Checker.builder();
 
@@ -361,16 +370,35 @@ public class CheckerConfig extends VersionedMetaData {
       }
       configEntry.readFromConfig(checker.getUuid(), checker, config);
     }
-    return checker.setCreatedOn(createdOn).setUpdatedOn(updatedOn);
+    return checker.setCreated(created).setUpdated(updated);
   }
 
-  private Checker createFrom(
-      Config config, Timestamp createdOn, Timestamp updatedOn, ObjectId refState)
+  private Checker createFrom(Config config, Timestamp created, Timestamp updated, ObjectId refState)
       throws ConfigInvalidException {
-    return createBuilderFrom(config, createdOn, updatedOn).setRefState(refState).build();
+    return createBuilderFrom(config, created, updated).setRefState(refState).build();
   }
 
   private static String createCommitMessage(Optional<Checker> originalChecker) {
     return originalChecker.isPresent() ? "Update checker" : "Create checker";
+  }
+
+  private static Config copyOrElseNew(Optional<Config> config) throws ConfigInvalidException {
+    return config.isPresent() ? copyConfig(config.get()) : new Config();
+  }
+
+  /**
+   * Copies the provided config.
+   *
+   * <p><strong>Note:</strong> This method only works for configs that have no base config.
+   * Unfortunately we cannot check that the provided config has no base config, so callers must take
+   * care to use this method only for configs without base config.
+   *
+   * @param config the config that should be copied
+   * @return the copy of the config
+   */
+  private static Config copyConfig(Config config) throws ConfigInvalidException {
+    Config copiedConfig = new Config();
+    copiedConfig.fromText(config.toText());
+    return copiedConfig;
   }
 }

@@ -85,14 +85,14 @@ class NoteDbChecks implements Checks {
       throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     Optional<Check> result =
-        getChecksFromNoteDb(checkKey.project(), checkKey.patchSet(), GetCheckOptions.defaults())
+        getChecksFromNoteDb(checkKey.repository(), checkKey.patchSet(), GetCheckOptions.defaults())
             .stream()
             .filter(c -> c.key().checkerUuid().equals(checkKey.checkerUuid()))
             .findAny();
 
     if (!result.isPresent() && options.backfillChecks()) {
       ChangeData changeData =
-          changeDataFactory.create(checkKey.project(), checkKey.patchSet().getParentKey());
+          changeDataFactory.create(checkKey.repository(), checkKey.patchSet().getParentKey());
       return checkBackfiller.getBackfilledCheckForRelevantChecker(
           checkKey.checkerUuid(), changeData, checkKey.patchSet());
     }
@@ -101,10 +101,10 @@ class NoteDbChecks implements Checks {
   }
 
   private ImmutableList<Check> getChecksFromNoteDb(
-      Project.NameKey projectName, PatchSet.Id psId, GetCheckOptions options)
+      Project.NameKey repositoryName, PatchSet.Id psId, GetCheckOptions options)
       throws OrmException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
-    ChangeData changeData = changeDataFactory.create(projectName, psId.getParentKey());
+    ChangeData changeData = changeDataFactory.create(repositoryName, psId.getParentKey());
     PatchSet patchSet = changeData.patchSet(psId);
     CheckNotes checkNotes = checkNotesFactory.create(changeData.change());
     checkNotes.load();
@@ -112,7 +112,7 @@ class NoteDbChecks implements Checks {
     ImmutableList<Check> existingChecks =
         checkNotes.getChecks().getOrDefault(patchSet.getRevision(), NoteDbCheckMap.empty()).checks
             .entrySet().stream()
-            .map(e -> e.getValue().toCheck(projectName, psId, CheckerUuid.parse(e.getKey())))
+            .map(e -> e.getValue().toCheck(repositoryName, psId, CheckerUuid.parse(e.getKey())))
             .collect(toImmutableList());
 
     if (!options.backfillChecks()) {
@@ -120,7 +120,7 @@ class NoteDbChecks implements Checks {
     }
 
     ImmutableList<Checker> checkersForBackfiller =
-        getCheckersForBackfiller(projectName, existingChecks);
+        getCheckersForBackfiller(repositoryName, existingChecks);
     ImmutableList<Check> backfilledChecks =
         checkBackfiller.getBackfilledChecksForRelevantCheckers(
             checkersForBackfiller, changeData, psId);

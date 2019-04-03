@@ -39,7 +39,7 @@ checker.
     "repository": "examples/Foo",
     "blocking": [],
     "description": "A simple checker.",
-    "created_on": "2019-01-31 09:59:32.126000000"
+    "created": "2019-01-31 09:59:32.126000000"
   }
 ```
 
@@ -83,8 +83,8 @@ the created checker.
     "name": "MyChecker",
     "description": "A simple checker.",
     "repository": "examples/Foo",
-    "created_on": "2019-01-31 09:59:32.126000000",
-    "updated_on": "2019-01-31 09:59:32.126000000"
+    "created": "2019-01-31 09:59:32.126000000",
+    "updated": "2019-01-31 09:59:32.126000000"
   }
 ```
 
@@ -144,8 +144,8 @@ the updated checker.
     "description": "A simple checker.",
     "repository": "examples/Foo",
     "status": "ENABLED",
-    "created_on": "2019-01-31 09:59:32.126000000",
-    "updated_on": "2019-02-01 07:23:44.158000000"
+    "created": "2019-01-31 09:59:32.126000000",
+    "updated": "2019-02-01 07:23:44.158000000"
   }
 ```
 
@@ -187,8 +187,8 @@ The `CheckerInfo` entity describes a checker.
 | `status`        |          | The status of the checker; one of `ENABLED` or `DISABLED`.
 | `blocking`      |          | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
 | `query`         | optional | A [query](#query) that limits changes for which the checker is relevant.
-| `created_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
-| `updated_on`    |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
+| `created`       |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
+| `updated`       |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
 
 ### <a id="checker-input"> CheckerInput
 The `CheckerInput` entity contains information for creating a checker.
@@ -233,8 +233,8 @@ looks up all enabled checkers matching that change's repository, then executes
 the query for each checker in sequence. Because of this algorithm, there are
 restrictions on which operators can be supported in checker queries:
 
-* Operators related to projects are not supported, since the algorithm already
-  only considers checkers with a matching repository.
+* Operators related to projects/repositories are not supported, since the
+  algorithm already only considers checkers with a matching repository.
 * Full-text operators (e.g. `message`) are not supported, since these cannot be
   efficiently evaluated sequentially.
 * Operators with an explicit or implied `self` user are not supported, since the

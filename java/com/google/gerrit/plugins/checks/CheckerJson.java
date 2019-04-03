@@ -30,8 +30,8 @@ public class CheckerJson {
     info.status = checker.getStatus();
     info.blocking = checker.getBlockingConditions();
     info.query = checker.getQuery().orElse(null);
-    info.createdOn = checker.getCreatedOn();
-    info.updatedOn = checker.getUpdatedOn();
+    info.created = checker.getCreated();
+    info.updated = checker.getUpdated();
     return info;
   }
 }

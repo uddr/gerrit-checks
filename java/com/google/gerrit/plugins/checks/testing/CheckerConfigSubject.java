@@ -34,6 +34,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.truth.OptionalSubject;
 import java.sql.Timestamp;
 import java.util.Optional;
+import org.eclipse.jgit.lib.Config;
 
 public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerConfig> {
   public static CheckerConfigSubject assertThat(CheckerConfig checkerConfig) {
@@ -84,8 +85,8 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
     check("query()").about(optionals()).that(checker().getQuery()).isEmpty();
   }
 
-  public ComparableSubject<?, Timestamp> hasCreatedOnThat() {
-    return check("createdOn()").that(checker().getCreatedOn());
+  public ComparableSubject<?, Timestamp> hasCreatedThat() {
+    return check("created()").that(checker().getCreated());
   }
 
   public ObjectIdSubject hasRefStateThat() {
@@ -94,8 +95,10 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
 
   public IterableSubject configStringList(String name) {
     isNotNull();
+    Optional<Config> checkerConfig = actual().getConfigForTesting();
+    check("configValueOf(checker.%s)", name).about(optionals()).that(checkerConfig).isPresent();
     return check("configValueOf(checker.%s)", name)
-        .that(actual().getConfigForTesting().getStringList("checker", null, name))
+        .that(checkerConfig.get().getStringList("checker", null, name))
         .asList();
   }
 

@@ -30,14 +30,30 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.restapi.config.ListCapabilities;
 import com.google.gerrit.server.restapi.config.ListCapabilities.CapabilityInfo;
+import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class GetCheckerIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
   @Inject private ListCapabilities listCapabilities;
+
+  @Before
+  public void setUp() throws Exception {
+    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
+    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
+  }
+
+  @After
+  public void resetTime() {
+    TestTimeUtil.useSystemTime();
+  }
 
   @Test
   public void getCheckerReturnsUuid() throws Exception {
@@ -141,20 +157,18 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckerReturnsCreationTimestamp() throws Exception {
+    Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    Timestamp expectedCreationTimestamp =
-        checkerOperations.checker(checkerUuid).get().getCreatedOn();
-    assertThat(getCheckerInfo(checkerUuid).createdOn).isEqualTo(expectedCreationTimestamp);
+    assertThat(getCheckerInfo(checkerUuid).created).isEqualTo(expectedCreationTimestamp);
   }
 
   @Test
   public void getCheckerReturnsUpdatedTimestamp() throws Exception {
+    Timestamp expectedUpdatedTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    Timestamp expectedUpdatedTimestamp =
-        checkerOperations.checker(checkerUuid).get().getUpdatedOn();
-    assertThat(getCheckerInfo(checkerUuid).updatedOn).isEqualTo(expectedUpdatedTimestamp);
+    assertThat(getCheckerInfo(checkerUuid).updated).isEqualTo(expectedUpdatedTimestamp);
   }
 
   @Test

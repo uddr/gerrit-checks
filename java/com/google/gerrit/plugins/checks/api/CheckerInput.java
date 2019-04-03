@@ -23,6 +23,6 @@ public class CheckerInput {
   public String url;
   public String repository;
   public CheckerStatus status;
-  public Set<BlockingCondition> blockingConditions;
+  public Set<BlockingCondition> blocking;
   public String query;
 }

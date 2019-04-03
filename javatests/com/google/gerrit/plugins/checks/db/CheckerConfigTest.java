@@ -35,10 +35,6 @@ import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.testing.GerritBaseTests;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
 import java.util.TimeZone;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepositoryDescription;
@@ -221,25 +217,13 @@ public class CheckerConfigTest extends GerritBaseTests {
   }
 
   @Test
-  public void createdOnDefaultsToNow() throws Exception {
+  public void createdDefaultsToNow() throws Exception {
     // Git timestamps are only precise to the second.
     Timestamp testStart = TimeUtil.truncateToSecond(TimeUtil.nowTs());
 
     createArbitraryChecker(checkerUuid);
     CheckerConfig checkerConfig = loadChecker(checkerUuid);
-    assertThat(checkerConfig).hasCreatedOnThat().isAtLeast(testStart);
-  }
-
-  @Test
-  public void specifiedCreatedOnIsRespectedForNewChecker() throws Exception {
-    Timestamp createdOn = toTimestamp(LocalDate.of(2017, Month.DECEMBER, 11).atTime(13, 44, 10));
-
-    CheckerCreation checkerCreation = getPrefilledCheckerCreationBuilder().build();
-    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setUpdatedOn(createdOn).build();
-    createChecker(checkerCreation, checkerUpdate);
-
-    CheckerConfig checkerConfig = loadChecker(checkerCreation.getCheckerUuid());
-    assertThat(checkerConfig).hasCreatedOnThat().isEqualTo(createdOn);
+    assertThat(checkerConfig).hasCreatedThat().isAtLeast(testStart);
   }
 
   @Test
@@ -508,6 +492,24 @@ public class CheckerConfigTest extends GerritBaseTests {
     assertThat(updatedChecker).hasRefStateThat().isEqualTo(expectedRefStateAfterUpdate);
   }
 
+  @Test
+  public void noNewCommitOnNoOpUpdate() throws Exception {
+    CheckerCreation checkerCreation =
+        getPrefilledCheckerCreationBuilder().setCheckerUuid(checkerUuid).build();
+    createChecker(checkerCreation);
+    ObjectId refState = getCheckerRefState(checkerUuid);
+
+    // Setting a description updates the ref.
+    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setDescription("A description.").build();
+    updateChecker(checkerUuid, checkerUpdate);
+    ObjectId refState2 = getCheckerRefState(checkerUuid);
+    assertThat(refState2).isNotEqualTo(refState);
+
+    // Setting the same description again is a no-op and the ref is not updated.
+    updateChecker(checkerUuid, checkerUpdate);
+    assertThat(getCheckerRefState(checkerUuid)).isEqualTo(refState2);
+  }
+
   private CheckerConfig createArbitraryChecker(CheckerUuid checkerUuid) throws Exception {
     CheckerCreation checkerCreation =
         getPrefilledCheckerCreationBuilder().setCheckerUuid(checkerUuid).build();
@@ -584,9 +586,5 @@ public class CheckerConfigTest extends GerritBaseTests {
       RevCommit commit = rw.parseCommit(getCheckerRefState(checkerUuid));
       return assertThat(commit.getFullMessage()).named("commit message");
     }
-  }
-
-  private static Timestamp toTimestamp(LocalDateTime localDateTime) {
-    return Timestamp.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
   }
 }

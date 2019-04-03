@@ -119,14 +119,14 @@ public abstract class Checker {
    *
    * @return the creation timestamp
    */
-  public abstract Timestamp getCreatedOn();
+  public abstract Timestamp getCreated();
 
   /**
    * Returns the timestamp of when the checker was last updated.
    *
    * @return the last updated timestamp
    */
-  public abstract Timestamp getUpdatedOn();
+  public abstract Timestamp getUpdated();
 
   /**
    * Returns the ref state of the checker.
@@ -269,9 +269,9 @@ public abstract class Checker {
 
     public abstract Builder setQuery(String query);
 
-    public abstract Builder setCreatedOn(Timestamp createdOn);
+    public abstract Builder setCreated(Timestamp created);
 
-    public abstract Builder setUpdatedOn(Timestamp updatedOn);
+    public abstract Builder setUpdated(Timestamp updated);
 
     public abstract Builder setRefState(ObjectId refState);
 
