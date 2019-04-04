@@ -20,7 +20,9 @@ import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.acceptance.PushOneCommit;
+import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
 import com.google.gerrit.acceptance.rest.util.RestCall.Method;
@@ -41,6 +43,7 @@ import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.testing.TestTimeUtil;
+import com.google.gson.reflect.TypeToken;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
@@ -78,8 +81,62 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
 
-    assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get())
+    assertThat(getCheckInfo(patchSetId, checkerUuid))
         .isEqualTo(checkOperations.check(checkKey).asInfo());
+  }
+
+  @Test
+  public void getCheckWithOptions() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).name("My Checker").create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo expectedCheckInfo = checkOperations.check(checkKey).asInfo();
+    expectedCheckInfo.repository = project.get();
+    expectedCheckInfo.checkerName = "My Checker";
+    expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
+    expectedCheckInfo.blocking = ImmutableSortedSet.of();
+
+    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER))
+        .isEqualTo(expectedCheckInfo);
+  }
+
+  @Test
+  public void getCheckWithOptionsViaRest() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).name("My Checker").create();
+
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+
+    CheckInfo expectedCheckInfo = checkOperations.check(checkKey).asInfo();
+    expectedCheckInfo.repository = project.get();
+    expectedCheckInfo.checkerName = "My Checker";
+    expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
+    expectedCheckInfo.blocking = ImmutableSortedSet.of();
+
+    RestResponse r =
+        adminRestSession.get(
+            String.format(
+                "/changes/%s/revisions/%s/checks~checks/%s?o=CHECKER",
+                patchSetId.getParentKey().get(), patchSetId.get(), checkerUuid.get()));
+    r.assertOK();
+    CheckInfo checkInfo =
+        newGson().fromJson(r.getReader(), new TypeToken<CheckInfo>() {}.getType());
+    r.consume();
+    assertThat(checkInfo).isEqualTo(expectedCheckInfo);
+
+    r =
+        adminRestSession.get(
+            String.format(
+                "/changes/%s/revisions/%s/checks~checks/%s?O=1",
+                patchSetId.getParentKey().get(), patchSetId.get(), checkerUuid.get()));
+    r.assertOK();
+    checkInfo = newGson().fromJson(r.getReader(), new TypeToken<CheckInfo>() {}.getType());
+    r.consume();
+    assertThat(checkInfo).isEqualTo(expectedCheckInfo);
   }
 
   @Test

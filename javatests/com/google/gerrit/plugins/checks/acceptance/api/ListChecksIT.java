@@ -21,6 +21,7 @@ import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVI
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.PushOneCommit;
+import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -33,9 +34,9 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Before;
@@ -65,27 +66,9 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
     checkOperations.newCheck(checkKey2).setState(CheckState.FAILED).upsert();
 
-    Collection<CheckInfo> checks = checksApiFactory.revision(patchSetId).list();
-
-    CheckInfo expected1 = new CheckInfo();
-    expected1.repository = project.get();
-    expected1.changeNumber = patchSetId.getParentKey().get();
-    expected1.patchSetId = patchSetId.get();
-    expected1.checkerUuid = checkerUuid1.get();
-    expected1.state = CheckState.RUNNING;
-    expected1.created = checkOperations.check(checkKey1).get().created();
-    expected1.updated = expected1.created;
-
-    CheckInfo expected2 = new CheckInfo();
-    expected2.repository = project.get();
-    expected2.changeNumber = patchSetId.getParentKey().get();
-    expected2.patchSetId = patchSetId.get();
-    expected2.checkerUuid = checkerUuid2.get();
-    expected2.state = CheckState.FAILED;
-    expected2.created = checkOperations.check(checkKey2).get().created();
-    expected2.updated = expected2.created;
-
-    assertThat(checks).containsExactly(expected1, expected2);
+    assertThat(checksApiFactory.revision(patchSetId).list())
+        .containsExactly(
+            checkOperations.check(checkKey1).asInfo(), checkOperations.check(checkKey2).asInfo());
   }
 
   @Test
@@ -101,33 +84,65 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
     checkOperations.newCheck(checkKey2).setState(CheckState.FAILED).upsert();
 
-    Collection<CheckInfo> checks =
-        checksApiFactory.revision(patchSetId).list(ListChecksOption.CHECKER);
+    CheckInfo expectedCheckInfo1 = checkOperations.check(checkKey1).asInfo();
+    expectedCheckInfo1.repository = project.get();
+    expectedCheckInfo1.checkerName = checkerName1;
+    expectedCheckInfo1.blocking = ImmutableSet.of();
+    expectedCheckInfo1.checkerStatus = CheckerStatus.ENABLED;
 
-    CheckInfo expected1 = new CheckInfo();
-    expected1.repository = project.get();
-    expected1.changeNumber = patchSetId.getParentKey().get();
-    expected1.patchSetId = patchSetId.get();
-    expected1.checkerUuid = checkerUuid1.get();
-    expected1.state = CheckState.RUNNING;
-    expected1.created = checkOperations.check(checkKey1).get().created();
-    expected1.updated = expected1.created;
-    expected1.checkerName = checkerName1;
-    expected1.blocking = ImmutableSet.of();
-    expected1.checkerStatus = CheckerStatus.ENABLED;
+    CheckInfo expectedCheckInfo2 = checkOperations.check(checkKey2).asInfo();
+    expectedCheckInfo2.repository = project.get();
+    expectedCheckInfo2.blocking = ImmutableSet.of();
+    expectedCheckInfo2.checkerStatus = CheckerStatus.ENABLED;
 
-    CheckInfo expected2 = new CheckInfo();
-    expected2.repository = project.get();
-    expected2.changeNumber = patchSetId.getParentKey().get();
-    expected2.patchSetId = patchSetId.get();
-    expected2.checkerUuid = checkerUuid2.get();
-    expected2.state = CheckState.FAILED;
-    expected2.created = checkOperations.check(checkKey2).get().created();
-    expected2.updated = expected2.created;
-    expected2.blocking = ImmutableSet.of();
-    expected2.checkerStatus = CheckerStatus.ENABLED;
+    assertThat(checksApiFactory.revision(patchSetId).list(ListChecksOption.CHECKER))
+        .containsExactly(expectedCheckInfo1, expectedCheckInfo2);
+  }
 
-    assertThat(checks).containsExactly(expected1, expected2);
+  @Test
+  public void listAllWithOptionsViaRest() throws Exception {
+    String checkerName1 = "Checker One";
+    CheckerUuid checkerUuid1 =
+        checkerOperations.newChecker().name(checkerName1).repository(project).create();
+    CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
+
+    CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
+    checkOperations.newCheck(checkKey1).setState(CheckState.RUNNING).upsert();
+
+    CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
+    checkOperations.newCheck(checkKey2).setState(CheckState.FAILED).upsert();
+
+    CheckInfo expectedCheckInfo1 = checkOperations.check(checkKey1).asInfo();
+    expectedCheckInfo1.repository = project.get();
+    expectedCheckInfo1.checkerName = checkerName1;
+    expectedCheckInfo1.blocking = ImmutableSet.of();
+    expectedCheckInfo1.checkerStatus = CheckerStatus.ENABLED;
+
+    CheckInfo expectedCheckInfo2 = checkOperations.check(checkKey2).asInfo();
+    expectedCheckInfo2.repository = project.get();
+    expectedCheckInfo2.blocking = ImmutableSet.of();
+    expectedCheckInfo2.checkerStatus = CheckerStatus.ENABLED;
+
+    RestResponse r =
+        adminRestSession.get(
+            String.format(
+                "/changes/%s/revisions/%s/checks~checks/?o=CHECKER",
+                patchSetId.getParentKey().get(), patchSetId.get()));
+    r.assertOK();
+    List<CheckInfo> checkInfos =
+        newGson().fromJson(r.getReader(), new TypeToken<List<CheckInfo>>() {}.getType());
+    r.consume();
+    assertThat(checkInfos).containsExactly(expectedCheckInfo1, expectedCheckInfo2);
+
+    r =
+        adminRestSession.get(
+            String.format(
+                "/changes/%s/revisions/%s/checks~checks/?O=1",
+                patchSetId.getParentKey().get(), patchSetId.get()));
+    r.assertOK();
+    checkInfos = newGson().fromJson(r.getReader(), new TypeToken<List<CheckInfo>>() {}.getType());
+    r.consume();
+    assertThat(checkInfos).containsExactly(expectedCheckInfo1, expectedCheckInfo2);
   }
 
   @Test
