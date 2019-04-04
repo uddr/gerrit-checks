@@ -26,6 +26,7 @@ import org.junit.Test;
 public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
   private static final ImmutableList<RestCall> ROOT_ENDPOINTS =
       ImmutableList.of(
+          RestCall.get("/plugins/checks/checkers/"),
           RestCall.post("/plugins/checks/checkers/"),
           RestCall.get("/plugins/checks/checks.pending/"));
 
