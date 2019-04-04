@@ -111,17 +111,30 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void canSpecifyCheckersAsRootPredicate() throws Exception {
+  public void canSpecifyCheckerAsRootPredicate() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     assertThat(queryPendingChecks(String.format("checker:\"%s\"", checkerUuid))).hasSize(1);
   }
 
   @Test
-  public void canSpecifyCheckersInAndCondition() throws Exception {
+  public void canSpecifyCheckerInAndCondition() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     assertThat(
             queryPendingChecks(String.format("checker:\"%s\" AND state:NOT_STARTED", checkerUuid)))
         .hasSize(1);
+  }
+
+  @Test
+  public void cannotSpecifyCheckerInAndConditionIfNotImmediateChild() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    String expectedMessage =
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>'";
+    assertInvalidQuery(
+        String.format("state:NOT_STARTED AND (checker:\"%s\" OR state:NOT_STARTED)", checkerUuid),
+        expectedMessage);
+    assertInvalidQuery(
+        String.format("state:NOT_STARTED AND NOT checker:\"%s\"", checkerUuid), expectedMessage);
   }
 
   @Test
@@ -146,7 +159,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotSpecifyCheckersInOrCondition() throws Exception {
+  public void cannotSpecifyCheckerInOrCondition() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     String expectedMessage =
@@ -158,7 +171,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotSpecifyCheckersInNotCondition() throws Exception {
+  public void cannotSpecifyCheckerInNotCondition() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     assertInvalidQuery(
         String.format("NOT checker:\"%s\"", checkerUuid),
