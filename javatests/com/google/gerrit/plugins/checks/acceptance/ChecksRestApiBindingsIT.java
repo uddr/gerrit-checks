@@ -14,9 +14,12 @@
 
 package com.google.gerrit.plugins.checks.acceptance;
 
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
+import com.google.gerrit.acceptance.rest.util.RestCall.Method;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
@@ -28,7 +31,10 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
       ImmutableList.of(
           RestCall.get("/plugins/checks/checkers/"),
           RestCall.post("/plugins/checks/checkers/"),
-          RestCall.get("/plugins/checks/checks.pending/"));
+          RestCall.get("/plugins/checks/checks.pending/"),
+          RestCall.builder(Method.GET, "/plugins/checks/checks.pending/not-found")
+              .expectedResponseCode(SC_NOT_FOUND)
+              .build());
 
   private static final ImmutableList<RestCall> CHECKER_ENDPOINTS =
       ImmutableList.of(
