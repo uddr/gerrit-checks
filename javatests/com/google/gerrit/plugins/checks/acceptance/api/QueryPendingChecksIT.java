@@ -519,6 +519,26 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void queryPendingChecksAnonymouslyWorks() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .setState(CheckState.NOT_STARTED)
+        .upsert();
+
+    requestScopeOperations.setApiUserAnonymous();
+    List<PendingChecksInfo> pendingChecksList =
+        queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
+    assertThat(pendingChecksList).hasSize(1);
+    PendingChecksInfo pendingChecks = Iterables.getOnlyElement(pendingChecksList);
+    assertThat(pendingChecks).hasRepository(project);
+    assertThat(pendingChecks).hasPatchSet(patchSetId);
+    assertThat(pendingChecks)
+        .hasPendingChecksMapThat()
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
+  }
+
+  @Test
   public void pendingChecksDontIncludeChecksForNonVisibleChanges() throws Exception {
     // restrict project visibility so that it is only visible to administrators
     try (ProjectConfigUpdate u = updateProject(project)) {

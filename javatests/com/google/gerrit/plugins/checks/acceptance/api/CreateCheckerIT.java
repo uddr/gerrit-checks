@@ -430,4 +430,17 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     exception.expectMessage("administrateCheckers for plugin checks not permitted");
     checkersApi.create(input);
   }
+
+  @Test
+  public void createCheckerAnonymouslyFails() throws Exception {
+    requestScopeOperations.setApiUserAnonymous();
+
+    CheckerInput input = new CheckerInput();
+    input.uuid = "test:my-checker";
+    input.repository = allProjects.get();
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("Authentication required");
+    checkersApi.create(input);
+  }
 }

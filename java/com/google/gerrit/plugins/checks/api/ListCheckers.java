@@ -16,21 +16,25 @@ package com.google.gerrit.plugins.checks.api;
 
 import static java.util.stream.Collectors.toList;
 
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
 import com.google.gerrit.plugins.checks.AdministrateCheckersPermission;
 import com.google.gerrit.plugins.checks.CheckerJson;
 import com.google.gerrit.plugins.checks.Checkers;
+import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.List;
 
 @Singleton
 public class ListCheckers implements RestReadView<TopLevelResource> {
+  private final Provider<CurrentUser> self;
   private final PermissionBackend permissionBackend;
   private final Checkers checkers;
   private final CheckerJson checkerJson;
@@ -38,10 +42,12 @@ public class ListCheckers implements RestReadView<TopLevelResource> {
 
   @Inject
   public ListCheckers(
+      Provider<CurrentUser> self,
       PermissionBackend permissionBackend,
       Checkers checkers,
       CheckerJson checkerJson,
       AdministrateCheckersPermission permission) {
+    this.self = self;
     this.permissionBackend = permissionBackend;
     this.checkers = checkers;
     this.checkerJson = checkerJson;
@@ -51,6 +57,9 @@ public class ListCheckers implements RestReadView<TopLevelResource> {
   @Override
   public List<CheckerInfo> apply(TopLevelResource resource)
       throws RestApiException, PermissionBackendException, IOException {
+    if (!self.get().isIdentifiedUser()) {
+      throw new AuthException("Authentication required");
+    }
     permissionBackend.currentUser().check(permission);
 
     return checkers.listCheckers().stream().map(checkerJson::format).collect(toList());

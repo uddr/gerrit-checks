@@ -441,6 +441,16 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void getCheckAnonymously() throws Exception {
+    requestScopeOperations.setApiUserAnonymous();
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
+
+    assertThat(getCheckInfo(patchSetId, checkerUuid)).isNotNull();
+  }
+
+  @Test
   public void checkForDeletedChangeDoesNotExist() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);

@@ -551,4 +551,18 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     exception.expectMessage("administrateCheckers for plugin checks not permitted");
     checkersApi.id(checkerUuid).update(input);
   }
+
+  @Test
+  public void updateCheckerAnonymouslyFails() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    requestScopeOperations.setApiUserAnonymous();
+
+    CheckerInput input = new CheckerInput();
+    input.name = "my-renamed-checker";
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("Authentication required");
+    checkersApi.id(checkerUuid).update(input);
+  }
 }

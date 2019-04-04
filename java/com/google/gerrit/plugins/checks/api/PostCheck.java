@@ -14,6 +14,7 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
@@ -29,6 +30,7 @@ import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
 import com.google.gerrit.plugins.checks.UrlValidator;
+import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.permissions.PermissionBackend;
@@ -44,6 +46,7 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 @Singleton
 public class PostCheck
     implements RestCollectionModifyView<RevisionResource, CheckResource, CheckInput> {
+  private final Provider<CurrentUser> self;
   private final PermissionBackend permissionBackend;
   private final AdministrateCheckersPermission permission;
   private final Checkers checkers;
@@ -53,12 +56,14 @@ public class PostCheck
 
   @Inject
   PostCheck(
+      Provider<CurrentUser> self,
       PermissionBackend permissionBackend,
       AdministrateCheckersPermission permission,
       Checkers checkers,
       Checks checks,
       @UserInitiated Provider<ChecksUpdate> checksUpdate,
       CheckJson.Factory checkJsonFactory) {
+    this.self = self;
     this.permissionBackend = permissionBackend;
     this.permission = permission;
     this.checkers = checkers;
@@ -81,6 +86,9 @@ public class PostCheck
       throw new BadRequestException(String.format("invalid checker UUID: %s", input.checkerUuid));
     }
 
+    if (!self.get().isIdentifiedUser()) {
+      throw new AuthException("Authentication required");
+    }
     permissionBackend.currentUser().check(permission);
 
     CheckerUuid checkerUuid = CheckerUuid.parse(input.checkerUuid);

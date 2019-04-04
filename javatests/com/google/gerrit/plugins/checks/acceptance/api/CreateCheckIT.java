@@ -315,6 +315,21 @@ public class CreateCheckIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input);
   }
 
+  @Test
+  public void cannotCreateCheckAnonymously() throws Exception {
+    requestScopeOperations.setApiUserAnonymous();
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.state = CheckState.RUNNING;
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("Authentication required");
+    checksApiFactory.revision(patchSetId).create(input);
+  }
+
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave
 
   private Check getCheck(Project.NameKey project, PatchSet.Id patchSetId, CheckerUuid checkerUuid)

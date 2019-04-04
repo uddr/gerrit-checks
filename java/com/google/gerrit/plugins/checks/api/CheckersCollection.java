@@ -25,7 +25,6 @@ import com.google.gerrit.extensions.restapi.TopLevelResource;
 import com.google.gerrit.plugins.checks.AdministrateCheckersPermission;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.Checkers;
-import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
@@ -69,13 +68,9 @@ public class CheckersCollection implements RestCollection<TopLevelResource, Chec
   public CheckerResource parse(TopLevelResource parent, IdString id)
       throws AuthException, ResourceNotFoundException, PermissionBackendException, IOException,
           ConfigInvalidException {
-    CurrentUser user = self.get();
-    if (user instanceof AnonymousUser) {
+    if (!self.get().isIdentifiedUser()) {
       throw new AuthException("Authentication required");
-    } else if (!(user.isIdentifiedUser())) {
-      throw new ResourceNotFoundException(id);
     }
-
     permissionBackend.currentUser().check(permission);
 
     Checker checker =

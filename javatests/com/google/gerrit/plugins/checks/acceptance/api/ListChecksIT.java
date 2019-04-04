@@ -21,6 +21,7 @@ import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVI
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.PushOneCommit;
+import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -32,6 +33,7 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -40,6 +42,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ListChecksIT extends AbstractCheckersTest {
+  @Inject private RequestScopeOperations requestScopeOperations;
+
   private String changeId;
   private PatchSet.Id patchSetId;
 
@@ -286,6 +290,26 @@ public class ListChecksIT extends AbstractCheckersTest {
 
     assertThat(checksApiFactory.revision(patchSetId).list()).isEmpty();
     assertThat(checksApiFactory.revision(currentPatchSet).list()).hasSize(1);
+  }
+
+  @Test
+  public void listAllWithoutAdministrateCheckers() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
+
+    requestScopeOperations.setApiUser(user.getId());
+
+    assertThat(checksApiFactory.revision(patchSetId).list()).hasSize(1);
+  }
+
+  @Test
+  public void listAllAnonymously() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
+
+    requestScopeOperations.setApiUserAnonymous();
+
+    assertThat(checksApiFactory.revision(patchSetId).list()).hasSize(1);
   }
 
   private Timestamp getPatchSetCreated(Change.Id changeId) throws RestApiException {

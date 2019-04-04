@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
@@ -34,6 +35,7 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.plugins.checks.UrlValidator;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
@@ -49,6 +51,7 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 @Singleton
 public class CreateChecker
     implements RestCollectionModifyView<TopLevelResource, CheckerResource, CheckerInput> {
+  private final Provider<CurrentUser> self;
   private final PermissionBackend permissionBackend;
   private final Provider<CheckersUpdate> checkersUpdate;
   private final CheckerJson checkerJson;
@@ -57,11 +60,13 @@ public class CreateChecker
 
   @Inject
   public CreateChecker(
+      Provider<CurrentUser> self,
       PermissionBackend permissionBackend,
       @UserInitiated Provider<CheckersUpdate> checkersUpdate,
       CheckerJson checkerJson,
       AdministrateCheckersPermission permission,
       ProjectCache projectCache) {
+    this.self = self;
     this.permissionBackend = permissionBackend;
     this.checkersUpdate = checkersUpdate;
     this.checkerJson = checkerJson;
@@ -72,6 +77,9 @@ public class CreateChecker
   @Override
   public Response<CheckerInfo> apply(TopLevelResource parentResource, CheckerInput input)
       throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException {
+    if (!self.get().isIdentifiedUser()) {
+      throw new AuthException("Authentication required");
+    }
     permissionBackend.currentUser().check(permission);
 
     if (input == null) {

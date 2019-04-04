@@ -234,6 +234,18 @@ public class GetCheckerIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void getCheckerAnonymouslyFails() throws Exception {
+    String name = "my-checker";
+    CheckerUuid checkerUuid = checkerOperations.newChecker().name(name).create();
+
+    requestScopeOperations.setApiUserAnonymous();
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("Authentication required");
+    getCheckerInfo(checkerUuid);
+  }
+
+  @Test
   public void administrateCheckersCapabilityIsAdvertised() throws Exception {
     Map<String, CapabilityInfo> capabilities = listCapabilities.apply(new ConfigResource());
     String capability = "checks-administrateCheckers";

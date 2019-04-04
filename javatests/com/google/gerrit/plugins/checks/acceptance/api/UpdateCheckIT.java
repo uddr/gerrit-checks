@@ -258,6 +258,15 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void cannotUpdateCheckAnonymously() throws Exception {
+    requestScopeOperations.setApiUserAnonymous();
+
+    exception.expect(AuthException.class);
+    exception.expectMessage("Authentication required");
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
+  }
+
+  @Test
   public void otherPropertiesCanBeSetWithoutEverSettingTheState() throws Exception {
     // Create a new checker so that we know for sure that no other update ever happened for it.
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
