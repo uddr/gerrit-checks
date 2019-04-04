@@ -18,8 +18,12 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.gerrit.acceptance.PushOneCommit;
+import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
+import com.google.gerrit.acceptance.rest.util.RestCall;
+import com.google.gerrit.acceptance.rest.util.RestCall.Method;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -411,6 +415,19 @@ public class GetCheckIT extends AbstractCheckersTest {
     exception.expect(BadRequestException.class);
     exception.expectMessage("invalid checker UUID: " + CheckerTestData.INVALID_UUID);
     checksApiFactory.revision(patchSetId).id(CheckerTestData.INVALID_UUID);
+  }
+
+  @Test
+  public void getCheckForInvalidCheckerUuidViaRest() throws Exception {
+    RestApiCallHelper.execute(
+        adminRestSession,
+        RestCall.builder(Method.GET, "/changes/%s/revisions/%s/checks~checks/%s")
+            .expectedResponseCode(SC_BAD_REQUEST)
+            .expectedMessage("invalid checker UUID: " + CheckerTestData.INVALID_UUID)
+            .build(),
+        Integer.toString(patchSetId.getParentKey().get()),
+        Integer.toString(patchSetId.get()),
+        CheckerTestData.INVALID_UUID);
   }
 
   @Test
