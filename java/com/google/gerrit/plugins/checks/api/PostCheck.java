@@ -76,6 +76,11 @@ public class PostCheck
   public CheckInfo apply(RevisionResource rsrc, CheckInput input)
       throws OrmException, IOException, RestApiException, PermissionBackendException,
           ConfigInvalidException {
+    if (!self.get().isIdentifiedUser()) {
+      throw new AuthException("Authentication required");
+    }
+    permissionBackend.currentUser().check(permission);
+
     if (input == null) {
       input = new CheckInput();
     }
@@ -85,11 +90,6 @@ public class PostCheck
     if (!CheckerUuid.isUuid(input.checkerUuid)) {
       throw new BadRequestException(String.format("invalid checker UUID: %s", input.checkerUuid));
     }
-
-    if (!self.get().isIdentifiedUser()) {
-      throw new AuthException("Authentication required");
-    }
-    permissionBackend.currentUser().check(permission);
 
     CheckerUuid checkerUuid = CheckerUuid.parse(input.checkerUuid);
 
