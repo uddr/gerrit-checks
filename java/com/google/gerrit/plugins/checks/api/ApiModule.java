@@ -22,7 +22,6 @@ import static com.google.gerrit.server.change.RevisionResource.REVISION_KIND;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
-import com.google.gerrit.plugins.checks.PostCheck;
 import com.google.inject.AbstractModule;
 
 // TODO(gerrit-team): This should move into HttpModule, but a core bug prevents the bindings from
