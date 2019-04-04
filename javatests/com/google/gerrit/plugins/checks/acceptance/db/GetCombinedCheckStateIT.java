@@ -20,6 +20,7 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckState;
@@ -61,6 +62,16 @@ public class GetCombinedCheckStateIT extends AbstractCheckersTest {
   @Test
   public void returnsWarningForFailedCheckWhoseCheckerIsNotRelevant() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().query("status:merged").create();
+    setCheckState(checkerUuid, CheckState.FAILED);
+
+    CombinedCheckState combinedCheckState = checks.getCombinedCheckState(project, patchSetId);
+
+    assertThat(combinedCheckState).isEqualTo(CombinedCheckState.WARNING);
+  }
+
+  @Test
+  public void returnsWarningForFailedCheckWhoseCheckerHasInvalidQuery() throws Exception {
+    CheckerUuid checkerUuid = newRequiredChecker().query(CheckerTestData.INVALID_QUERY).create();
     setCheckState(checkerUuid, CheckState.FAILED);
 
     CombinedCheckState combinedCheckState = checks.getCombinedCheckState(project, patchSetId);
