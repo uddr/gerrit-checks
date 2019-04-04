@@ -141,10 +141,6 @@ public abstract class Checker {
     return new AutoValue_Checker.Builder();
   }
 
-  public static Builder builder(CheckerUuid uuid) {
-    return builder().setUuid(uuid);
-  }
-
   public boolean isDisabled() {
     return CheckerStatus.DISABLED == getStatus();
   }
