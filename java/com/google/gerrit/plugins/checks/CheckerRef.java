@@ -40,4 +40,6 @@ public class CheckerRef {
   public static boolean isRefsCheckers(String ref) {
     return ref.startsWith(REFS_CHECKERS);
   }
+
+  private CheckerRef() {}
 }
