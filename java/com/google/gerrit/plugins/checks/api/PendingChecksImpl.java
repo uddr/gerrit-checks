@@ -18,32 +18,37 @@ import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
 
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
-import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Singleton
 public class PendingChecksImpl implements PendingChecks {
-  private final Provider<ListPendingChecks> listPendingChecksProvider;
+  private final Provider<QueryPendingChecks> queryPendingChecksProvider;
 
   @Inject
-  PendingChecksImpl(Provider<ListPendingChecks> listPendingChecksProvider) {
-    this.listPendingChecksProvider = listPendingChecksProvider;
+  PendingChecksImpl(Provider<QueryPendingChecks> queryPendingChecksProvider) {
+    this.queryPendingChecksProvider = queryPendingChecksProvider;
   }
 
   @Override
-  public List<PendingChecksInfo> list(CheckerUuid checkerUuid, CheckState... checkStates)
-      throws RestApiException {
+  public QueryRequest query() {
+    return new QueryRequest() {
+      @Override
+      public List<PendingChecksInfo> get() throws RestApiException {
+        return PendingChecksImpl.this.query(this);
+      }
+    };
+  }
+
+  private List<PendingChecksInfo> query(QueryRequest queryRequest) throws RestApiException {
     try {
-      ListPendingChecks listPendingChecks = listPendingChecksProvider.get();
-      listPendingChecks.setChecker(checkerUuid);
-      Stream.of(checkStates).forEach(listPendingChecks::addState);
-      return listPendingChecks.apply(TopLevelResource.INSTANCE);
+      QueryPendingChecks queryPendingChecks = queryPendingChecksProvider.get();
+      queryPendingChecks.setQuery(queryRequest.getQuery());
+      return queryPendingChecks.apply(TopLevelResource.INSTANCE);
     } catch (Exception e) {
-      throw asRestApiException("Cannot list pending checks", e);
+      throw asRestApiException("Cannot query pending checks", e);
     }
   }
 }

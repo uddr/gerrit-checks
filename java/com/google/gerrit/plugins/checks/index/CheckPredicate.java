@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.gerrit.plugins.checks;
+package com.google.gerrit.plugins.checks.index;
 
-/** Indicates the checker does not exist. */
-public class NoSuchCheckerException extends Exception {
-  private static final long serialVersionUID = 1L;
+import com.google.gerrit.index.query.Matchable;
+import com.google.gerrit.index.query.OperatorPredicate;
+import com.google.gerrit.plugins.checks.Check;
 
-  public static final String MESSAGE = "Checker Not Found: ";
+public abstract class CheckPredicate extends OperatorPredicate<Check> implements Matchable<Check> {
+  protected CheckPredicate(String name, String value) {
+    super(name, value);
+  }
 
-  public NoSuchCheckerException(CheckerUuid uuid) {
-    super(MESSAGE + uuid.get());
+  @Override
+  public int getCost() {
+    return 0;
   }
 }

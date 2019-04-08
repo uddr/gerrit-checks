@@ -22,12 +22,15 @@ import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
 import com.google.gerrit.common.data.Permission;
+import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
+import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.change.ChangeInserter;
 import com.google.gerrit.server.notedb.Sequences;
 import com.google.gerrit.server.update.BatchUpdate;
@@ -68,6 +71,23 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void canCreateCheckerLikeRef() throws Exception {
+    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.CREATE);
+    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+
+    String checkerRef = CheckerUuid.parse("test:my-checker").toRefName();
+
+    // checker ref can be created in any project except All-Projects
+    TestRepository<InMemoryRepository> testRepo = cloneProject(project);
+    PushOneCommit.Result r = pushFactory.create(admin.getIdent(), testRepo).to(checkerRef);
+    r.assertOkStatus();
+
+    try (Repository repo = repoManager.openRepository(project)) {
+      assertThat(repo.exactRef(checkerRef)).isNotNull();
+    }
+  }
+
+  @Test
   public void cannotDeleteCheckerRef() throws Exception {
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.DELETE, true, REGISTERED_USERS);
 
@@ -82,6 +102,26 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
     try (Repository repo = repoManager.openRepository(allProjects)) {
       assertThat(repo.exactRef(checkerRef)).isNotNull();
+    }
+  }
+
+  @Test
+  public void canDeleteCheckerLikeRef() throws Exception {
+    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.DELETE, true, REGISTERED_USERS);
+
+    String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
+
+    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    createBranch(new Branch.NameKey(project, checkerRef));
+
+    // checker ref can be deleted in any project except All-Projects
+    TestRepository<InMemoryRepository> testRepo = cloneProject(project);
+    PushResult r = deleteRef(testRepo, checkerRef);
+    RemoteRefUpdate refUpdate = r.getRemoteUpdate(checkerRef);
+    assertThat(refUpdate.getStatus()).isEqualTo(RemoteRefUpdate.Status.OK);
+
+    try (Repository repo = repoManager.openRepository(project)) {
+      assertThat(repo.exactRef(checkerRef)).isNull();
     }
   }
 
@@ -101,11 +141,27 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void updateCheckerLikeRefByPush() throws Exception {
+    String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
+
+    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    createBranch(new Branch.NameKey(project, checkerRef));
+
+    TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
+    fetch(repo, checkerRef + ":checkerRef");
+    repo.reset("checkerRef");
+
+    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    PushOneCommit.Result r = pushFactory.create(admin.getIdent(), repo).to(checkerRef);
+    r.assertOkStatus();
+  }
+
+  @Test
   public void submitToCheckerRefsIsDisabled() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().status(CheckerStatus.DISABLED).create();
     String checkerRef = checkerUuid.toRefName();
-    String changeId = createChangeWithoutCommitValidation(checkerRef);
+    String changeId = createChangeWithoutCommitValidation(allProjects, checkerRef);
 
     grantLabel(
         "Code-Review",
@@ -126,6 +182,34 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void submitToCheckerLikeRef() throws Exception {
+    String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
+
+    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    createBranch(new Branch.NameKey(project, checkerRef));
+
+    String changeId = createChangeWithoutCommitValidation(project, checkerRef);
+
+    grantLabel(
+        "Code-Review",
+        -2,
+        2,
+        project,
+        CheckerRef.REFS_CHECKERS + "*",
+        false,
+        adminGroupUuid(),
+        false);
+    approve(changeId);
+
+    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.SUBMIT);
+
+    // submitting to a checker ref should work in any project except All-Projects
+    gApi.changes().id(changeId).current().submit();
+
+    assertThat(gApi.changes().id(changeId).get().status).isEqualTo(ChangeStatus.MERGED);
+  }
+
+  @Test
   public void createChangeForCheckerRefsByPushIsDisabled() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     String checkerRef = checkerUuid.toRefName();
@@ -139,6 +223,24 @@ public class CheckerRefsIT extends AbstractCheckersTest {
         pushFactory.create(admin.getIdent(), repo).to("refs/for/" + checkerRef);
     r.assertErrorStatus();
     r.assertMessage("creating change for checker ref not allowed");
+  }
+
+  @Test
+  public void createChangeForCheckerLikeRefByPush() throws Exception {
+    String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
+
+    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    createBranch(new Branch.NameKey(project, checkerRef));
+
+    TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
+    fetch(repo, checkerRef + ":checkerRef");
+    repo.reset("checkerRef");
+
+    // creating a change on a checker ref by push should work in any project except All-Projects
+    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    PushOneCommit.Result r =
+        pushFactory.create(admin.getIdent(), repo).to("refs/for/" + checkerRef);
+    r.assertOkStatus();
   }
 
   @Test
@@ -162,8 +264,30 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     gApi.changes().create(input);
   }
 
-  private String createChangeWithoutCommitValidation(String targetRef) throws Exception {
-    try (Repository git = repoManager.openRepository(allProjects);
+  @Test
+  public void createChangeForCheckerLikeRefViaApi() throws Exception {
+    String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
+
+    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    createBranch(new Branch.NameKey(project, checkerRef));
+
+    TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
+    fetch(repo, checkerRef + ":checkerRef");
+    repo.reset("checkerRef");
+    RevCommit head = getHead(repo.getRepository(), "HEAD");
+
+    // creating a change on a checker ref via API should work in any project except All-Projects
+    ChangeInput input = new ChangeInput();
+    input.project = project.get();
+    input.branch = checkerRef;
+    input.baseCommit = head.name();
+    input.subject = "A change.";
+    assertThat(gApi.changes().create(input).get()).isNotNull();
+  }
+
+  private String createChangeWithoutCommitValidation(Project.NameKey project, String targetRef)
+      throws Exception {
+    try (Repository git = repoManager.openRepository(project);
         ObjectInserter oi = git.newObjectInserter();
         ObjectReader reader = oi.newReader();
         RevWalk rw = new RevWalk(reader)) {
@@ -182,8 +306,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
       ins.setValidate(false);
       ins.setMessage(String.format("Uploaded patch set %s.", ins.getPatchSetId().get()));
       try (BatchUpdate bu =
-          updateFactory.create(
-              allProjects, identifiedUserFactory.create(admin.id), TimeUtil.nowTs())) {
+          updateFactory.create(project, identifiedUserFactory.create(admin.id), TimeUtil.nowTs())) {
         bu.setRepository(git, rw, oi);
         bu.insertChange(ins);
         bu.execute();

@@ -14,41 +14,35 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.plugins.checks.CheckerUuid;
 import java.util.List;
 
 public interface PendingChecks {
-  /**
-   * Lists the pending checks for the specified checker.
-   *
-   * @param checkerUuid the UUID of the checker for which pending checks should be listed
-   * @param checkStates the states that should be considered as pending, if not specified {@link
-   *     CheckState#NOT_STARTED} is assumed.
-   * @return the pending checks
-   */
-  List<PendingChecksInfo> list(CheckerUuid checkerUuid, CheckState... checkStates)
-      throws RestApiException;
+  QueryRequest query();
 
-  /**
-   * Lists the pending checks for the specified checker.
-   *
-   * @param checkerUuidString the UUID of the checker for which pending checks should be listed
-   * @param checkStates the states that should be considered as pending, if not specified {@link
-   *     CheckState#NOT_STARTED} is assumed.
-   * @return the pending checks
-   */
-  default List<PendingChecksInfo> list(String checkerUuidString, CheckState... checkStates)
-      throws RestApiException {
-    return list(
-        CheckerUuid.tryParse(checkerUuidString)
-            .orElseThrow(
-                () ->
-                    new BadRequestException(
-                        String.format("invalid checker UUID: %s", checkerUuidString))),
-        checkStates);
+  default QueryRequest query(String query) {
+    return query().withQuery(query);
+  }
+
+  abstract class QueryRequest {
+    private String query;
+
+    public abstract List<PendingChecksInfo> get() throws RestApiException;
+
+    public QueryRequest withQuery(String query) {
+      this.query = query;
+      return this;
+    }
+
+    public String getQuery() {
+      return query;
+    }
+
+    @Override
+    public String toString() {
+      return query;
+    }
   }
 
   /**
@@ -57,7 +51,7 @@ public interface PendingChecks {
    */
   class NotImplemented implements PendingChecks {
     @Override
-    public List<PendingChecksInfo> list(CheckerUuid checkerUuid, CheckState... checkStates) {
+    public QueryRequest query() {
       throw new NotImplementedException();
     }
   }

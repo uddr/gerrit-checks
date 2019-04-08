@@ -12,16 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.gerrit.plugins.checks;
+package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.plugins.checks.AdministrateCheckersPermission;
+import com.google.gerrit.plugins.checks.Check;
+import com.google.gerrit.plugins.checks.CheckJson;
+import com.google.gerrit.plugins.checks.CheckKey;
+import com.google.gerrit.plugins.checks.CheckUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
+import com.google.gerrit.plugins.checks.Checkers;
+import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
-import com.google.gerrit.plugins.checks.api.CheckInfo;
-import com.google.gerrit.plugins.checks.api.CheckInput;
-import com.google.gerrit.plugins.checks.api.CheckResource;
+import com.google.gerrit.plugins.checks.ChecksUpdate;
+import com.google.gerrit.plugins.checks.UrlValidator;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.permissions.PermissionBackend;
