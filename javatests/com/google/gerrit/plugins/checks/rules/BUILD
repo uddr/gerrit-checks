@@ -1,0 +1,17 @@
+load("//tools/bzl:junit.bzl", "junit_tests")
+
+junit_tests(
+    name = "rules_tests",
+    size = "small",
+    srcs = glob(["*.java"]),
+    deps = [
+        "//java/com/google/gerrit/common:server",
+        "//java/com/google/gerrit/reviewdb:server",
+        "//java/com/google/gerrit/server",
+        "//java/com/google/gerrit/testing:gerrit-test-util",
+        "//java/com/google/gwtorm",
+        "//lib:guava",
+        "//lib/truth",
+        "//plugins/checks:checks__plugin",
+    ],
+)
