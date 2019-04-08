@@ -21,6 +21,7 @@ import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import com.google.common.collect.Iterables;
+import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -35,6 +36,7 @@ import com.google.gerrit.plugins.checks.api.PendingChecksInfo;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.project.testing.Util;
 import com.google.gerrit.testing.TestTimeUtil;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -562,6 +564,24 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     requestScopeOperations.setApiUser(user.getId());
     pendingChecksList = queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).isEmpty();
+  }
+
+  @Test
+  public void pendingChecksViaRest() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .setState(CheckState.NOT_STARTED)
+        .upsert();
+
+    RestResponse r =
+        adminRestSession.get(
+            String.format("/plugins/checks/checks.pending/?q=checker:%s", checkerUuid.get()));
+    r.assertOK();
+    List<PendingChecksInfo> pendingChecksList =
+        newGson().fromJson(r.getReader(), new TypeToken<List<PendingChecksInfo>>() {}.getType());
+    r.consume();
+    assertThat(pendingChecksList).isNotEmpty();
   }
 
   private void assertInvalidQuery(String query, String expectedMessage) throws RestApiException {

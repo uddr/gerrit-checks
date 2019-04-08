@@ -17,7 +17,6 @@ package com.google.gerrit.plugins.checks.api;
 import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
 
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.extensions.restapi.TopLevelResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -37,18 +36,12 @@ public class PendingChecksImpl implements PendingChecks {
     return new QueryRequest() {
       @Override
       public List<PendingChecksInfo> get() throws RestApiException {
-        return PendingChecksImpl.this.query(this);
+        try {
+          return queryPendingChecksProvider.get().setQuery(getQuery()).apply();
+        } catch (Exception e) {
+          throw asRestApiException("Cannot query pending checks", e);
+        }
       }
     };
-  }
-
-  private List<PendingChecksInfo> query(QueryRequest queryRequest) throws RestApiException {
-    try {
-      QueryPendingChecks queryPendingChecks = queryPendingChecksProvider.get();
-      queryPendingChecks.setQuery(queryRequest.getQuery());
-      return queryPendingChecks.apply(TopLevelResource.INSTANCE);
-    } catch (Exception e) {
-      throw asRestApiException("Cannot query pending checks", e);
-    }
   }
 }

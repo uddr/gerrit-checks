@@ -66,8 +66,9 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
       aliases = {"-q"},
       metaVar = "QUERY",
       usage = "check query")
-  public void setQuery(String queryString) {
+  public QueryPendingChecks setQuery(String queryString) {
     this.queryString = queryString;
+    return this;
   }
 
   @Inject
@@ -84,6 +85,11 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
     this.retryHelper = retryHelper;
     this.queryBuilderProvider = queryBuilderProvider;
     this.changeQueryProcessorProvider = changeQueryProcessorProvider;
+  }
+
+  public List<PendingChecksInfo> apply()
+      throws RestApiException, IOException, ConfigInvalidException, OrmException {
+    return apply(TopLevelResource.INSTANCE);
   }
 
   @Override
