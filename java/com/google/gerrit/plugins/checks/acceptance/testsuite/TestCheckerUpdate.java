@@ -45,6 +45,8 @@ public abstract class TestCheckerUpdate {
 
   public abstract boolean forceInvalidConfig();
 
+  public abstract boolean forceInvalidBlockingCondition();
+
   public abstract boolean deleteRef();
 
   abstract ThrowingConsumer<TestCheckerUpdate> checkerUpdater();
@@ -53,6 +55,7 @@ public abstract class TestCheckerUpdate {
     return new AutoValue_TestCheckerUpdate.Builder()
         .checkerUpdater(checkerUpdater)
         .forceInvalidConfig(false)
+        .forceInvalidBlockingCondition(false)
         .deleteRef(false);
   }
 
@@ -90,6 +93,12 @@ public abstract class TestCheckerUpdate {
     }
 
     abstract Builder forceInvalidConfig(boolean forceInvalidConfig);
+
+    public Builder forceInvalidBlockingCondition() {
+      return forceInvalidBlockingCondition(true);
+    }
+
+    abstract Builder forceInvalidBlockingCondition(boolean forceInvalidBlockingCondition);
 
     public Builder deleteRef() {
       return deleteRef(true);

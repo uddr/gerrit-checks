@@ -15,8 +15,6 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
-import static java.util.Comparator.naturalOrder;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -31,7 +29,6 @@ import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Locale;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.internal.JGitText;
@@ -251,7 +248,8 @@ enum CheckerConfigEntry {
 
   BLOCKING_CONDITIONS("blocking") {
     @Override
-    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config)
+        throws ConfigInvalidException {
       checker.setBlockingConditions(
           getEnumSet(config, SECTION_NAME, null, super.keyName, BlockingCondition.values()));
     }
@@ -301,14 +299,18 @@ enum CheckerConfigEntry {
   };
 
   private static <T extends Enum<T>> ImmutableSortedSet<T> getEnumSet(
-      Config config, String section, @Nullable String subsection, String name, T[] all) {
-    return Arrays.stream(config.getStringList(section, subsection, name))
-        .map(v -> resolveEnum(section, subsection, name, v, all))
-        .collect(toImmutableSortedSet(naturalOrder()));
+      Config config, String section, @Nullable String subsection, String name, T[] all)
+      throws ConfigInvalidException {
+    ImmutableSortedSet.Builder<T> enumBuilder = ImmutableSortedSet.naturalOrder();
+    for (String value : config.getStringList(section, subsection, name)) {
+      enumBuilder.add(resolveEnum(section, subsection, name, value, all));
+    }
+    return enumBuilder.build();
   }
 
   private static <T extends Enum<T>> T resolveEnum(
-      String section, @Nullable String subsection, String name, String value, T[] all) {
+      String section, @Nullable String subsection, String name, String value, T[] all)
+      throws ConfigInvalidException {
     // Match some resolution semantics of DefaultTypedConfigGetter#getEnum.
     // TODO(dborowitz): Sure would be nice if Config exposed this logic (or getEnumList) so we
     // didn't have to replicate it.
@@ -319,11 +321,11 @@ enum CheckerConfigEntry {
       }
     }
     if (subsection != null) {
-      throw new IllegalArgumentException(
+      throw new ConfigInvalidException(
           MessageFormat.format(
               JGitText.get().enumValueNotSupported3, section, subsection, name, value));
     }
-    throw new IllegalArgumentException(
+    throw new ConfigInvalidException(
         MessageFormat.format(JGitText.get().enumValueNotSupported2, section, name, value));
   }
 

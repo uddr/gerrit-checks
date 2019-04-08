@@ -87,10 +87,15 @@ public class ListCheckersIT extends AbstractCheckersTest {
 
   @Test
   public void listIgnoresInvalidCheckers() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().name("checker-with-name-only").create();
-    CheckerUuid invalidCheckerUuid = checkerOperations.newChecker().create();
-    checkerOperations.checker(invalidCheckerUuid).forUpdate().forceInvalidConfig().update();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckerUuid invalidCheckerUuid1 = checkerOperations.newChecker().create();
+    CheckerUuid invalidCheckerUuid2 = checkerOperations.newChecker().create();
+    checkerOperations.checker(invalidCheckerUuid1).forUpdate().forceInvalidConfig().update();
+    checkerOperations
+        .checker(invalidCheckerUuid2)
+        .forUpdate()
+        .forceInvalidBlockingCondition()
+        .update();
 
     List<CheckerInfo> allCheckers = checkersApi.all();
     assertThat(allCheckers).containsExactly(checkerOperations.checker(checkerUuid).asInfo());
