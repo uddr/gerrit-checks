@@ -259,7 +259,7 @@ enum CheckerConfigEntry {
     void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config)
         throws ConfigInvalidException {
       checker.setBlockingConditions(
-          getEnumSet(config, SECTION_NAME, null, super.keyName, BlockingCondition.values()));
+          getEnumSet(config, SECTION_NAME, super.keyName, BlockingCondition.values()));
     }
 
     @Override
@@ -307,18 +307,16 @@ enum CheckerConfigEntry {
   };
 
   private static <T extends Enum<T>> ImmutableSortedSet<T> getEnumSet(
-      Config config, String section, @Nullable String subsection, String name, T[] all)
-      throws ConfigInvalidException {
+      Config config, String section, String name, T[] all) throws ConfigInvalidException {
     ImmutableSortedSet.Builder<T> enumBuilder = ImmutableSortedSet.naturalOrder();
-    for (String value : config.getStringList(section, subsection, name)) {
-      enumBuilder.add(resolveEnum(section, subsection, name, value, all));
+    for (String value : config.getStringList(section, null, name)) {
+      enumBuilder.add(resolveEnum(section, name, value, all));
     }
     return enumBuilder.build();
   }
 
   private static <T extends Enum<T>> T resolveEnum(
-      String section, @Nullable String subsection, String name, String value, T[] all)
-      throws ConfigInvalidException {
+      String section, String name, String value, T[] all) throws ConfigInvalidException {
     // Match some resolution semantics of DefaultTypedConfigGetter#getEnum.
     // TODO(dborowitz): Sure would be nice if Config exposed this logic (or getEnumList) so we
     // didn't have to replicate it.
@@ -327,11 +325,6 @@ enum CheckerConfigEntry {
       if (StringUtils.equalsIgnoreCase(e.name(), value)) {
         return e;
       }
-    }
-    if (subsection != null) {
-      throw new ConfigInvalidException(
-          MessageFormat.format(
-              JGitText.get().enumValueNotSupported3, section, subsection, name, value));
     }
     throw new ConfigInvalidException(
         MessageFormat.format(JGitText.get().enumValueNotSupported2, section, name, value));
