@@ -47,6 +47,8 @@ public abstract class TestCheckerUpdate {
 
   public abstract boolean forceInvalidBlockingCondition();
 
+  public abstract boolean forceInvalidStatus();
+
   public abstract boolean deleteRef();
 
   abstract ThrowingConsumer<TestCheckerUpdate> checkerUpdater();
@@ -56,6 +58,7 @@ public abstract class TestCheckerUpdate {
         .checkerUpdater(checkerUpdater)
         .forceInvalidConfig(false)
         .forceInvalidBlockingCondition(false)
+        .forceInvalidStatus(false)
         .deleteRef(false);
   }
 
@@ -99,6 +102,12 @@ public abstract class TestCheckerUpdate {
     }
 
     abstract Builder forceInvalidBlockingCondition(boolean forceInvalidBlockingCondition);
+
+    public Builder forceInvalidStatus() {
+      return forceInvalidStatus(true);
+    }
+
+    abstract Builder forceInvalidStatus(boolean forceInvalidStatus);
 
     public Builder deleteRef() {
       return deleteRef(true);

@@ -528,6 +528,21 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void statusCanBeMadeInvalid() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidStatus().update();
+
+    try {
+      checkers.getChecker(checkerUuid);
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
+      // expected
+      assertThat(e.getMessage()).contains("Invalid value: checker.status");
+    }
+  }
+
+  @Test
   public void refCanBeDeleted() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 

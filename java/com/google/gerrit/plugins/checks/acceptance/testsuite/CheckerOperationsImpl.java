@@ -268,6 +268,20 @@ public class CheckerOperationsImpl implements CheckerOperations {
         }
       }
 
+      if (testCheckerUpdate.forceInvalidStatus()) {
+        try (Repository repo = repoManager.openRepository(allProjectsName)) {
+          TestRepository<Repository> testRepo = new TestRepository<>(repo);
+          Config checkerConfig =
+              readConfig(testRepo, checkerUuid.toRefName(), CheckerConfig.CHECKER_CONFIG_FILE);
+          checkerConfig.setString("checker", null, "status", "invalid");
+          testRepo
+              .branch(checkerUuid.toRefName())
+              .commit()
+              .add(CheckerConfig.CHECKER_CONFIG_FILE, checkerConfig.toText())
+              .create();
+        }
+      }
+
       if (testCheckerUpdate.deleteRef()) {
         try (Repository repo = repoManager.openRepository(allProjectsName)) {
           RefUpdate ru =

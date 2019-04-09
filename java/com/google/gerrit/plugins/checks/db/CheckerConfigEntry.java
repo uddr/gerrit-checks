@@ -229,7 +229,11 @@ enum CheckerConfigEntry {
         throw new ConfigInvalidException(
             String.format("status of checker %s not set", checkerUuid));
       }
-      checker.setStatus(config.getEnum(SECTION_NAME, null, super.keyName, CheckerStatus.ENABLED));
+      try {
+        checker.setStatus(config.getEnum(SECTION_NAME, null, super.keyName, CheckerStatus.ENABLED));
+      } catch (IllegalArgumentException e) {
+        throw new ConfigInvalidException(e.getMessage());
+      }
     }
 
     @Override
