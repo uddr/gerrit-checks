@@ -91,17 +91,19 @@ public class ListCheckersIT extends AbstractCheckersTest {
     CheckerUuid invalidCheckerUuid1 = checkerOperations.newChecker().create();
     CheckerUuid invalidCheckerUuid2 = checkerOperations.newChecker().create();
     CheckerUuid invalidCheckerUuid3 = checkerOperations.newChecker().create();
+    CheckerUuid invalidCheckerUuid4 = checkerOperations.newChecker().create();
     checkerOperations
         .checker(invalidCheckerUuid1)
         .forInvalidation()
         .nonParseableConfig()
         .invalidate();
+    checkerOperations.checker(invalidCheckerUuid2).forInvalidation().invalidUuid().invalidate();
     checkerOperations
-        .checker(invalidCheckerUuid2)
+        .checker(invalidCheckerUuid3)
         .forInvalidation()
         .invalidBlockingCondition()
         .invalidate();
-    checkerOperations.checker(invalidCheckerUuid3).forInvalidation().invalidStatus().invalidate();
+    checkerOperations.checker(invalidCheckerUuid4).forInvalidation().invalidStatus().invalidate();
 
     List<CheckerInfo> allCheckers = checkersApi.all();
     assertThat(allCheckers).containsExactly(checkerOperations.checker(checkerUuid).asInfo());

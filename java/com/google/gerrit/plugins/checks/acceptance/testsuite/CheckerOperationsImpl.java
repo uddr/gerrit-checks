@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
 import com.google.common.base.Splitter;
@@ -42,11 +43,11 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.lib.BlobBasedConfig;
@@ -251,36 +252,16 @@ public class CheckerOperationsImpl implements CheckerOperations {
       Optional<Checker> checker = getChecker(checkerUuid);
       checkState(checker.isPresent(), "Tried to invalidate a non-existing test checker");
 
+      if (testCheckerInvalidation.invalidUuid()) {
+        setValueInCheckerConfig("uuid", "invalid");
+      }
+
       if (testCheckerInvalidation.invalidBlockingCondition()) {
-        try (Repository repo = repoManager.openRepository(allProjectsName)) {
-          TestRepository<Repository> testRepo = new TestRepository<>(repo);
-          Config checkerConfig =
-              readConfig(testRepo, checkerUuid.toRefName(), CheckerConfig.CHECKER_CONFIG_FILE);
-          List<String> blocking =
-              new ArrayList<>(
-                  Arrays.asList(checkerConfig.getStringList("checker", null, "blocking")));
-          blocking.add("invalid");
-          checkerConfig.setStringList("checker", null, "blocking", blocking);
-          testRepo
-              .branch(checkerUuid.toRefName())
-              .commit()
-              .add(CheckerConfig.CHECKER_CONFIG_FILE, checkerConfig.toText())
-              .create();
-        }
+        addValueInCheckerConfig("blocking", "invalid");
       }
 
       if (testCheckerInvalidation.invalidStatus()) {
-        try (Repository repo = repoManager.openRepository(allProjectsName)) {
-          TestRepository<Repository> testRepo = new TestRepository<>(repo);
-          Config checkerConfig =
-              readConfig(testRepo, checkerUuid.toRefName(), CheckerConfig.CHECKER_CONFIG_FILE);
-          checkerConfig.setString("checker", null, "status", "invalid");
-          testRepo
-              .branch(checkerUuid.toRefName())
-              .commit()
-              .add(CheckerConfig.CHECKER_CONFIG_FILE, checkerConfig.toText())
-              .create();
-        }
+        setValueInCheckerConfig("status", "invalid");
       }
 
       if (testCheckerInvalidation.nonParseableConfig()) {
@@ -300,6 +281,36 @@ public class CheckerOperationsImpl implements CheckerOperations {
           ru.setForceUpdate(true);
           ru.delete();
         }
+      }
+    }
+
+    private void setValueInCheckerConfig(String key, String value) throws Exception {
+      updateCheckerConfig(cfg -> cfg.setString("checker", null, key, value));
+    }
+
+    private void addValueInCheckerConfig(String key, String value) throws Exception {
+      updateCheckerConfig(
+          cfg ->
+              cfg.setStringList(
+                  "checker",
+                  null,
+                  key,
+                  Streams.concat(
+                          Arrays.stream(cfg.getStringList("checker", null, key)), Stream.of(value))
+                      .collect(toList())));
+    }
+
+    private void updateCheckerConfig(Consumer<Config> configUpdater) throws Exception {
+      try (Repository repo = repoManager.openRepository(allProjectsName)) {
+        TestRepository<Repository> testRepo = new TestRepository<>(repo);
+        Config checkerConfig =
+            readConfig(testRepo, checkerUuid.toRefName(), CheckerConfig.CHECKER_CONFIG_FILE);
+        configUpdater.accept(checkerConfig);
+        testRepo
+            .branch(checkerUuid.toRefName())
+            .commit()
+            .add(CheckerConfig.CHECKER_CONFIG_FILE, checkerConfig.toText())
+            .create();
       }
     }
 

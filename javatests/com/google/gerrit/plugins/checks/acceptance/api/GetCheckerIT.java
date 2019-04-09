@@ -212,6 +212,16 @@ public class GetCheckerIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void getCheckerWithInvalidUuidFails() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    checkerOperations.checker(checkerUuid).forInvalidation().invalidUuid().invalidate();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    getCheckerInfo(checkerUuid);
+  }
+
+  @Test
   public void getCheckerWithInvalidBlockingConditionFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations

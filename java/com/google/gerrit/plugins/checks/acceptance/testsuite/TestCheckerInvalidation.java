@@ -21,6 +21,8 @@ import com.google.gerrit.acceptance.testsuite.ThrowingConsumer;
 public abstract class TestCheckerInvalidation {
   public abstract boolean nonParseableConfig();
 
+  public abstract boolean invalidUuid();
+
   public abstract boolean invalidBlockingCondition();
 
   public abstract boolean invalidStatus();
@@ -33,6 +35,7 @@ public abstract class TestCheckerInvalidation {
     return new AutoValue_TestCheckerInvalidation.Builder()
         .checkerInvalidator(checkerInvalidator)
         .nonParseableConfig(false)
+        .invalidUuid(false)
         .invalidBlockingCondition(false)
         .invalidStatus(false)
         .deleteRef(false);
@@ -45,6 +48,12 @@ public abstract class TestCheckerInvalidation {
     }
 
     abstract Builder nonParseableConfig(boolean nonParseableConfig);
+
+    public Builder invalidUuid() {
+      return invalidUuid(true);
+    }
+
+    abstract Builder invalidUuid(boolean invalidUuid);
 
     public Builder invalidBlockingCondition() {
       return invalidBlockingCondition(true);

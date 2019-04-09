@@ -513,6 +513,22 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void uuidCanBeMadeInvalid() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forInvalidation().invalidUuid().invalidate();
+
+    try {
+      checkers.getChecker(checkerUuid);
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
+      // expected
+      assertThat(e.getMessage()).contains("value of checker.uuid");
+      assertThat(e.getMessage()).contains("does not match expected checker UUID");
+    }
+  }
+
+  @Test
   public void blockingConditionsCanBeMadeInvalid() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
