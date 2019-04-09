@@ -80,7 +80,8 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
   }
 
   public List<PendingChecksInfo> apply()
-      throws RestApiException, IOException, ConfigInvalidException, OrmException {
+      throws RestApiException, IOException, ConfigInvalidException, OrmException,
+          QueryParseException {
     return apply(TopLevelResource.INSTANCE);
   }
 
