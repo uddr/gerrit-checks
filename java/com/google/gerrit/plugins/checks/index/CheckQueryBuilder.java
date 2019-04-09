@@ -24,7 +24,7 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.inject.Inject;
 import java.util.Arrays;
 
-public class CheckQueryBuilder extends QueryBuilder<Check> {
+public class CheckQueryBuilder extends QueryBuilder<Check, CheckQueryBuilder> {
   public static final String FIELD_CHECKER = "checker";
   public static final String FIELD_STATE = "state";
 
@@ -33,7 +33,7 @@ public class CheckQueryBuilder extends QueryBuilder<Check> {
 
   @Inject
   CheckQueryBuilder() {
-    super(mydef);
+    super(mydef, null);
   }
 
   @Operator
