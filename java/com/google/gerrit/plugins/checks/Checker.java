@@ -15,37 +15,18 @@
 package com.google.gerrit.plugins.checks;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.index.query.IndexPredicate;
-import com.google.gerrit.index.query.Predicate;
-import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.server.index.change.ChangeField;
-import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gerrit.server.query.change.ChangeQueryProcessor;
-import com.google.gerrit.server.query.change.ChangeStatusPredicate;
-import com.google.gerrit.server.query.change.ProjectPredicate;
-import com.google.gerrit.server.update.RetryHelper;
-import com.google.gerrit.server.update.RetryHelper.ActionType;
-import com.google.gwtorm.server.OrmException;
-import com.google.inject.Provider;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Optional;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;
 
 /** Definition of a checker. */
 @AutoValue
 public abstract class Checker {
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
   /**
    * Returns the UUID of the checker.
    *
@@ -143,91 +124,6 @@ public abstract class Checker {
 
   public boolean isDisabled() {
     return CheckerStatus.DISABLED == getStatus();
-  }
-
-  public boolean isCheckerRelevant(ChangeData cd, ChangeQueryBuilder changeQueryBuilder)
-      throws OrmException {
-    if (!getQuery().isPresent()) {
-      return cd.change().isNew();
-    }
-
-    Predicate<ChangeData> predicate;
-    try {
-      predicate = createQueryPredicate(changeQueryBuilder);
-    } catch (ConfigInvalidException e) {
-      logger.atWarning().withCause(e).log("skipping invalid query for checker %s", getUuid());
-      return false;
-    }
-
-    return predicate.asMatchable().match(cd);
-  }
-
-  public List<ChangeData> queryMatchingChanges(
-      RetryHelper retryHelper,
-      ChangeQueryBuilder changeQueryBuilder,
-      Provider<ChangeQueryProcessor> changeQueryProcessorProvider)
-      throws ConfigInvalidException, OrmException {
-    return executeIndexQueryWithRetry(
-        retryHelper, changeQueryProcessorProvider, createQueryPredicate(changeQueryBuilder));
-  }
-
-  private Predicate<ChangeData> createQueryPredicate(ChangeQueryBuilder changeQueryBuilder)
-      throws ConfigInvalidException {
-    Predicate<ChangeData> predicate = new ProjectPredicate(getRepository().get());
-
-    if (getQuery().isPresent()) {
-      String query = getQuery().get();
-      Predicate<ChangeData> predicateForQuery;
-      try {
-        predicateForQuery = changeQueryBuilder.parse(query);
-      } catch (QueryParseException e) {
-        throw new ConfigInvalidException(
-            String.format("change query of checker %s is invalid: %s", getUuid(), query), e);
-      }
-
-      if (!predicateForQuery.isMatchable()) {
-        // Assuming nobody modified the query behind Gerrit's back, this is programmer error:
-        // CheckerQuery should not be able to produce non-matchable queries.
-        throw new ConfigInvalidException(
-            String.format("change query of checker %s is non-matchable: %s", getUuid(), query));
-      }
-
-      predicate = Predicate.and(predicate, predicateForQuery);
-    }
-
-    if (!hasStatusPredicate(predicate)) {
-      predicate = Predicate.and(ChangeStatusPredicate.open(), predicate);
-    }
-
-    return predicate;
-  }
-
-  private static boolean hasStatusPredicate(Predicate<ChangeData> predicate) {
-    if (predicate instanceof IndexPredicate) {
-      return ((IndexPredicate<ChangeData>) predicate)
-          .getField()
-          .getName()
-          .equals(ChangeField.STATUS.getName());
-    }
-    return predicate.getChildren().stream().anyMatch(Checker::hasStatusPredicate);
-  }
-
-  // TODO(ekempin): Retrying the query should be done by ChangeQueryProcessor.
-  private List<ChangeData> executeIndexQueryWithRetry(
-      RetryHelper retryHelper,
-      Provider<ChangeQueryProcessor> changeQueryProcessorProvider,
-      Predicate<ChangeData> predicate)
-      throws OrmException {
-    try {
-      return retryHelper.execute(
-          ActionType.INDEX_QUERY,
-          () -> changeQueryProcessorProvider.get().query(predicate).entities(),
-          OrmException.class::isInstance);
-    } catch (Exception e) {
-      Throwables.throwIfUnchecked(e);
-      Throwables.throwIfInstanceOf(e, OrmException.class);
-      throw new OrmException(e);
-    }
   }
 
   /**

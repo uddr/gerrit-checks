@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
@@ -34,9 +35,7 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSet.Id;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.Project.NameKey;
-import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -54,8 +53,7 @@ class NoteDbChecks implements Checks {
   private final CheckNotes.Factory checkNotesFactory;
   private final Checkers checkers;
   private final CheckBackfiller checkBackfiller;
-  private final Provider<AnonymousUser> anonymousUserProvider;
-  private final Provider<ChangeQueryBuilder> queryBuilderProvider;
+  private final Provider<CheckerQuery> checkerQueryProvider;
 
   @Inject
   NoteDbChecks(
@@ -63,14 +61,12 @@ class NoteDbChecks implements Checks {
       CheckNotes.Factory checkNotesFactory,
       Checkers checkers,
       CheckBackfiller checkBackfiller,
-      Provider<AnonymousUser> anonymousUserProvider,
-      Provider<ChangeQueryBuilder> queryBuilderProvider) {
+      Provider<CheckerQuery> checkerQueryProvider) {
     this.changeDataFactory = changeDataFactory;
     this.checkNotesFactory = checkNotesFactory;
     this.checkers = checkers;
     this.checkBackfiller = checkBackfiller;
-    this.anonymousUserProvider = anonymousUserProvider;
-    this.queryBuilderProvider = queryBuilderProvider;
+    this.checkerQueryProvider = checkerQueryProvider;
   }
 
   @Override
@@ -133,6 +129,7 @@ class NoteDbChecks implements Checks {
   public CombinedCheckState getCombinedCheckState(NameKey projectName, Id patchSetId)
       throws IOException, OrmException {
     ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId);
+    CheckerQuery checkerQuery = checkerQueryProvider.get();
     ImmutableMap<String, Checker> allCheckersOfProject =
         checkers.checkersOf(projectName).stream()
             .collect(ImmutableMap.toImmutableMap(c -> c.getUuid().get(), c -> c));
@@ -143,8 +140,6 @@ class NoteDbChecks implements Checks {
         getChecks(projectName, patchSetId, GetCheckOptions.withBackfilling()).stream()
             .collect(ImmutableMap.toImmutableMap(c -> c.key().checkerUuid().get(), c -> c));
 
-    ChangeQueryBuilder queryBuilder =
-        queryBuilderProvider.get().asUser(anonymousUserProvider.get());
     ImmutableListMultimap.Builder<CheckState, Boolean> statesAndRequired =
         ImmutableListMultimap.builder();
 
@@ -162,7 +157,7 @@ class NoteDbChecks implements Checks {
       boolean isRequired =
           checker.getStatus() == CheckerStatus.ENABLED
               && checker.isRequired()
-              && checker.isCheckerRelevant(changeData, queryBuilder);
+              && checkerQuery.isCheckerRelevant(checker, changeData);
       statesAndRequired.put(check.state(), isRequired);
     }
 

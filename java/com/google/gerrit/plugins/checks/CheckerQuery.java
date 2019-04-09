@@ -22,13 +22,39 @@ import static com.google.gerrit.index.query.QueryParser.NOT;
 import static com.google.gerrit.index.query.QueryParser.OR;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.index.query.IndexPredicate;
+import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.index.query.QueryParser;
+import com.google.gerrit.server.AnonymousUser;
+import com.google.gerrit.server.index.change.ChangeField;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.query.change.ChangeQueryBuilder;
+import com.google.gerrit.server.query.change.ChangeQueryProcessor;
+import com.google.gerrit.server.query.change.ChangeStatusPredicate;
+import com.google.gerrit.server.query.change.ProjectPredicate;
+import com.google.gerrit.server.update.RetryHelper;
+import com.google.gerrit.server.update.RetryHelper.ActionType;
+import com.google.gwtorm.server.OrmException;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import java.util.List;
 import org.antlr.runtime.tree.Tree;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
+/**
+ * Utility for validating and executing relevancy queries for checkers.
+ *
+ * <p>Instances are not threadsafe and should not be reused across requests. However, they may be
+ * reused within a single request.
+ */
 public class CheckerQuery {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   // Note that this list contains *operators*, not predicates. If there are multiple operators
   // aliased together to the same predicate ("f:", "file:"), they all need to be listed explicitly.
   //
@@ -142,5 +168,103 @@ public class CheckerQuery {
     return node.getChild(0);
   }
 
-  private CheckerQuery() {}
+  private final RetryHelper retryHelper;
+  private final Provider<ChangeQueryProcessor> changeQueryProcessorProvider;
+  private final ChangeQueryBuilder queryBuilder;
+
+  @Inject
+  CheckerQuery(
+      RetryHelper retryHelper,
+      Provider<AnonymousUser> anonymousUserProvider,
+      Provider<ChangeQueryBuilder> queryBuilderProvider,
+      Provider<ChangeQueryProcessor> changeQueryProcessorProvider) {
+    this.retryHelper = retryHelper;
+    this.changeQueryProcessorProvider = changeQueryProcessorProvider;
+    // The user passed to the ChangeQueryBuilder just controls how it parses "self". Anonymous means
+    // "self" is disallowed, which is correct for checker queries, since the results should not
+    // depend on the calling user. However, note that results are still filtered by visibility, but
+    // visibility is controlled by ChangeQueryProcessor, which always uses the current user and
+    // can't be overridden.
+    this.queryBuilder = queryBuilderProvider.get().asUser(anonymousUserProvider.get());
+  }
+
+  public boolean isCheckerRelevant(Checker checker, ChangeData cd) throws OrmException {
+    if (!checker.getQuery().isPresent()) {
+      return cd.change().isNew();
+    }
+
+    Predicate<ChangeData> predicate;
+    try {
+      predicate = createQueryPredicate(checker);
+    } catch (ConfigInvalidException e) {
+      logger.atWarning().withCause(e).log(
+          "skipping invalid query for checker %s", checker.getUuid());
+      return false;
+    }
+
+    return predicate.asMatchable().match(cd);
+  }
+
+  public List<ChangeData> queryMatchingChanges(Checker checker)
+      throws ConfigInvalidException, OrmException {
+    return executeIndexQueryWithRetry(createQueryPredicate(checker));
+  }
+
+  private Predicate<ChangeData> createQueryPredicate(Checker checker)
+      throws ConfigInvalidException {
+    Predicate<ChangeData> predicate = new ProjectPredicate(checker.getRepository().get());
+
+    if (checker.getQuery().isPresent()) {
+      String query = checker.getQuery().get();
+      Predicate<ChangeData> predicateForQuery;
+      try {
+        predicateForQuery = queryBuilder.parse(query);
+      } catch (QueryParseException e) {
+        throw new ConfigInvalidException(
+            String.format("change query of checker %s is invalid: %s", checker.getUuid(), query),
+            e);
+      }
+
+      if (!predicateForQuery.isMatchable()) {
+        // Assuming nobody modified the query behind Gerrit's back, this is programmer error:
+        // CheckerQuery should not be able to produce non-matchable queries.
+        throw new ConfigInvalidException(
+            String.format(
+                "change query of checker %s is non-matchable: %s", checker.getUuid(), query));
+      }
+
+      predicate = Predicate.and(predicate, predicateForQuery);
+    }
+
+    if (!hasStatusPredicate(predicate)) {
+      predicate = Predicate.and(ChangeStatusPredicate.open(), predicate);
+    }
+
+    return predicate;
+  }
+
+  private static boolean hasStatusPredicate(Predicate<ChangeData> predicate) {
+    if (predicate instanceof IndexPredicate) {
+      return ((IndexPredicate<ChangeData>) predicate)
+          .getField()
+          .getName()
+          .equals(ChangeField.STATUS.getName());
+    }
+    return predicate.getChildren().stream().anyMatch(CheckerQuery::hasStatusPredicate);
+  }
+
+  // TODO(ekempin): Retrying the query should be done by ChangeQueryProcessor.
+  private List<ChangeData> executeIndexQueryWithRetry(Predicate<ChangeData> predicate)
+      throws OrmException {
+    try {
+      return retryHelper.execute(
+          ActionType.INDEX_QUERY,
+          () -> changeQueryProcessorProvider.get().query(predicate).entities(),
+          OrmException.class::isInstance);
+    } catch (Exception e) {
+      Throwables.throwIfUnchecked(e);
+      Throwables.throwIfInstanceOf(e, OrmException.class);
+      throw new OrmException(e);
+    }
+  }
 }

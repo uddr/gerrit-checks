@@ -28,6 +28,7 @@ import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
@@ -38,9 +39,6 @@ import com.google.gerrit.plugins.checks.index.CheckerPredicate;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gerrit.server.query.change.ChangeQueryProcessor;
-import com.google.gerrit.server.update.RetryHelper;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -55,9 +53,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
   private final CheckQueryBuilder checkQueryBuilder;
   private final Checkers checkers;
   private final Checks checks;
-  private final RetryHelper retryHelper;
-  private final Provider<ChangeQueryBuilder> queryBuilderProvider;
-  private final Provider<ChangeQueryProcessor> changeQueryProcessorProvider;
+  private final Provider<CheckerQuery> checkerQueryProvider;
 
   private String queryString;
 
@@ -76,15 +72,11 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
       CheckQueryBuilder checkQueryBuilder,
       Checkers checkers,
       Checks checks,
-      RetryHelper retryHelper,
-      Provider<ChangeQueryBuilder> queryBuilderProvider,
-      Provider<ChangeQueryProcessor> changeQueryProcessorProvider) {
+      Provider<CheckerQuery> checkerQueryProvider) {
     this.checkQueryBuilder = checkQueryBuilder;
     this.checkers = checkers;
     this.checks = checks;
-    this.retryHelper = retryHelper;
-    this.queryBuilderProvider = queryBuilderProvider;
-    this.changeQueryProcessorProvider = changeQueryProcessorProvider;
+    this.checkerQueryProvider = checkerQueryProvider;
   }
 
   public List<PendingChecksInfo> apply()
@@ -111,11 +103,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
 
     // The query system can only match against the current patch set; ignore non-current patch sets
     // for now.
-    List<ChangeData> changes =
-        checker
-            .get()
-            .queryMatchingChanges(
-                retryHelper, queryBuilderProvider.get(), changeQueryProcessorProvider);
+    List<ChangeData> changes = checkerQueryProvider.get().queryMatchingChanges(checker.get());
     CheckerUuid checkerUuid = checker.get().getUuid();
     List<PendingChecksInfo> pendingChecks = new ArrayList<>(changes.size());
     for (ChangeData cd : changes) {

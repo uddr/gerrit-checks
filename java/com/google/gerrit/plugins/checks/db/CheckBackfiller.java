@@ -17,13 +17,12 @@ package com.google.gerrit.plugins.checks.db;
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
-import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -36,17 +35,12 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 @Singleton
 class CheckBackfiller {
   private final Checkers checkers;
-  private final Provider<AnonymousUser> anonymousUserProvider;
-  private final Provider<ChangeQueryBuilder> queryBuilderProvider;
+  private final Provider<CheckerQuery> checkerQueryProvider;
 
   @Inject
-  CheckBackfiller(
-      Checkers checkers,
-      Provider<AnonymousUser> anonymousUserProvider,
-      Provider<ChangeQueryBuilder> queryBuilderProvider) {
+  CheckBackfiller(Checkers checkers, Provider<CheckerQuery> checkerQueryProvider) {
     this.checkers = checkers;
-    this.anonymousUserProvider = anonymousUserProvider;
-    this.queryBuilderProvider = queryBuilderProvider;
+    this.checkerQueryProvider = checkerQueryProvider;
   }
 
   ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
@@ -61,11 +55,11 @@ class CheckBackfiller {
     }
     // All candidates need to be checked for relevance. Any relevant checkers are reported as
     // NOT_STARTED, with creation time matching the patch set.
+    CheckerQuery checkerQuery = checkerQueryProvider.get();
     ImmutableList.Builder<Check> result = ImmutableList.builderWithExpectedSize(candidates.size());
     PatchSet ps = cd.patchSet(psId);
-    ChangeQueryBuilder queryBuilder = newQueryBuilder();
     for (Checker checker : candidates) {
-      if (checker.isCheckerRelevant(cd, queryBuilder)) {
+      if (checkerQuery.isCheckerRelevant(checker, cd)) {
         // Add synthetic check at the creation time of the patch set.
         result.add(Check.newBackfilledCheck(cd.project(), ps, checker));
       }
@@ -90,13 +84,9 @@ class CheckBackfiller {
     }
     if (!checker.isPresent()
         || checker.get().getStatus() != CheckerStatus.ENABLED
-        || !checker.get().isCheckerRelevant(cd, newQueryBuilder())) {
+        || !checkerQueryProvider.get().isCheckerRelevant(checker.get(), cd)) {
       return Optional.empty();
     }
     return Optional.of(Check.newBackfilledCheck(cd.project(), cd.patchSet(psId), checker.get()));
-  }
-
-  private ChangeQueryBuilder newQueryBuilder() {
-    return queryBuilderProvider.get().asUser(anonymousUserProvider.get());
   }
 }
