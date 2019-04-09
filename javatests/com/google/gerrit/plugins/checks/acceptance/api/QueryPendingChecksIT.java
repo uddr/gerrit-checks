@@ -513,7 +513,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   @Test
   public void queryPendingChecksForInvalidCheckerFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
     exception.expect(RestApiException.class);
     exception.expectMessage("Cannot query pending checks");

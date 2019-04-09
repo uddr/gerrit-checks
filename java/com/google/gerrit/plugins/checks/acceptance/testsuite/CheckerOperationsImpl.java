@@ -239,18 +239,19 @@ public class CheckerOperationsImpl implements CheckerOperations {
     private void updateChecker(TestCheckerUpdate testCheckerUpdate) throws Exception {
       CheckerUpdate checkerUpdate = toCheckerUpdate(testCheckerUpdate);
       checkersUpdate.get().updateChecker(checkerUuid, checkerUpdate);
+    }
 
-      if (testCheckerUpdate.forceInvalidConfig()) {
-        try (Repository repo = repoManager.openRepository(allProjectsName)) {
-          new TestRepository<>(repo)
-              .branch(checkerUuid.toRefName())
-              .commit()
-              .add(CheckerConfig.CHECKER_CONFIG_FILE, "invalid-config")
-              .create();
-        }
-      }
+    @Override
+    public TestCheckerInvalidation.Builder forInvalidation() {
+      return TestCheckerInvalidation.builder(this::invalidateChecker);
+    }
 
-      if (testCheckerUpdate.forceInvalidBlockingCondition()) {
+    private void invalidateChecker(TestCheckerInvalidation testCheckerInvalidation)
+        throws Exception {
+      Optional<Checker> checker = getChecker(checkerUuid);
+      checkState(checker.isPresent(), "Tried to invalidate a non-existing test checker");
+
+      if (testCheckerInvalidation.invalidBlockingCondition()) {
         try (Repository repo = repoManager.openRepository(allProjectsName)) {
           TestRepository<Repository> testRepo = new TestRepository<>(repo);
           Config checkerConfig =
@@ -268,7 +269,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
         }
       }
 
-      if (testCheckerUpdate.forceInvalidStatus()) {
+      if (testCheckerInvalidation.invalidStatus()) {
         try (Repository repo = repoManager.openRepository(allProjectsName)) {
           TestRepository<Repository> testRepo = new TestRepository<>(repo);
           Config checkerConfig =
@@ -282,7 +283,17 @@ public class CheckerOperationsImpl implements CheckerOperations {
         }
       }
 
-      if (testCheckerUpdate.deleteRef()) {
+      if (testCheckerInvalidation.nonParseableConfig()) {
+        try (Repository repo = repoManager.openRepository(allProjectsName)) {
+          new TestRepository<>(repo)
+              .branch(checkerUuid.toRefName())
+              .commit()
+              .add(CheckerConfig.CHECKER_CONFIG_FILE, "non-parseable-config")
+              .create();
+        }
+      }
+
+      if (testCheckerInvalidation.deleteRef()) {
         try (Repository repo = repoManager.openRepository(allProjectsName)) {
           RefUpdate ru =
               new TestRepository<>(repo).getRepository().updateRef(checkerUuid.toRefName(), true);

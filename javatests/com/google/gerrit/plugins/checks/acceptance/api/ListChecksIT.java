@@ -153,7 +153,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid1)).upsert();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid2)).upsert();
-    checkerOperations.checker(checkerUuid2).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid2).forInvalidation().nonParseableConfig().invalidate();
 
     List<CheckInfo> checks = checksApiFactory.revision(patchSetId).list(ListChecksOption.CHECKER);
 
@@ -211,7 +211,7 @@ public class ListChecksIT extends AbstractCheckersTest {
   public void listIncludesCheckFromInvalidChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
     assertThat(checksApiFactory.revision(patchSetId).list()).hasSize(1);
   }
@@ -220,7 +220,7 @@ public class ListChecksIT extends AbstractCheckersTest {
   public void listIncludesCheckFromNonExistingChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
-    checkerOperations.checker(checkerUuid).forUpdate().deleteRef().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().deleteRef().invalidate();
 
     assertThat(checksApiFactory.revision(patchSetId).list()).hasSize(1);
   }

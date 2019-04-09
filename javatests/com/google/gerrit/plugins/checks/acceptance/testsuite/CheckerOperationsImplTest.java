@@ -502,7 +502,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   public void configCanBeMadeInvalid() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
     try {
       checkers.getChecker(checkerUuid);
@@ -516,7 +516,11 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   public void blockingConditionsCanBeMadeInvalid() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidBlockingCondition().update();
+    checkerOperations
+        .checker(checkerUuid)
+        .forInvalidation()
+        .invalidBlockingCondition()
+        .invalidate();
 
     try {
       checkers.getChecker(checkerUuid);
@@ -531,7 +535,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   public void statusCanBeMadeInvalid() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidStatus().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().invalidStatus().invalidate();
 
     try {
       checkers.getChecker(checkerUuid);
@@ -546,7 +550,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   public void refCanBeDeleted() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    checkerOperations.checker(checkerUuid).forUpdate().deleteRef().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().deleteRef().invalidate();
 
     try (Repository allProjectsRepo = repoManager.openRepository(allProjects)) {
       assertThat(allProjectsRepo.exactRef(checkerUuid.toRefName())).isNull();

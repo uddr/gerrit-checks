@@ -204,7 +204,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
   @Test
   public void getInvalidCheckerFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
     exception.expect(RestApiException.class);
     exception.expectMessage("Cannot retrieve checker " + checkerUuid);
@@ -214,7 +214,11 @@ public class GetCheckerIT extends AbstractCheckersTest {
   @Test
   public void getCheckerWithInvalidBlockingConditionFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidBlockingCondition().update();
+    checkerOperations
+        .checker(checkerUuid)
+        .forInvalidation()
+        .invalidBlockingCondition()
+        .invalidate();
 
     exception.expect(RestApiException.class);
     exception.expectMessage("Cannot retrieve checker " + checkerUuid);
@@ -224,7 +228,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
   @Test
   public void getCheckerWithInvalidStatusFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidStatus().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().invalidStatus().invalidate();
 
     exception.expect(RestApiException.class);
     exception.expectMessage("Cannot retrieve checker " + checkerUuid);

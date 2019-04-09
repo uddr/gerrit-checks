@@ -164,5 +164,23 @@ public interface CheckerOperations {
      * @return a builder to update the checker
      */
     TestCheckerUpdate.Builder forUpdate();
+
+    /**
+     * Starts the fluent chain to invalidate a checker. The returned builder can be used to specify
+     * how the checker should be made invalid. To invalidate the checker for real, {@link
+     * TestCheckerInvalidation.Builder#invalidate()} must be called.
+     *
+     * <p>Example:
+     *
+     * <pre>
+     * checkerOperations.forInvalidation().invalidConfig().invalidate();
+     * </pre>
+     *
+     * <p><strong>Note:</strong> The invalidation will fail with an exception if the checker to
+     * invalidate doesn't exist.
+     *
+     * @return a builder to invalidate the checker
+     */
+    TestCheckerInvalidation.Builder forInvalidation();
   }
 }

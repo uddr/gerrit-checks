@@ -228,7 +228,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void canUpdateCheckForNonExistingChecker() throws Exception {
-    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().deleteRef().update();
+    checkerOperations.checker(checkKey.checkerUuid()).forInvalidation().deleteRef().invalidate();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.SUCCESSFUL;
@@ -239,7 +239,11 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void canUpdateCheckForInvalidChecker() throws Exception {
-    checkerOperations.checker(checkKey.checkerUuid()).forUpdate().forceInvalidConfig().update();
+    checkerOperations
+        .checker(checkKey.checkerUuid())
+        .forInvalidation()
+        .nonParseableConfig()
+        .invalidate();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.SUCCESSFUL;

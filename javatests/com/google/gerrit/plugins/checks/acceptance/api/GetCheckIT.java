@@ -288,7 +288,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
 
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
     CheckInfo check = getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER);
     assertThat(check).isNotNull();
@@ -364,7 +364,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheckForInvalidChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid)).isNotNull();
   }
@@ -374,7 +374,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     assertThat(getCheckInfo(patchSetId, checkerUuid)).isNotNull();
 
-    checkerOperations.checker(checkerUuid).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
     assertCheckNotFound(patchSetId, checkerUuid);
   }
 
@@ -416,7 +416,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   public void getCheckForNonExistingChecker() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
-    checkerOperations.checker(checkerUuid).forUpdate().deleteRef().update();
+    checkerOperations.checker(checkerUuid).forInvalidation().deleteRef().invalidate();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid)).isNotNull();
   }

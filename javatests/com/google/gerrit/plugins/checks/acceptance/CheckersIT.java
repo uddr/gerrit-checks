@@ -39,7 +39,7 @@ public class CheckersIT extends AbstractCheckersTest {
   public void checkersOfOmitsInvalidCheckers() throws Exception {
     CheckerUuid checkerUuid1 = checkerOperations.newChecker().repository(project).create();
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
-    checkerOperations.checker(checkerUuid1).forUpdate().forceInvalidConfig().update();
+    checkerOperations.checker(checkerUuid1).forInvalidation().nonParseableConfig().invalidate();
 
     assertThat(getCheckerUuidsOf(project)).containsExactly(checkerUuid2);
   }

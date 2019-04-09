@@ -43,23 +43,10 @@ public abstract class TestCheckerUpdate {
 
   public abstract Optional<String> query();
 
-  public abstract boolean forceInvalidConfig();
-
-  public abstract boolean forceInvalidBlockingCondition();
-
-  public abstract boolean forceInvalidStatus();
-
-  public abstract boolean deleteRef();
-
   abstract ThrowingConsumer<TestCheckerUpdate> checkerUpdater();
 
   public static Builder builder(ThrowingConsumer<TestCheckerUpdate> checkerUpdater) {
-    return new AutoValue_TestCheckerUpdate.Builder()
-        .checkerUpdater(checkerUpdater)
-        .forceInvalidConfig(false)
-        .forceInvalidBlockingCondition(false)
-        .forceInvalidStatus(false)
-        .deleteRef(false);
+    return new AutoValue_TestCheckerUpdate.Builder().checkerUpdater(checkerUpdater);
   }
 
   @AutoValue.Builder
@@ -90,30 +77,6 @@ public abstract class TestCheckerUpdate {
     public Builder disable() {
       return status(CheckerStatus.DISABLED);
     }
-
-    public Builder forceInvalidConfig() {
-      return forceInvalidConfig(true);
-    }
-
-    abstract Builder forceInvalidConfig(boolean forceInvalidConfig);
-
-    public Builder forceInvalidBlockingCondition() {
-      return forceInvalidBlockingCondition(true);
-    }
-
-    abstract Builder forceInvalidBlockingCondition(boolean forceInvalidBlockingCondition);
-
-    public Builder forceInvalidStatus() {
-      return forceInvalidStatus(true);
-    }
-
-    abstract Builder forceInvalidStatus(boolean forceInvalidStatus);
-
-    public Builder deleteRef() {
-      return deleteRef(true);
-    }
-
-    abstract Builder deleteRef(boolean deleteRef);
 
     public abstract Builder blockingConditions(
         ImmutableSortedSet<BlockingCondition> blockingConditions);
