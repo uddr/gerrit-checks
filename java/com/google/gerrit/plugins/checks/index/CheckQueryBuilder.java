@@ -43,7 +43,7 @@ public class CheckQueryBuilder extends QueryBuilder<Check, CheckQueryBuilder> {
 
   @Operator
   public Predicate<Check> is(String value) throws QueryParseException {
-    if ("inprogress".equalsIgnoreCase(value)) {
+    if ("inprogress".equalsIgnoreCase(value) || "in_progress".equalsIgnoreCase(value)) {
       return Predicate.or(
           Arrays.stream(CheckState.values())
               .filter(CheckState::isInProgress)

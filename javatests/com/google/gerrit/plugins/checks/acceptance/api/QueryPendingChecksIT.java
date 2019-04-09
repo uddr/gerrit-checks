@@ -303,6 +303,14 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
       } else {
         assertThat(pendingChecks).isEmpty();
       }
+
+      pendingChecks =
+          queryPendingChecks(String.format("checker:\"%s\" is:in_progress", checkerUuid));
+      if (checkState.isInProgress()) {
+        assertThat(pendingChecks).hasSize(1);
+      } else {
+        assertThat(pendingChecks).isEmpty();
+      }
     }
   }
 
@@ -367,12 +375,42 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void queryPendingChecksForSpecifiedStateUnderscoreCanBeOmitted() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    // Create the check once so that in the for-loop we can always update an existing check, rather
+    // than needing to check if the check already exists and then depending on this either create or
+    // update it.
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .setState(CheckState.NOT_STARTED)
+        .upsert();
+
+    for (CheckState checkState : CheckState.values()) {
+      checkOperations
+          .check(CheckKey.create(project, patchSetId, checkerUuid))
+          .forUpdate()
+          .setState(checkState)
+          .upsert();
+
+      List<PendingChecksInfo> pendingChecks =
+          queryPendingChecks(
+              String.format(
+                  "checker:\"%s\" is:%s", checkerUuid, checkState.name().replace("_", "")));
+      assertThat(pendingChecks).hasSize(1);
+    }
+  }
+
+  @Test
   public void queryPendingChecksForSpecifiedStateDifferentCases() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:NOT_STARTED")).hasSize(1);
     assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:not_started")).hasSize(1);
     assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:NoT_StArTeD")).hasSize(1);
+    assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:NOTSTARTED")).hasSize(1);
+    assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:notstarted")).hasSize(1);
+    assertThat(queryPendingChecks(buildQueryString(checkerUuid) + " state:NoTStArTeD")).hasSize(1);
   }
 
   @Test

@@ -31,7 +31,18 @@ public class CheckStatePredicate extends CheckPredicate {
   }
 
   public static Optional<CheckStatePredicate> tryParse(String value) {
-    return Enums.getIfPresent(CheckState.class, value).toJavaUtil().map(CheckStatePredicate::new);
+    Optional<CheckStatePredicate> p =
+        Enums.getIfPresent(CheckState.class, value).toJavaUtil().map(CheckStatePredicate::new);
+    if (p.isPresent()) {
+      return p;
+    }
+
+    for (CheckState checkState : CheckState.values()) {
+      if (checkState.name().replace("_", "").equalsIgnoreCase(value)) {
+        return Optional.of(new CheckStatePredicate(checkState));
+      }
+    }
+    return Optional.empty();
   }
 
   private final CheckState checkState;
