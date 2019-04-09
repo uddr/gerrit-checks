@@ -212,9 +212,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
       Optional<Checker> checker = getChecker(checkerUuid);
       checkState(checker.isPresent(), "Tried to get config text for a non-existing test checker");
 
-      try (Repository repo = repoManager.openRepository(allProjectsName);
-          RevWalk rw = new RevWalk(repo);
-          ObjectReader or = repo.newObjectReader()) {
+      try (Repository repo = repoManager.openRepository(allProjectsName)) {
         // Parse as Config to ensure it's a valid config file.
         return new BlobBasedConfig(
                 null, repo, checker.get().getRefState(), CheckerConfig.CHECKER_CONFIG_FILE)
