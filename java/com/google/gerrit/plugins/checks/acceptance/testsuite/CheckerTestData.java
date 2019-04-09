@@ -14,6 +14,10 @@
 
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
+import static java.util.stream.Collectors.joining;
+
+import java.util.stream.Stream;
+
 public final class CheckerTestData {
   /** An invalid checker UUID. */
   public static final String INVALID_UUID = "notauuid";
@@ -37,6 +41,11 @@ public final class CheckerTestData {
 
   /** Query that is not parsable. */
   public static final String INVALID_QUERY = ":foo :bar";
+
+  /** Query with {@code numTerms} total operators, all of which are supported in checker queries. */
+  public static String longQueryWithSupportedOperators(int numTerms) {
+    return Stream.generate(() -> "file:foo").limit(numTerms).collect(joining(" "));
+  }
 
   private CheckerTestData() {}
 }

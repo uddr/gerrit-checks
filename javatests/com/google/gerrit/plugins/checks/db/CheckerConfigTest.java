@@ -21,7 +21,6 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.truth.StringSubject;
-import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
@@ -461,8 +460,8 @@ public class CheckerConfigTest extends GerritBaseTests {
     String query = "foo:bar";
     try {
       CheckerQuery.clean(query);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
       // Expected.
     }
 

@@ -27,6 +27,7 @@ import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperations.PerCheckerOperations;
@@ -51,15 +52,18 @@ import org.junit.Test;
 
 @SkipProjectClone
 public class UpdateCheckerIT extends AbstractCheckersTest {
-  @Inject private RequestScopeOperations requestScopeOperations;
-  @Inject private ProjectOperations projectOperations;
+  private static final int MAX_INDEX_TERMS = 10;
 
   @ConfigSuite.Default
   public static Config defaultConfig() {
     Config cfg = new Config();
     cfg.setBoolean("checks", "api", "enabled", true);
+    cfg.setInt("index", null, "maxTerms", MAX_INDEX_TERMS);
     return cfg;
   }
+
+  @Inject private RequestScopeOperations requestScopeOperations;
+  @Inject private ProjectOperations projectOperations;
 
   @Before
   public void setTimeForTesting() {
@@ -510,6 +514,31 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
       assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
       assertThat(e).hasMessageThat().contains("Invalid query: " + input.query);
+    }
+
+    assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
+  }
+
+  @Test
+  public void updateWithTooLongQuery() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    Optional<String> oldQuery = checkerOperations.checker(checkerUuid).get().getQuery();
+
+    CheckerInput input = new CheckerInput();
+    input.query = CheckerTestData.longQueryWithSupportedOperators(MAX_INDEX_TERMS * 2);
+    assertThat(CheckerQuery.clean(input.query)).isEqualTo(input.query);
+    try {
+      checkersApi.id(checkerUuid).update(input);
+      assert_().fail("expected BadRequestException");
+    } catch (BadRequestException e) {
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo(
+              "change query of checker "
+                  + checkerUuid
+                  + " is invalid: "
+                  + input.query
+                  + " (too many terms in query)");
     }
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);

@@ -17,12 +17,12 @@ package com.google.gerrit.plugins.checks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 
-import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gerrit.testing.GerritBaseTests;
 import com.google.gerrit.testing.InMemoryModule;
 import com.google.inject.Guice;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.junit.Test;
 
 public class CheckerQueryTest extends GerritBaseTests {
@@ -107,8 +107,8 @@ public class CheckerQueryTest extends GerritBaseTests {
   private static void assertInvalidQuery(String query, String expectedMessage) {
     try {
       CheckerQuery.clean(query);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
       assertThat(e).hasMessageThat().isEqualTo(expectedMessage);
     }
   }
@@ -116,7 +116,7 @@ public class CheckerQueryTest extends GerritBaseTests {
   private static void assertValidQuery(String query) {
     try {
       assertThat(CheckerQuery.clean(query)).isEqualTo(query.trim());
-    } catch (BadRequestException e) {
+    } catch (ConfigInvalidException e) {
       throw new AssertionError("expected valid query: " + query, e);
     }
   }

@@ -25,6 +25,7 @@ import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperations.PerCheckerOperations;
@@ -35,18 +36,29 @@ import com.google.gerrit.plugins.checks.api.CheckerInput;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.db.CheckersByRepositoryNotes;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.testing.ConfigSuite;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import org.eclipse.jgit.lib.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class CreateCheckerIT extends AbstractCheckersTest {
+  private static final int MAX_INDEX_TERMS = 10;
+
   @Inject private RequestScopeOperations requestScopeOperations;
   @Inject private ProjectOperations projectOperations;
+
+  @ConfigSuite.Default
+  public static Config defaultConfig() {
+    Config cfg = new Config();
+    cfg.setInt("index", null, "maxTerms", MAX_INDEX_TERMS);
+    return cfg;
+  }
 
   @Before
   public void setTimeForTesting() {
@@ -394,6 +406,28 @@ public class CreateCheckerIT extends AbstractCheckersTest {
       assert_().fail("expected BadRequestException");
     } catch (BadRequestException e) {
       assertThat(e).hasMessageThat().contains("Invalid query: " + input.query);
+    }
+  }
+
+  @Test
+  public void createCheckerWithTooLongQueryFails() throws Exception {
+    CheckerInput input = new CheckerInput();
+    input.uuid = "test:my-checker";
+    input.repository = allProjects.get();
+    input.query = CheckerTestData.longQueryWithSupportedOperators(MAX_INDEX_TERMS * 2);
+    assertThat(CheckerQuery.clean(input.query)).isEqualTo(input.query);
+    try {
+      checkersApi.create(input).get();
+      assert_().fail("expected BadRequestException");
+    } catch (BadRequestException e) {
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo(
+              "change query of checker "
+                  + input.uuid
+                  + " is invalid: "
+                  + input.query
+                  + " (too many terms in query)");
     }
   }
 

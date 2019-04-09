@@ -26,6 +26,7 @@ import com.google.gerrit.plugins.checks.CheckerJson;
 import com.google.gerrit.plugins.checks.CheckerName;
 import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUpdate;
+import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.plugins.checks.NoSuchCheckerException;
 import com.google.gerrit.plugins.checks.UrlValidator;
@@ -35,6 +36,7 @@ import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
+import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.io.IOException;
@@ -43,38 +45,41 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
 public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInput> {
-  private final PermissionBackend permissionBackend;
-  private final Provider<CheckersUpdate> checkersUpdate;
   private final CheckerJson checkerJson;
+  private final PermissionBackend permissionBackend;
   private final ProjectCache projectCache;
-
+  private final Provider<CheckerQuery> checkerQueryProvider;
+  private final Provider<CheckersUpdate> checkersUpdate;
   private final AdministrateCheckersPermission permission;
 
   @Inject
   public UpdateChecker(
-      PermissionBackend permissionBackend,
-      @UserInitiated Provider<CheckersUpdate> checkersUpdate,
       CheckerJson checkerJson,
-      AdministrateCheckersPermission permission,
-      ProjectCache projectCache) {
-    this.permissionBackend = permissionBackend;
-    this.checkersUpdate = checkersUpdate;
+      ProjectCache projectCache,
+      PermissionBackend permissionBackend,
+      Provider<CheckerQuery> checkerQueryProvider,
+      @UserInitiated Provider<CheckersUpdate> checkersUpdate,
+      AdministrateCheckersPermission permission) {
     this.checkerJson = checkerJson;
-    this.permission = permission;
     this.projectCache = projectCache;
+    this.permissionBackend = permissionBackend;
+    this.checkerQueryProvider = checkerQueryProvider;
+    this.checkersUpdate = checkersUpdate;
+    this.permission = permission;
   }
 
   @Override
   public CheckerInfo apply(CheckerResource resource, CheckerInput input)
       throws RestApiException, PermissionBackendException, NoSuchCheckerException, IOException,
-          ConfigInvalidException {
+          ConfigInvalidException, OrmException {
     permissionBackend.currentUser().check(permission);
 
+    CheckerUuid checkerUuid = resource.getChecker().getUuid();
     CheckerUpdate.Builder checkerUpdateBuilder = CheckerUpdate.builder();
 
     // Callers shouldn't really be providing UUID. If they do, the only legal UUID is exactly the
     // current UUID.
-    if (input.uuid != null && !input.uuid.equals(resource.getChecker().getUuid().get())) {
+    if (input.uuid != null && !input.uuid.equals(checkerUuid.get())) {
       throw new BadRequestException("uuid cannot be updated");
     }
 
@@ -94,9 +99,12 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
       checkerUpdateBuilder.setUrl(UrlValidator.clean(input.url));
     }
 
+    Project.NameKey repository;
     if (input.repository != null) {
-      Project.NameKey repository = resolveRepository(input.repository);
+      repository = resolveRepository(input.repository);
       checkerUpdateBuilder.setRepository(repository);
+    } else {
+      repository = resource.getChecker().getRepository();
     }
 
     if (input.status != null) {
@@ -108,13 +116,11 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
     }
 
     if (input.query != null) {
-      checkerUpdateBuilder.setQuery(CheckerQuery.clean(input.query));
+      checkerUpdateBuilder.setQuery(validateQuery(checkerUuid, repository, input.query));
     }
 
     Checker updatedChecker =
-        checkersUpdate
-            .get()
-            .updateChecker(resource.getChecker().getUuid(), checkerUpdateBuilder.build());
+        checkersUpdate.get().updateChecker(checkerUuid, checkerUpdateBuilder.build());
     return checkerJson.format(updatedChecker);
   }
 
@@ -130,5 +136,14 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
     }
 
     return projectState.getNameKey();
+  }
+
+  private String validateQuery(CheckerUuid checkerUuid, Project.NameKey repository, String query)
+      throws BadRequestException, OrmException {
+    try {
+      return checkerQueryProvider.get().validate(checkerUuid, repository, query);
+    } catch (ConfigInvalidException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 }

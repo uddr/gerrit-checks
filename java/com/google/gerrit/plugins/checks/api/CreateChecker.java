@@ -42,6 +42,7 @@ import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
+import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -53,6 +54,7 @@ public class CreateChecker
     implements RestCollectionModifyView<TopLevelResource, CheckerResource, CheckerInput> {
   private final Provider<CurrentUser> self;
   private final PermissionBackend permissionBackend;
+  private final Provider<CheckerQuery> checkerQueryProvider;
   private final Provider<CheckersUpdate> checkersUpdate;
   private final CheckerJson checkerJson;
   private final AdministrateCheckersPermission permission;
@@ -62,12 +64,14 @@ public class CreateChecker
   public CreateChecker(
       Provider<CurrentUser> self,
       PermissionBackend permissionBackend,
+      Provider<CheckerQuery> checkerQueryProvider,
       @UserInitiated Provider<CheckersUpdate> checkersUpdate,
       CheckerJson checkerJson,
       AdministrateCheckersPermission permission,
       ProjectCache projectCache) {
     this.self = self;
     this.permissionBackend = permissionBackend;
+    this.checkerQueryProvider = checkerQueryProvider;
     this.checkersUpdate = checkersUpdate;
     this.checkerJson = checkerJson;
     this.permission = permission;
@@ -76,7 +80,8 @@ public class CreateChecker
 
   @Override
   public Response<CheckerInfo> apply(TopLevelResource parentResource, CheckerInput input)
-      throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException {
+      throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException,
+          OrmException {
     if (!self.get().isIdentifiedUser()) {
       throw new AuthException("Authentication required");
     }
@@ -116,7 +121,7 @@ public class CreateChecker
       checkerUpdateBuilder.setBlockingConditions(ImmutableSortedSet.copyOf(input.blocking));
     }
     if (input.query != null) {
-      checkerUpdateBuilder.setQuery(CheckerQuery.clean(input.query));
+      checkerUpdateBuilder.setQuery(validateQuery(checkerUuid, repository, input.query));
     }
     try {
       Checker checker =
@@ -141,5 +146,14 @@ public class CreateChecker
     }
 
     return projectState.getNameKey();
+  }
+
+  private String validateQuery(CheckerUuid checkerUuid, Project.NameKey repository, String query)
+      throws BadRequestException, OrmException {
+    try {
+      return checkerQueryProvider.get().validate(checkerUuid, repository, query);
+    } catch (ConfigInvalidException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 }

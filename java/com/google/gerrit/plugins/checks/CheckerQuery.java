@@ -22,15 +22,17 @@ import static com.google.gerrit.index.query.QueryParser.NOT;
 import static com.google.gerrit.index.query.QueryParser.OR;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.Nullable;
-import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.index.query.IndexPredicate;
 import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.index.query.QueryParser;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.index.change.ChangeField;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -44,6 +46,8 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.antlr.runtime.tree.Tree;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
@@ -115,18 +119,8 @@ public class CheckerQuery {
           "unresolved",
           "wip");
 
-  /**
-   * Cleans a query string for storage in the checker configuration.
-   *
-   * <p>The query string is interpreted as a change query. Only a subset of query operators are
-   * supported, as listed in the REST API documentation and {@link #ALLOWED_OPERATORS}.
-   *
-   * @param query a change query string.
-   * @return the query string, trimmed. May be empty, which indicates all changes match.
-   * @throws BadRequestException if the query is not a valid query, or it uses operators outside of
-   *     the allowed set.
-   */
-  public static String clean(String query) throws BadRequestException {
+  @VisibleForTesting
+  public static String clean(String query) throws ConfigInvalidException {
     String trimmed = requireNonNull(query).trim();
     if (trimmed.isEmpty()) {
       return trimmed;
@@ -134,13 +128,13 @@ public class CheckerQuery {
     try {
       checkOperators(QueryParser.parse(query));
     } catch (QueryParseException e) {
-      throw new BadRequestException("Invalid query: " + query + "\n" + e.getMessage(), e);
+      throw new ConfigInvalidException("Invalid query: " + query + "\n" + e.getMessage(), e);
     }
 
     return trimmed;
   }
 
-  private static void checkOperators(Tree node) throws BadRequestException {
+  private static void checkOperators(Tree node) throws ConfigInvalidException {
     switch (node.getType()) {
       case AND:
       case OR:
@@ -152,15 +146,16 @@ public class CheckerQuery {
 
       case FIELD_NAME:
         if (!ALLOWED_OPERATORS.contains(node.getText())) {
-          throw new BadRequestException("Unsupported operator: " + node);
+          throw new ConfigInvalidException("Unsupported operator: " + node);
         }
         break;
 
       case DEFAULT_FIELD:
-        throw new BadRequestException("Specific search operator required: " + getOnlyChild(node));
+        throw new ConfigInvalidException(
+            "Specific search operator required: " + getOnlyChild(node));
 
       default:
-        throw new BadRequestException("Unsupported query: " + node);
+        throw new ConfigInvalidException("Unsupported query: " + node);
     }
   }
 
@@ -196,7 +191,8 @@ public class CheckerQuery {
 
     Predicate<ChangeData> predicate;
     try {
-      predicate = createQueryPredicate(checker);
+      predicate =
+          createQueryPredicate(checker.getUuid(), checker.getRepository(), checker.getQuery());
     } catch (ConfigInvalidException e) {
       logger.atWarning().withCause(e).log(
           "skipping invalid query for checker %s", checker.getUuid());
@@ -206,35 +202,78 @@ public class CheckerQuery {
     return predicate.asMatchable().match(cd);
   }
 
+  /**
+   * Cleans and validates a query string for storage in the checker configuration.
+   *
+   * <p>The query string is interpreted as a change query. Only a subset of query operators are
+   * supported, as listed in the REST API documentation and {@link #ALLOWED_OPERATORS}.
+   *
+   * <p>In addition to syntactic validation and checking for allowed operators, this method actually
+   * performs a query against the index, to ensure it passes any restrictions imposed by the index
+   * implementation, such as length limits.
+   *
+   * @param checkerUuid the checker UUID.
+   * @param repository the checker repository.
+   * @param query a change query string, either from the checker in storage or a proposed new value
+   *     provided by a user.
+   * @return the query string, trimmed. May be empty, which indicates all changes match.
+   * @throws ConfigInvalidException if the query is not a valid query, or it uses operators outside
+   *     of the allowed set.
+   */
+  public String validate(CheckerUuid checkerUuid, Project.NameKey repository, String query)
+      throws ConfigInvalidException, OrmException {
+    // This parses the query string twice, which is unavoidable since there is currently no
+    // QueryProcessor API which takes an Antlr Tree. That's ok; the parse cost is vastly outweighed
+    // by the actual query execution.
+    query = clean(query);
+    queryMatchingChanges(
+        checkerUuid,
+        repository,
+        Optional.ofNullable(Strings.emptyToNull(query)),
+        qp -> qp.setUserProvidedLimit(1));
+    return query;
+  }
+
   public List<ChangeData> queryMatchingChanges(Checker checker)
       throws ConfigInvalidException, OrmException {
+    return queryMatchingChanges(
+        checker.getUuid(), checker.getRepository(), checker.getQuery(), qp -> {});
+  }
+
+  private List<ChangeData> queryMatchingChanges(
+      CheckerUuid checkerUuid,
+      Project.NameKey repository,
+      Optional<String> optionalQuery,
+      Consumer<ChangeQueryProcessor> queryProcessorSetup)
+      throws ConfigInvalidException, OrmException {
     try {
-      return executeIndexQueryWithRetry(createQueryPredicate(checker));
+      return executeIndexQueryWithRetry(
+          queryProcessorSetup, createQueryPredicate(checkerUuid, repository, optionalQuery));
     } catch (QueryParseException e) {
-      throw invalidQueryException(checker, e);
+      throw invalidQueryException(checkerUuid, optionalQuery, e);
     }
   }
 
-  private Predicate<ChangeData> createQueryPredicate(Checker checker)
+  private Predicate<ChangeData> createQueryPredicate(
+      CheckerUuid checkerUuid, Project.NameKey repository, Optional<String> optionalQuery)
       throws ConfigInvalidException {
-    Predicate<ChangeData> predicate = new ProjectPredicate(checker.getRepository().get());
+    Predicate<ChangeData> predicate = new ProjectPredicate(repository.get());
 
-    if (checker.getQuery().isPresent()) {
-      String query = checker.getQuery().get();
+    if (optionalQuery.isPresent()) {
+      String query = optionalQuery.get();
       Predicate<ChangeData> predicateForQuery;
       try {
         predicateForQuery = queryBuilder.parse(query);
       } catch (QueryParseException e) {
-        throw invalidQueryException(checker, e);
+        throw invalidQueryException(checkerUuid, optionalQuery, e);
       }
 
       if (!predicateForQuery.isMatchable()) {
         // Assuming nobody modified the query behind Gerrit's back, this is programmer error:
         // CheckerQuery should not be able to produce non-matchable queries.
         logger.atWarning().log(
-            "change query of checker %s is not matchable: %s",
-            checker.getUuid(), checker.getQuery().get());
-        throw invalidQueryException(checker, null);
+            "change query of checker %s is not matchable: %s", checkerUuid, optionalQuery.get());
+        throw invalidQueryException(checkerUuid, optionalQuery, null);
       }
 
       predicate = Predicate.and(predicate, predicateForQuery);
@@ -258,12 +297,17 @@ public class CheckerQuery {
   }
 
   // TODO(ekempin): Retrying the query should be done by ChangeQueryProcessor.
-  private List<ChangeData> executeIndexQueryWithRetry(Predicate<ChangeData> predicate)
+  private List<ChangeData> executeIndexQueryWithRetry(
+      Consumer<ChangeQueryProcessor> queryProcessorSetup, Predicate<ChangeData> predicate)
       throws OrmException, QueryParseException {
     try {
       return retryHelper.execute(
           ActionType.INDEX_QUERY,
-          () -> changeQueryProcessorProvider.get().query(predicate).entities(),
+          () -> {
+            ChangeQueryProcessor qp = changeQueryProcessorProvider.get();
+            queryProcessorSetup.accept(qp);
+            return qp.query(predicate).entities();
+          },
           OrmException.class::isInstance);
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
@@ -274,11 +318,12 @@ public class CheckerQuery {
   }
 
   private static ConfigInvalidException invalidQueryException(
-      Checker checker, @Nullable QueryParseException parseException) {
+      CheckerUuid checkerUuid,
+      Optional<String> optionalQuery,
+      @Nullable QueryParseException parseException) {
     String msg =
         String.format(
-            "change query of checker %s is invalid: %s",
-            checker.getUuid(), checker.getQuery().orElse(""));
+            "change query of checker %s is invalid: %s", checkerUuid, optionalQuery.orElse(""));
     if (parseException != null) {
       msg += " (" + parseException.getMessage() + ")";
     }
