@@ -563,6 +563,51 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void uuidCanBeUnset() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forInvalidation().unsetUuid().invalidate();
+
+    try {
+      checkers.getChecker(checkerUuid);
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
+      // expected
+      assertThat(e.getMessage()).contains("checker.uuid is not set in config file");
+    }
+  }
+
+  @Test
+  public void repositoryCanBeUnset() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forInvalidation().unsetRepository().invalidate();
+
+    try {
+      checkers.getChecker(checkerUuid);
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
+      // expected
+      assertThat(e.getMessage()).contains("checker.repository is not set in config file");
+    }
+  }
+
+  @Test
+  public void statusCanBeUnset() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+
+    checkerOperations.checker(checkerUuid).forInvalidation().unsetStatus().invalidate();
+
+    try {
+      checkers.getChecker(checkerUuid);
+      assert_().fail("expected ConfigInvalidException");
+    } catch (ConfigInvalidException e) {
+      // expected
+      assertThat(e.getMessage()).contains("checker.status is not set in config file");
+    }
+  }
+
+  @Test
   public void refCanBeDeleted() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 

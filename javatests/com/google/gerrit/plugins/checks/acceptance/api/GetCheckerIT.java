@@ -246,6 +246,36 @@ public class GetCheckerIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void getCheckerWithMissingUuidFails() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    checkerOperations.checker(checkerUuid).forInvalidation().unsetUuid().invalidate();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    getCheckerInfo(checkerUuid);
+  }
+
+  @Test
+  public void getCheckerWithMissingRepositoryFails() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    checkerOperations.checker(checkerUuid).forInvalidation().unsetRepository().invalidate();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    getCheckerInfo(checkerUuid);
+  }
+
+  @Test
+  public void getCheckerWithMissingStatusFails() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    checkerOperations.checker(checkerUuid).forInvalidation().unsetStatus().invalidate();
+
+    exception.expect(RestApiException.class);
+    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
+    getCheckerInfo(checkerUuid);
+  }
+
+  @Test
   public void getCheckerByNameFails() throws Exception {
     String name = "my-checker";
     checkerOperations.newChecker().name(name).create();

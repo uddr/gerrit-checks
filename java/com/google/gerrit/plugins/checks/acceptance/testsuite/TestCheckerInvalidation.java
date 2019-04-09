@@ -27,6 +27,12 @@ public abstract class TestCheckerInvalidation {
 
   public abstract boolean invalidStatus();
 
+  public abstract boolean unsetUuid();
+
+  public abstract boolean unsetRepository();
+
+  public abstract boolean unsetStatus();
+
   public abstract boolean deleteRef();
 
   abstract ThrowingConsumer<TestCheckerInvalidation> checkerInvalidator();
@@ -38,6 +44,9 @@ public abstract class TestCheckerInvalidation {
         .invalidUuid(false)
         .invalidBlockingCondition(false)
         .invalidStatus(false)
+        .unsetUuid(false)
+        .unsetRepository(false)
+        .unsetStatus(false)
         .deleteRef(false);
   }
 
@@ -66,6 +75,24 @@ public abstract class TestCheckerInvalidation {
     }
 
     abstract Builder invalidStatus(boolean invalidStatus);
+
+    public Builder unsetUuid() {
+      return unsetUuid(true);
+    }
+
+    abstract Builder unsetUuid(boolean unsetUuid);
+
+    public Builder unsetRepository() {
+      return unsetRepository(true);
+    }
+
+    abstract Builder unsetRepository(boolean unsetRepository);
+
+    public Builder unsetStatus() {
+      return unsetStatus(true);
+    }
+
+    abstract Builder unsetStatus(boolean unsetStatus);
 
     public Builder deleteRef() {
       return deleteRef(true);

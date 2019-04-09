@@ -200,7 +200,9 @@ enum CheckerConfigEntry {
       // An empty repository is invalid in NoteDb; CheckerConfig will refuse to store it
       if (repository == null) {
         throw new ConfigInvalidException(
-            String.format("repository of checker %s not set", checkerUuid));
+            String.format(
+                "%s.%s is not set in config file for checker %s",
+                SECTION_NAME, super.keyName, checkerUuid));
       }
       checker.setRepository(new Project.NameKey(repository));
     }
@@ -227,7 +229,9 @@ enum CheckerConfigEntry {
       String value = config.getString(SECTION_NAME, null, super.keyName);
       if (value == null) {
         throw new ConfigInvalidException(
-            String.format("status of checker %s not set", checkerUuid));
+            String.format(
+                "%s.%s is not set in config file for checker %s",
+                SECTION_NAME, super.keyName, checkerUuid));
       }
       try {
         checker.setStatus(config.getEnum(SECTION_NAME, null, super.keyName, CheckerStatus.ENABLED));
