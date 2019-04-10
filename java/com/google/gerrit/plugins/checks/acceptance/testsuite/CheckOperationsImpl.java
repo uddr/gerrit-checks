@@ -83,7 +83,9 @@ public final class CheckOperationsImpl implements CheckOperations {
 
     @Override
     public Check get() throws Exception {
-      return checks.getCheck(key, GetCheckOptions.defaults()).get();
+      return checks
+          .getCheck(key, GetCheckOptions.defaults())
+          .orElseThrow(() -> new IllegalStateException("Tried to get non-existing test check"));
     }
 
     @Override
