@@ -147,7 +147,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
       // if the root predicate is an AndPredicate, any of its direct children must be a
       // CheckerPredicate, the other child predicates can be anything (including any combination of
       // AndPredicate, OrPredicate and NotPredicate).
-      if (!predicate.getChildren().stream().anyMatch(CheckerPredicate.class::isInstance)) {
+      if (predicate.getChildren().stream().noneMatch(CheckerPredicate.class::isInstance)) {
         throw new BadRequestException(
             String.format(
                 "query must be '%s:<checker-uuid>' or '%s:<checker-uuid> AND <other-operators>'",
