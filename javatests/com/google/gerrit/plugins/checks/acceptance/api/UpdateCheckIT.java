@@ -100,6 +100,17 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void unsetUrl() throws Exception {
+    checkOperations.check(checkKey).forUpdate().setUrl("http://example.com/my-check").upsert();
+
+    CheckInput input = new CheckInput();
+    input.url = "";
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.url).isNull();
+  }
+
+  @Test
   public void cannotSetInvalidUrl() throws Exception {
     CheckInput input = new CheckInput();
     input.url = CheckTestData.INVALID_URL;

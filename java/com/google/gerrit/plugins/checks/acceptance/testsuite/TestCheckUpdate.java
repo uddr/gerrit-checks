@@ -49,6 +49,10 @@ public abstract class TestCheckUpdate {
 
     public abstract Builder setUrl(String url);
 
+    public Builder clearUrl() {
+      return setUrl("");
+    }
+
     public abstract Builder setStarted(Timestamp started);
 
     public abstract Builder setFinished(Timestamp finished);

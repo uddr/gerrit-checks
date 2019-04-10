@@ -39,19 +39,11 @@ public abstract class CheckUpdate {
   public abstract static class Builder {
     public abstract Builder setState(CheckState state);
 
-    public abstract Builder setState(Optional<CheckState> state);
-
     public abstract Builder setUrl(String url);
-
-    public abstract Builder setUrl(Optional<String> url);
 
     public abstract Builder setStarted(Timestamp started);
 
-    public abstract Builder setStarted(Optional<Timestamp> started);
-
     public abstract Builder setFinished(Timestamp finished);
-
-    public abstract Builder setFinished(Optional<Timestamp> finished);
 
     public abstract CheckUpdate build();
   }

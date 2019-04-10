@@ -1,5 +1,6 @@
 package com.google.gerrit.plugins.checks.db;
 
+import com.google.common.base.Strings;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -59,8 +60,8 @@ class NoteDbCheck {
       state = update.state().get();
       modified = true;
     }
-    if (update.url().isPresent() && !update.url().get().equals(url)) {
-      url = update.url().get();
+    if (update.url().isPresent() && !update.url().get().equals(Strings.nullToEmpty(url))) {
+      url = Strings.emptyToNull(update.url().get());
       modified = true;
     }
     if (update.started().isPresent() && !update.started().get().equals(started)) {

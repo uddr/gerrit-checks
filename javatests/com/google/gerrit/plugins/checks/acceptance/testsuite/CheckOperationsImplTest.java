@@ -141,6 +141,16 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void requestingNoUrlIsPossibleForCheckCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).clearUrl().upsert();
+
+    CheckInfo check = getCheckFromServer(checkKey);
+    assertThat(check.url).isNull();
+  }
+
+  @Test
   public void specifiedStateIsRespectedForCheckCreation() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
@@ -261,6 +271,17 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void emptyUrlOfExistingCheckCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).clearUrl().upsert();
+
+    Optional<String> url = checkOperations.check(checkKey).get().url();
+
+    assertThat(url).isEmpty();
+  }
+
+  @Test
   public void startedOfExistingCheckCanBeRetrieved() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
@@ -358,6 +379,18 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
 
     Optional<String> currentUrl = checkOperations.check(checkKey).get().url();
     assertThat(currentUrl).hasValue("http://updated-url");
+  }
+
+  @Test
+  public void urlCanBeCleared() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).setUrl("http://original-url").upsert();
+
+    checkOperations.check(checkKey).forUpdate().clearUrl().upsert();
+
+    Optional<String> currentUrl = checkOperations.check(checkKey).get().url();
+    assertThat(currentUrl).isEmpty();
   }
 
   @Test
