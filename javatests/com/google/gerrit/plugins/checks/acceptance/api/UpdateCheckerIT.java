@@ -57,7 +57,6 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
   @ConfigSuite.Default
   public static Config defaultConfig() {
     Config cfg = new Config();
-    cfg.setBoolean("checks", "api", "enabled", true);
     cfg.setInt("index", null, "maxTerms", MAX_INDEX_TERMS);
     return cfg;
   }
