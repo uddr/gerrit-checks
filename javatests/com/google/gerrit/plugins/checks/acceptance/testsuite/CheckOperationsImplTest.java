@@ -37,7 +37,6 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.util.time.TimeUtil;
-import com.google.gwtorm.server.OrmException;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -471,7 +470,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     assertThat(checkInfo.updated).isEqualTo(check.updated());
   }
 
-  private CheckInfo getCheckFromServer(CheckKey checkKey) throws RestApiException, OrmException {
+  private CheckInfo getCheckFromServer(CheckKey checkKey) throws RestApiException {
     return checksApiFactory.revision(checkKey.patchSet()).id(checkKey.checkerUuid()).get();
   }
 
@@ -486,7 +485,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
 
   private CheckKey createCheckInServer(
       Project.NameKey repositoryName, PatchSet.Id patchSetId, CheckInput checkInput)
-      throws RestApiException, OrmException {
+      throws RestApiException {
     checksApiFactory.revision(patchSetId).create(checkInput);
     return CheckKey.create(repositoryName, patchSetId, CheckerUuid.parse(checkInput.checkerUuid));
   }

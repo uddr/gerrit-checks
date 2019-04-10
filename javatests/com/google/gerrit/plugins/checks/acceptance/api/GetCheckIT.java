@@ -44,7 +44,6 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.gson.reflect.TypeToken;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -528,7 +527,7 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   private CheckInfo getCheckInfo(
       PatchSet.Id patchSetId, CheckerUuid checkerUuid, ListChecksOption... options)
-      throws RestApiException, OrmException {
+      throws RestApiException {
     return checksApiFactory.revision(patchSetId).id(checkerUuid).get(options);
   }
 

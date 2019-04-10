@@ -14,6 +14,8 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import static com.google.gerrit.server.api.ApiUtil.asRestApiException;
+
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Change;
@@ -24,7 +26,6 @@ import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.project.NoSuchChangeException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -52,25 +53,43 @@ public class ChecksFactory {
     this.changeResourceFactory = changeResourceFactory;
   }
 
-  public Checks currentRevision(Change.Id changeId) throws OrmException, RestApiException {
+  public Checks currentRevision(Change.Id changeId) throws RestApiException {
     ChangeResource changeResource = getChangeResource(changeId);
-    PatchSet patchSet = psUtil.current(changeResource.getNotes());
+    PatchSet patchSet = getCurrentPatchSet(changeResource.getNotes());
     return getChecks(changeResource, patchSet);
   }
 
-  public Checks revision(PatchSet.Id patchSetId) throws OrmException, RestApiException {
+  public Checks revision(PatchSet.Id patchSetId) throws RestApiException {
     ChangeResource changeResource = getChangeResource(patchSetId.getParentKey());
-    PatchSet patchSet = psUtil.get(changeResource.getNotes(), patchSetId);
+    PatchSet patchSet = getPatchSet(changeResource.getNotes(), patchSetId);
     return getChecks(changeResource, patchSet);
   }
 
-  private ChangeResource getChangeResource(Change.Id changeId)
-      throws OrmException, RestApiException {
+  private ChangeResource getChangeResource(Change.Id changeId) throws RestApiException {
     try {
       ChangeNotes notes = changeNotesFactory.createChecked(changeId);
       return changeResourceFactory.create(notes, user.get());
     } catch (NoSuchChangeException e) {
       throw new ResourceNotFoundException(String.format("Change %d not found", changeId.get()), e);
+    } catch (Exception e) {
+      throw asRestApiException("Cannot retrieve change", e);
+    }
+  }
+
+  private PatchSet getCurrentPatchSet(ChangeNotes changeNotes) throws RestApiException {
+    try {
+      return psUtil.current(changeNotes);
+    } catch (Exception e) {
+      throw asRestApiException("Cannot retrieve current revision", e);
+    }
+  }
+
+  private PatchSet getPatchSet(ChangeNotes changeNotes, PatchSet.Id patchSetId)
+      throws RestApiException {
+    try {
+      return psUtil.get(changeNotes, patchSetId);
+    } catch (Exception e) {
+      throw asRestApiException("Cannot retrieve revision", e);
     }
   }
 
