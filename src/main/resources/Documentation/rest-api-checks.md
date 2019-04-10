@@ -168,6 +168,7 @@ The `CheckInfo` entity describes a check.
 | `patch_set_id`    |          | The patch set that this check applies to.
 | `checker_uuid`    |          | The [UUID](./rest-api-checkers.md#checker-id) of the checker that reported this check.
 | `state`           |          | The state as string-serialized form of [CheckState](#check-state)
+| `message`         | optional | Short message explaining the check state.
 | `url`             | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
 | `started`         | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check started processing.
 | `finished`        | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.
@@ -184,6 +185,7 @@ The `CheckInput` entity contains information for creating or updating a check.
 | --------------- | -------- | ----------- |
 | `checker_uuid`  | optional | The name of the checker. Must be specified for checker creation. Optional only if updating a check and referencing the checker using the [UUID](./rest-api-checkers.md#checker-id) in the URL.
 | `state`         | optional | The state as string-serialized form of [CheckState](#check-state)
+| `message`       | optional | Short message explaining the check state.
 | `url`           | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
 | `started`       | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check started processing.
 | `finished`      | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.

@@ -33,6 +33,8 @@ public class CheckInfo {
 
   /** State that this check exited. */
   public CheckState state;
+  /** Short message explaining the check state. */
+  @Nullable public String message;
   /** Fully qualified URL to detailed result on the Checker's service. */
   @Nullable public String url;
   /** Timestamp of when this check was created. */
@@ -65,6 +67,7 @@ public class CheckInfo {
         && Objects.equals(other.patchSetId, patchSetId)
         && Objects.equals(other.checkerUuid, checkerUuid)
         && Objects.equals(other.state, state)
+        && Objects.equals(other.message, message)
         && Objects.equals(other.url, url)
         && Objects.equals(other.started, started)
         && Objects.equals(other.finished, finished)
@@ -83,6 +86,7 @@ public class CheckInfo {
         patchSetId,
         checkerUuid,
         state,
+        message,
         url,
         started,
         finished,
@@ -101,6 +105,7 @@ public class CheckInfo {
         .add("patchSetId", patchSetId)
         .add("checkerUuid", checkerUuid)
         .add("state", state)
+        .add("message", message)
         .add("url", url)
         .add("started", started)
         .add("finished", finished)

@@ -66,6 +66,7 @@ public class CheckJson {
     info.patchSetId = check.key().patchSet().patchSetId;
     info.state = check.state();
 
+    info.message = check.message().orElse(null);
     info.url = check.url().orElse(null);
     info.started = check.started().orElse(null);
     info.finished = check.finished().orElse(null);

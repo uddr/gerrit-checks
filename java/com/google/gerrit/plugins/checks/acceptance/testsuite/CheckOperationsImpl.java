@@ -125,6 +125,7 @@ public final class CheckOperationsImpl implements CheckOperations {
 
   private static CheckUpdate toCheckUpdate(TestCheckUpdate testUpdate) {
     CheckUpdate.Builder update = CheckUpdate.builder();
+    testUpdate.message().ifPresent(update::setMessage);
     testUpdate.state().ifPresent(update::setState);
     testUpdate.started().ifPresent(update::setStarted);
     testUpdate.finished().ifPresent(update::setFinished);

@@ -79,6 +79,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(info.checkerUuid).isEqualTo(checkerUuid.get());
     assertThat(info.state).isEqualTo(CheckState.RUNNING);
+    assertThat(info.message).isNull();
     assertThat(info.url).isNull();
     assertThat(info.started).isNull();
     assertThat(info.finished).isNull();
@@ -127,6 +128,19 @@ public class CreateCheckIT extends AbstractCheckersTest {
     assertThat(info.state).isEqualTo(CheckState.NOT_STARTED);
     assertThat(getCheck(project, patchSetId, checkerUuid).state())
         .isEqualTo(CheckState.NOT_STARTED);
+  }
+
+  @Test
+  public void createCheckWithMessage() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.message = "some message";
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(info.message).isEqualTo(input.message);
+    assertThat(getCheck(project, patchSetId, checkerUuid).message()).hasValue(input.message);
   }
 
   @Test

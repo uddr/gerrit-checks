@@ -91,6 +91,26 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void updateMessage() throws Exception {
+    CheckInput input = new CheckInput();
+    input.message = "some message";
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.message).isEqualTo(input.message);
+  }
+
+  @Test
+  public void unsetMessage() throws Exception {
+    checkOperations.check(checkKey).forUpdate().message("some message").upsert();
+
+    CheckInput input = new CheckInput();
+    input.message = "";
+
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    assertThat(info.message).isNull();
+  }
+
+  @Test
   public void updateUrl() throws Exception {
     CheckInput input = new CheckInput();
     input.url = "http://example.com/my-check";
@@ -311,6 +331,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
         .check(checkKey)
         .forUpdate()
         .state(CheckState.FAILED)
+        .message("some message")
         .url("https://www.example.com")
         .upsert();
 
@@ -318,6 +339,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     input.state = CheckState.NOT_STARTED;
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
 
+    assertThat(info.message).isEqualTo("some message");
     assertThat(info.url).isEqualTo("https://www.example.com");
   }
 }

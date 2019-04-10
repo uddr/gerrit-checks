@@ -72,6 +72,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     assertThat(foundCheck.patchSetId).isEqualTo(checkKey.patchSet().get());
     assertThat(foundCheck.checkerUuid).isEqualTo(checkerUuid.get());
     assertThat(foundCheck.state).isNotNull();
+    assertThat(foundCheck.message).isNull();
     assertThat(foundCheck.url).isNull();
     assertThat(foundCheck.started).isNull();
     assertThat(foundCheck.finished).isNull();
@@ -127,6 +128,26 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     assertThat(foundCheck.changeNumber).isEqualTo(checkKey.patchSet().getParentKey().get());
     assertThat(foundCheck.patchSetId).isEqualTo(checkKey.patchSet().get());
     assertThat(foundCheck.checkerUuid).isEqualTo(checkerUuid.get());
+  }
+
+  @Test
+  public void specifiedMessageIsRespectedForCheckCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).message("some message").upsert();
+
+    CheckInfo check = getCheckFromServer(checkKey);
+    assertThat(check.message).isEqualTo("some message");
+  }
+
+  @Test
+  public void requestingNoMessageIsPossibleForCheckCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).clearMessage().upsert();
+
+    CheckInfo check = getCheckFromServer(checkKey);
+    assertThat(check.message).isNull();
   }
 
   @Test
@@ -259,6 +280,28 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void messageOfExistingCheckCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).message("some message").upsert();
+
+    Optional<String> message = checkOperations.check(checkKey).get().message();
+
+    assertThat(message).hasValue("some message");
+  }
+
+  @Test
+  public void emptyMessageOfExistingCheckCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).clearMessage().upsert();
+
+    Optional<String> message = checkOperations.check(checkKey).get().message();
+
+    assertThat(message).isEmpty();
+  }
+
+  @Test
   public void urlOfExistingCheckCanBeRetrieved() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
@@ -369,6 +412,30 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void messageCanBeUpdated() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).message("original message").upsert();
+
+    checkOperations.check(checkKey).forUpdate().message("updated message").upsert();
+
+    Optional<String> currentMessage = checkOperations.check(checkKey).get().message();
+    assertThat(currentMessage).hasValue("updated message");
+  }
+
+  @Test
+  public void messageCanBeCleared() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).message("original message").upsert();
+
+    checkOperations.check(checkKey).forUpdate().clearMessage().upsert();
+
+    Optional<String> currentMessage = checkOperations.check(checkKey).get().message();
+    assertThat(currentMessage).isEmpty();
+  }
+
+  @Test
   public void urlCanBeUpdated() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
@@ -452,6 +519,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     checkOperations
         .newCheck(checkKey)
         .state(CheckState.RUNNING)
+        .message("some message")
         .url("http://example.com/my-check")
         .started(new Timestamp(1234567L))
         .finished(new Timestamp(7654321L))
@@ -463,6 +531,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     assertThat(checkInfo.patchSetId).isEqualTo(check.key().patchSet().get());
     assertThat(checkInfo.checkerUuid).isEqualTo(check.key().checkerUuid().get());
     assertThat(checkInfo.state).isEqualTo(check.state());
+    assertThat(checkInfo.message).isEqualTo(check.message().get());
     assertThat(checkInfo.url).isEqualTo(check.url().get());
     assertThat(checkInfo.started).isEqualTo(check.started().get());
     assertThat(checkInfo.finished).isEqualTo(check.finished().get());
@@ -478,6 +547,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckInput checkInput = new CheckInput();
     checkInput.checkerUuid = checkerUuid.get();
     checkInput.state = CheckState.SCHEDULED;
+    checkInput.message = "some message";
     checkInput.url = "http://example.com/my-check";
     checkInput.started = TimeUtil.nowTs();
     return checkInput;

@@ -117,6 +117,10 @@ public class PostCheck
       checkUpdateBuilder.setState(input.state);
     }
 
+    if (input.message != null) {
+      checkUpdateBuilder.setMessage(input.message.trim());
+    }
+
     if (input.url != null) {
       checkUpdateBuilder.setUrl(UrlValidator.clean(input.url));
     }

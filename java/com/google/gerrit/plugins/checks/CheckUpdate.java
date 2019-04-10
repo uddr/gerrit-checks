@@ -23,6 +23,8 @@ import java.util.Optional;
 public abstract class CheckUpdate {
   public abstract Optional<CheckState> state();
 
+  public abstract Optional<String> message();
+
   public abstract Optional<String> url();
 
   public abstract Optional<Timestamp> started();
@@ -38,6 +40,8 @@ public abstract class CheckUpdate {
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder setState(CheckState state);
+
+    public abstract Builder setMessage(String message);
 
     public abstract Builder setUrl(String url);
 

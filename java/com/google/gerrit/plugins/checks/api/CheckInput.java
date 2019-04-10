@@ -25,6 +25,8 @@ public class CheckInput {
   @Nullable public String checkerUuid;
   /** State of the check. */
   @Nullable public CheckState state;
+  /** Short message explaining the check state. */
+  @Nullable public String message;
   /** Fully qualified URL to detailed result on the Checker's service. */
   @Nullable public String url;
   /** Date/Time at which the checker started processing this check. */
@@ -40,6 +42,7 @@ public class CheckInput {
     CheckInput other = (CheckInput) o;
     return Objects.equals(other.checkerUuid, checkerUuid)
         && Objects.equals(other.state, state)
+        && Objects.equals(other.message, message)
         && Objects.equals(other.url, url)
         && Objects.equals(other.started, started)
         && Objects.equals(other.finished, finished);
@@ -47,7 +50,7 @@ public class CheckInput {
 
   @Override
   public int hashCode() {
-    return Objects.hash(checkerUuid, state, url, started, finished);
+    return Objects.hash(checkerUuid, state, message, url, started, finished);
   }
 
   @Override
@@ -55,6 +58,7 @@ public class CheckInput {
     return MoreObjects.toStringHelper(this)
         .add("checkerUuid", checkerUuid)
         .add("state", state)
+        .add("message", message)
         .add("url", url)
         .add("started", started)
         .add("finished", finished)

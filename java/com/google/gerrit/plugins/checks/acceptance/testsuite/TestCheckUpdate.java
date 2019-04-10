@@ -27,6 +27,8 @@ public abstract class TestCheckUpdate {
 
   public abstract Optional<CheckState> state();
 
+  public abstract Optional<String> message();
+
   public abstract Optional<String> url();
 
   public abstract Optional<Timestamp> started();
@@ -46,6 +48,12 @@ public abstract class TestCheckUpdate {
     public abstract Builder key(CheckKey key);
 
     public abstract Builder state(CheckState state);
+
+    public abstract Builder message(String message);
+
+    public Builder clearMessage() {
+      return message("");
+    }
 
     public abstract Builder url(String url);
 

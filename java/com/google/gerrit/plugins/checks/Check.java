@@ -37,6 +37,9 @@ public abstract class Check {
   /** State that this check is in. */
   public abstract CheckState state();
 
+  /** Short message explaining the check state. */
+  public abstract Optional<String> message();
+
   /** Fully qualified URL to detailed result on the Checker's service. */
   public abstract Optional<String> url();
 
@@ -63,6 +66,8 @@ public abstract class Check {
     public abstract Builder setKey(CheckKey key);
 
     public abstract Builder setState(CheckState state);
+
+    public abstract Builder setMessage(String message);
 
     public abstract Builder setUrl(String url);
 

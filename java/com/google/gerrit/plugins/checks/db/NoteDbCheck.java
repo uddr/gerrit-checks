@@ -17,6 +17,7 @@ class NoteDbCheck {
   private NoteDbCheck() {}
 
   public CheckState state = CheckState.NOT_STARTED;
+  @Nullable public String message;
   @Nullable public String url;
   @Nullable public Timestamp started;
   @Nullable public Timestamp finished;
@@ -27,6 +28,9 @@ class NoteDbCheck {
   Check toCheck(CheckKey key) {
     Check.Builder newCheck =
         Check.builder(key).setState(state).setCreated(created).setUpdated(updated);
+    if (message != null) {
+      newCheck.setMessage(message);
+    }
     if (url != null) {
       newCheck.setUrl(url);
     }
@@ -58,6 +62,11 @@ class NoteDbCheck {
     boolean modified = false;
     if (update.state().isPresent() && !update.state().get().equals(state)) {
       state = update.state().get();
+      modified = true;
+    }
+    if (update.message().isPresent()
+        && !update.message().get().equals(Strings.nullToEmpty(message))) {
+      message = Strings.emptyToNull(update.message().get());
       modified = true;
     }
     if (update.url().isPresent() && !update.url().get().equals(Strings.nullToEmpty(url))) {
