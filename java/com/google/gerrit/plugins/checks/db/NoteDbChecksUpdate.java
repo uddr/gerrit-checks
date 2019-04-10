@@ -202,7 +202,9 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
 
   private void assertCheckerIsPresent(CheckerUuid checkerUuid)
       throws ConfigInvalidException, IOException {
-    checkers.getChecker(checkerUuid).orElseThrow(() -> new IOException(checkerUuid + " missing"));
+    checkers
+        .getChecker(checkerUuid)
+        .orElseThrow(() -> new IOException(String.format("checker %s not found", checkerUuid)));
   }
 
   private boolean updateNotesMap(
@@ -217,7 +219,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       throws ConfigInvalidException, IOException, OrmDuplicateKeyException {
     Ref patchSetRef = repo.exactRef(checkKey.patchSet().toRefName());
     if (patchSetRef == null) {
-      throw new IOException("patchset " + checkKey.patchSet() + " not found");
+      throw new IOException(String.format("patchset %s not found", checkKey.patchSet()));
     }
     RevId revId = new RevId(patchSetRef.getObjectId().name());
 
@@ -225,7 +227,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     Map<RevId, NoteDbCheckMap> newNotes = getRevisionNoteByRevId(rw, curr);
     if (!newNotes.containsKey(revId)) {
       if (operation == Operation.UPDATE) {
-        throw new IOException("Not found: " + checkKey.checkerUuid());
+        throw new IOException(String.format("checker %s not found", checkKey.checkerUuid()));
       }
 
       newNotes.put(revId, NoteDbCheckMap.empty());
@@ -234,7 +236,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     NoteDbCheckMap checksForRevision = newNotes.get(revId);
     if (!checksForRevision.checks.containsKey(checkKey.checkerUuid().get())) {
       if (operation == Operation.UPDATE) {
-        throw new IOException("Not found: " + checkKey.checkerUuid());
+        throw new IOException(String.format("checker %s not found", checkKey.checkerUuid()));
       }
 
       // Create check
@@ -245,7 +247,8 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       writeNotesMap(newNotes, cb, ins);
       return true;
     } else if (operation == Operation.CREATE) {
-      throw new OrmDuplicateKeyException(checkKey.checkerUuid() + " exists");
+      throw new OrmDuplicateKeyException(
+          String.format("checker %s already exists", checkKey.checkerUuid()));
     }
 
     // Update in place
