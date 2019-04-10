@@ -154,6 +154,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
 
   private void postCheckResult(CheckerUuid checkerUuid, CheckState checkState) {
     CheckKey checkKey = CheckKey.create(project, testPatchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(checkState).upsert();
+    checkOperations.newCheck(checkKey).state(checkState).upsert();
   }
 }

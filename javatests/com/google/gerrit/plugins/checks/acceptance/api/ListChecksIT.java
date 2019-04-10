@@ -61,10 +61,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
-    checkOperations.newCheck(checkKey1).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey1).state(CheckState.RUNNING).upsert();
 
     CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
-    checkOperations.newCheck(checkKey2).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey2).state(CheckState.FAILED).upsert();
 
     assertThat(checksApiFactory.revision(patchSetId).list())
         .containsExactly(
@@ -79,10 +79,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
-    checkOperations.newCheck(checkKey1).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey1).state(CheckState.RUNNING).upsert();
 
     CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
-    checkOperations.newCheck(checkKey2).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey2).state(CheckState.FAILED).upsert();
 
     CheckInfo expectedCheckInfo1 = checkOperations.check(checkKey1).asInfo();
     expectedCheckInfo1.repository = project.get();
@@ -107,10 +107,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
-    checkOperations.newCheck(checkKey1).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey1).state(CheckState.RUNNING).upsert();
 
     CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
-    checkOperations.newCheck(checkKey2).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey2).state(CheckState.FAILED).upsert();
 
     CheckInfo expectedCheckInfo1 = checkOperations.check(checkKey1).asInfo();
     expectedCheckInfo1.repository = project.get();
@@ -276,7 +276,7 @@ public class ListChecksIT extends AbstractCheckersTest {
 
     // create check on the first patch set
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey1).setState(CheckState.SUCCESSFUL).upsert();
+    checkOperations.newCheck(checkKey1).state(CheckState.SUCCESSFUL).upsert();
 
     // create a second patch set
     PatchSet.Id currentPatchSet = createPatchSet();
@@ -284,7 +284,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     // create check on the second patch set, we expect that this check is not returned for the first
     // patch set
     CheckKey checkKey2 = CheckKey.create(project, currentPatchSet, checkerUuid);
-    checkOperations.newCheck(checkKey2).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey2).state(CheckState.RUNNING).upsert();
 
     // list checks for the old patch set
     assertThat(checksApiFactory.revision(patchSetId).list())

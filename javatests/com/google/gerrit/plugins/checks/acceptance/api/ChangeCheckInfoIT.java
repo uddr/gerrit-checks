@@ -84,13 +84,13 @@ public class ChangeCheckInfoIT extends AbstractCheckersTest {
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.IN_PROGRESS));
     checkOperations
         .newCheck(CheckKey.create(project, psId, optionalCheckerUuid))
-        .setState(CheckState.SUCCESSFUL)
+        .state(CheckState.SUCCESSFUL)
         .upsert();
     assertThat(getChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.IN_PROGRESS));
     checkOperations
         .newCheck(CheckKey.create(project, psId, requiredCheckerUuid))
-        .setState(CheckState.FAILED)
+        .state(CheckState.FAILED)
         .upsert();
     assertThat(getChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.FAILED));

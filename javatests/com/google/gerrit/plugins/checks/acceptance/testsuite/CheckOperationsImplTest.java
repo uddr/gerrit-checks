@@ -133,7 +133,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void specifiedUrlIsRespectedForCheckCreation() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setUrl("http://example.com/my-check").upsert();
+    checkOperations.newCheck(checkKey).url("http://example.com/my-check").upsert();
 
     CheckInfo check = getCheckFromServer(checkKey);
     assertThat(check.url).isEqualTo("http://example.com/my-check");
@@ -153,7 +153,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void specifiedStateIsRespectedForCheckCreation() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
 
     CheckInfo check = getCheckFromServer(checkKey);
     assertThat(check.state).isEqualTo(CheckState.FAILED);
@@ -164,7 +164,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
     Timestamp started = new Timestamp(1234567L);
-    checkOperations.newCheck(checkKey).setStarted(started).upsert();
+    checkOperations.newCheck(checkKey).started(started).upsert();
 
     CheckInfo check = getCheckFromServer(checkKey);
     assertTimestamp(check.started, started);
@@ -175,7 +175,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
     Timestamp finished = new Timestamp(1234567L);
-    checkOperations.newCheck(checkKey).setFinished(finished).upsert();
+    checkOperations.newCheck(checkKey).finished(finished).upsert();
 
     CheckInfo check = getCheckFromServer(checkKey);
     assertTimestamp(check.finished, finished);
@@ -251,7 +251,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void stateOfExistingCheckCanBeRetrieved() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
 
     CheckState checkState = checkOperations.check(checkKey).get().state();
 
@@ -262,7 +262,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void urlOfExistingCheckCanBeRetrieved() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setUrl("http://example.com/my-check").upsert();
+    checkOperations.newCheck(checkKey).url("http://example.com/my-check").upsert();
 
     Optional<String> url = checkOperations.check(checkKey).get().url();
 
@@ -285,7 +285,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
     Timestamp started = new Timestamp(1234567L);
-    checkOperations.newCheck(checkKey).setStarted(started).upsert();
+    checkOperations.newCheck(checkKey).started(started).upsert();
 
     Optional<Timestamp> foundStarted = checkOperations.check(checkKey).get().started();
 
@@ -297,7 +297,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
     Timestamp finished = new Timestamp(1234567L);
-    checkOperations.newCheck(checkKey).setFinished(finished).upsert();
+    checkOperations.newCheck(checkKey).finished(finished).upsert();
 
     Optional<Timestamp> foundFinished = checkOperations.check(checkKey).get().finished();
 
@@ -348,9 +348,9 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void updateWritesToInternalCheckSystem() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setUrl("http://original-url").upsert();
+    checkOperations.newCheck(checkKey).url("http://original-url").upsert();
 
-    checkOperations.check(checkKey).forUpdate().setUrl("http://updated-url").upsert();
+    checkOperations.check(checkKey).forUpdate().url("http://updated-url").upsert();
 
     String currentUrl = getCheckFromServer(checkKey).url;
     assertThat(currentUrl).isEqualTo("http://updated-url");
@@ -360,9 +360,9 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void stateCanBeUpdated() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
 
-    checkOperations.check(checkKey).forUpdate().setState(CheckState.SUCCESSFUL).upsert();
+    checkOperations.check(checkKey).forUpdate().state(CheckState.SUCCESSFUL).upsert();
 
     CheckState currentState = checkOperations.check(checkKey).get().state();
     assertThat(currentState).isEqualTo(CheckState.SUCCESSFUL);
@@ -372,9 +372,9 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void urlCanBeUpdated() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setUrl("http://original-url").upsert();
+    checkOperations.newCheck(checkKey).url("http://original-url").upsert();
 
-    checkOperations.check(checkKey).forUpdate().setUrl("http://updated-url").upsert();
+    checkOperations.check(checkKey).forUpdate().url("http://updated-url").upsert();
 
     Optional<String> currentUrl = checkOperations.check(checkKey).get().url();
     assertThat(currentUrl).hasValue("http://updated-url");
@@ -384,7 +384,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void urlCanBeCleared() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setUrl("http://original-url").upsert();
+    checkOperations.newCheck(checkKey).url("http://original-url").upsert();
 
     checkOperations.check(checkKey).forUpdate().clearUrl().upsert();
 
@@ -396,10 +396,10 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void startedCanBeUpdated() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setStarted(new Timestamp(1234567L)).upsert();
+    checkOperations.newCheck(checkKey).started(new Timestamp(1234567L)).upsert();
 
     Timestamp updatedStarted = new Timestamp(7654321L);
-    checkOperations.check(checkKey).forUpdate().setStarted(updatedStarted).upsert();
+    checkOperations.check(checkKey).forUpdate().started(updatedStarted).upsert();
 
     Optional<Timestamp> currentStarted = checkOperations.check(checkKey).get().started();
     assertTimestamp(currentStarted, updatedStarted);
@@ -409,10 +409,10 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void finishedCanBeUpdated() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).setFinished(new Timestamp(1234567L)).upsert();
+    checkOperations.newCheck(checkKey).finished(new Timestamp(1234567L)).upsert();
 
     Timestamp updatedFinished = new Timestamp(7654321L);
-    checkOperations.check(checkKey).forUpdate().setFinished(updatedFinished).upsert();
+    checkOperations.check(checkKey).forUpdate().finished(updatedFinished).upsert();
 
     Optional<Timestamp> currentFinished = checkOperations.check(checkKey).get().finished();
     assertTimestamp(currentFinished, updatedFinished);
@@ -451,10 +451,10 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
 
     checkOperations
         .newCheck(checkKey)
-        .setState(CheckState.RUNNING)
-        .setUrl("http://example.com/my-check")
-        .setStarted(new Timestamp(1234567L))
-        .setFinished(new Timestamp(7654321L))
+        .state(CheckState.RUNNING)
+        .url("http://example.com/my-check")
+        .started(new Timestamp(1234567L))
+        .finished(new Timestamp(7654321L))
         .upsert();
     Check check = checkOperations.check(checkKey).get();
     CheckInfo checkInfo = checkOperations.check(checkKey).asInfo();

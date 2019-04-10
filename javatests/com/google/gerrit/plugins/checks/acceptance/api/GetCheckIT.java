@@ -78,7 +78,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.RUNNING).upsert();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid))
         .isEqualTo(checkOperations.check(checkKey).asInfo());
@@ -90,7 +90,7 @@ public class GetCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).name("My Checker").create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.RUNNING).upsert();
 
     CheckInfo expectedCheckInfo = checkOperations.check(checkKey).asInfo();
     expectedCheckInfo.repository = project.get();
@@ -108,7 +108,7 @@ public class GetCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).name("My Checker").create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.RUNNING).upsert();
 
     CheckInfo expectedCheckInfo = checkOperations.check(checkKey).asInfo();
     expectedCheckInfo.repository = project.get();
@@ -192,7 +192,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.RUNNING).upsert();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid).state).isEqualTo(CheckState.RUNNING);
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).state)
@@ -285,7 +285,7 @@ public class GetCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).name("My Checker").create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.RUNNING).upsert();
 
     checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
@@ -382,11 +382,11 @@ public class GetCheckIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey1).setState(CheckState.FAILED).upsert();
+    checkOperations.newCheck(checkKey1).state(CheckState.FAILED).upsert();
 
     PatchSet.Id currentPatchSetId = createPatchSet();
     CheckKey checkKey2 = CheckKey.create(project, currentPatchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey2).setState(CheckState.RUNNING).upsert();
+    checkOperations.newCheck(checkKey2).state(CheckState.RUNNING).upsert();
 
     // get check for the old patch set
     assertThat(checksApiFactory.revision(patchSetId).id(checkerUuid).get())

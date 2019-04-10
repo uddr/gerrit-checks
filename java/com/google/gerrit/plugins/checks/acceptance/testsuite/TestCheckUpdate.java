@@ -38,26 +38,26 @@ public abstract class TestCheckUpdate {
   public abstract Builder toBuilder();
 
   public static Builder builder(CheckKey key) {
-    return new AutoValue_TestCheckUpdate.Builder().setKey(key);
+    return new AutoValue_TestCheckUpdate.Builder().key(key);
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
-    public abstract Builder setKey(CheckKey key);
+    public abstract Builder key(CheckKey key);
 
-    public abstract Builder setState(CheckState state);
+    public abstract Builder state(CheckState state);
 
-    public abstract Builder setUrl(String url);
+    public abstract Builder url(String url);
 
     public Builder clearUrl() {
-      return setUrl("");
+      return url("");
     }
 
-    public abstract Builder setStarted(Timestamp started);
+    public abstract Builder started(Timestamp started);
 
-    public abstract Builder setFinished(Timestamp finished);
+    public abstract Builder finished(Timestamp finished);
 
-    abstract Builder setCheckUpdater(ThrowingConsumer<TestCheckUpdate> checkUpdate);
+    abstract Builder checkUpdater(ThrowingConsumer<TestCheckUpdate> checkUpdate);
 
     abstract TestCheckUpdate autoBuild();
 

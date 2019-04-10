@@ -192,21 +192,21 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     // Create a check with state "NOT_STARTED" that we expect to be returned.
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     // Create a check with state "FAILED" that we expect to be ignored.
     PatchSet.Id patchSetId2 = createChange().getPatchSetId();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId2, checkerUuid))
-        .setState(CheckState.FAILED)
+        .state(CheckState.FAILED)
         .upsert();
 
     // Create a check with state "NOT_STARTED" for other checker that we expect to be ignored.
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid2))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     List<PendingChecksInfo> pendingChecksList = queryPendingChecks(checkerUuid);
@@ -226,21 +226,21 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     // Create a check with state "FAILED" that we expect to be returned.
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.FAILED)
+        .state(CheckState.FAILED)
         .upsert();
 
     // Create a check with state "NOT_STARTED" that we expect to be ignored.
     PatchSet.Id patchSetId2 = createChange().getPatchSetId();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId2, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     // Create a check with state "FAILED" for other checker that we expect to be ignored.
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid2))
-        .setState(CheckState.FAILED)
+        .state(CheckState.FAILED)
         .upsert();
 
     List<PendingChecksInfo> pendingChecksList = queryPendingChecks(checkerUuid, CheckState.FAILED);
@@ -262,14 +262,14 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     // update it.
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     for (CheckState checkState : CheckState.values()) {
       checkOperations
           .check(CheckKey.create(project, patchSetId, checkerUuid))
           .forUpdate()
-          .setState(checkState)
+          .state(checkState)
           .upsert();
 
       assertThat(queryPendingChecks(String.format("checker:\"%s\" is:%s", checkerUuid, checkState)))
@@ -286,14 +286,14 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     // update it.
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     for (CheckState checkState : CheckState.values()) {
       checkOperations
           .check(CheckKey.create(project, patchSetId, checkerUuid))
           .forUpdate()
-          .setState(checkState)
+          .state(checkState)
           .upsert();
 
       List<PendingChecksInfo> pendingChecks =
@@ -328,28 +328,28 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     // Create a check with state "NOT_STARTED" that we expect to be returned.
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     // Create a check with state "SCHEDULED" that we expect to be returned.
     PatchSet.Id patchSetId2 = createChange().getPatchSetId();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId2, checkerUuid))
-        .setState(CheckState.SCHEDULED)
+        .state(CheckState.SCHEDULED)
         .upsert();
 
     // Create a check with state "SUCCESSFUL" that we expect to be ignored.
     PatchSet.Id patchSetId3 = createChange().getPatchSetId();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId3, checkerUuid))
-        .setState(CheckState.SUCCESSFUL)
+        .state(CheckState.SUCCESSFUL)
         .upsert();
 
     // Create a check with state "NOT_STARTED" for other checker that we expect to be ignored.
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid2))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     List<PendingChecksInfo> pendingChecksList =
@@ -383,14 +383,14 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     // update it.
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     for (CheckState checkState : CheckState.values()) {
       checkOperations
           .check(CheckKey.create(project, patchSetId, checkerUuid))
           .forUpdate()
-          .setState(checkState)
+          .state(checkState)
           .upsert();
 
       List<PendingChecksInfo> pendingChecks =
@@ -444,7 +444,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     List<PendingChecksInfo> pendingChecksList =
@@ -464,13 +464,13 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
 
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     PatchSet.Id patchSetId2 = createChange().getPatchSetId();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId2, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     List<PendingChecksInfo> pendingChecksList =
@@ -491,13 +491,13 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
 
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     PatchSet.Id patchSetId2 = createChange().getPatchSetId();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId2, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     List<PendingChecksInfo> pendingChecksList =
@@ -541,7 +541,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     requestScopeOperations.setApiUser(user.getId());
@@ -561,7 +561,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     requestScopeOperations.setApiUserAnonymous();
@@ -588,7 +588,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     // Check is returned for admin user.
@@ -610,7 +610,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     // Check is returned for admin user.
@@ -629,7 +629,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations
         .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
-        .setState(CheckState.NOT_STARTED)
+        .state(CheckState.NOT_STARTED)
         .upsert();
 
     RestResponse r =

@@ -39,7 +39,7 @@ public class ChecksRefIT extends AbstractCheckersTest {
   public void noteDbRefOfCheckIsRemovedWhenChangeIsDeleted() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(CheckState.NOT_STARTED).upsert();
+    checkOperations.newCheck(checkKey).state(CheckState.NOT_STARTED).upsert();
     String noteDbChecksRef = CheckerRef.checksRef(patchSetId.getParentKey());
     assertThat(projectOperations.project(project).hasHead(noteDbChecksRef)).isTrue();
 

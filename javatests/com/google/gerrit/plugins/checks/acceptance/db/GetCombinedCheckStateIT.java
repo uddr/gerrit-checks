@@ -127,6 +127,6 @@ public class GetCombinedCheckStateIT extends AbstractCheckersTest {
 
   private void setCheckState(CheckerUuid checkerUuid, CheckState checkState) {
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-    checkOperations.newCheck(checkKey).setState(checkState).upsert();
+    checkOperations.newCheck(checkKey).state(checkState).upsert();
   }
 }

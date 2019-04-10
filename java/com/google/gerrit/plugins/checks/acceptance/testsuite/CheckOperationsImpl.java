@@ -66,7 +66,7 @@ public final class CheckOperationsImpl implements CheckOperations {
   @Override
   public TestCheckUpdate.Builder newCheck(CheckKey key) {
     return TestCheckUpdate.builder(key)
-        .setCheckUpdater(u -> checksUpdate.get().createCheck(key, toCheckUpdate(u)));
+        .checkUpdater(u -> checksUpdate.get().createCheck(key, toCheckUpdate(u)));
   }
 
   final class PerCheckOperationsImpl implements PerCheckOperations {
@@ -118,7 +118,7 @@ public final class CheckOperationsImpl implements CheckOperations {
     @Override
     public TestCheckUpdate.Builder forUpdate() {
       return TestCheckUpdate.builder(key)
-          .setCheckUpdater(
+          .checkUpdater(
               testUpdate -> checksUpdate.get().updateCheck(key, toCheckUpdate(testUpdate)));
     }
   }

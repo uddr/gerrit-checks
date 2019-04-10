@@ -101,7 +101,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void unsetUrl() throws Exception {
-    checkOperations.check(checkKey).forUpdate().setUrl("http://example.com/my-check").upsert();
+    checkOperations.check(checkKey).forUpdate().url("http://example.com/my-check").upsert();
 
     CheckInput input = new CheckInput();
     input.url = "";
@@ -296,7 +296,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void stateCanBeSetToNotStarted() throws Exception {
-    checkOperations.check(checkKey).forUpdate().setState(CheckState.FAILED).upsert();
+    checkOperations.check(checkKey).forUpdate().state(CheckState.FAILED).upsert();
 
     CheckInput input = new CheckInput();
     input.state = CheckState.NOT_STARTED;
@@ -310,8 +310,8 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     checkOperations
         .check(checkKey)
         .forUpdate()
-        .setState(CheckState.FAILED)
-        .setUrl("https://www.example.com")
+        .state(CheckState.FAILED)
+        .url("https://www.example.com")
         .upsert();
 
     CheckInput input = new CheckInput();
