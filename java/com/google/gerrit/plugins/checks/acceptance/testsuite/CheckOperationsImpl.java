@@ -33,7 +33,6 @@ import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
@@ -96,9 +95,7 @@ public final class CheckOperationsImpl implements CheckOperations {
             repo.getRefDatabase().exactRef(CheckerRef.checksRef(key.patchSet().changeId));
         checkNotNull(checkRef);
 
-        ObjectReader reader = repo.newObjectReader();
-
-        NoteMap notes = NoteMap.read(reader, rw.parseCommit(checkRef.getObjectId()));
+        NoteMap notes = NoteMap.read(rw.getObjectReader(), rw.parseCommit(checkRef.getObjectId()));
         ImmutableMap.Builder<RevId, String> raw = ImmutableMap.builder();
 
         for (Note note : notes) {
