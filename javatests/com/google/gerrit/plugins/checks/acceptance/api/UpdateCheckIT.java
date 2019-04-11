@@ -285,7 +285,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void cannotUpdateCheckWithoutAdministrateCheckers() throws Exception {
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     exception.expect(AuthException.class);
     exception.expectMessage("not permitted");

@@ -570,7 +570,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
   public void updateCheckerWithoutAdministrateCheckersCapabilityFails() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
 
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     CheckerInput input = new CheckerInput();
     input.name = "my-renamed-checker";

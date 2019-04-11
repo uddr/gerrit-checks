@@ -312,7 +312,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();
 
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     assertThat(checksApiFactory.revision(patchSetId).list()).hasSize(1);
   }

@@ -544,7 +544,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
         .state(CheckState.NOT_STARTED)
         .upsert();
 
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
     List<PendingChecksInfo> pendingChecksList =
         queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).hasSize(1);
@@ -597,7 +597,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecksList).isNotEmpty();
 
     // Check is not returned for non-admin user.
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
     pendingChecksList = queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).isEmpty();
   }
@@ -619,7 +619,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecksList).isNotEmpty();
 
     // Check is not returned for non-admin user.
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
     pendingChecksList = queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).isEmpty();
   }

@@ -488,7 +488,7 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckWithoutAdministrateCheckers() throws Exception {
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations.newCheck(CheckKey.create(project, patchSetId, checkerUuid)).upsert();

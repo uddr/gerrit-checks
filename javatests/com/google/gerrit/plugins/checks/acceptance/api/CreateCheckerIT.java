@@ -454,7 +454,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void createCheckerWithoutAdministrateCheckersCapabilityFails() throws Exception {
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";

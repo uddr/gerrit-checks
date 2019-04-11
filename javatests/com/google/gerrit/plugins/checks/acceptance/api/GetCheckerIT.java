@@ -290,7 +290,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
     String name = "my-checker";
     CheckerUuid checkerUuid = checkerOperations.newChecker().name(name).create();
 
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     exception.expect(AuthException.class);
     exception.expectMessage("administrateCheckers for plugin checks not permitted");

@@ -306,7 +306,8 @@ public class CheckerRefsIT extends AbstractCheckersTest {
       ins.setValidate(false);
       ins.setMessage(String.format("Uploaded patch set %s.", ins.getPatchSetId().get()));
       try (BatchUpdate bu =
-          updateFactory.create(project, identifiedUserFactory.create(admin.id), TimeUtil.nowTs())) {
+          updateFactory.create(
+              project, identifiedUserFactory.create(admin.id()), TimeUtil.nowTs())) {
         bu.setRepository(git, rw, oi);
         bu.insertChange(ins);
         bu.execute();

@@ -61,7 +61,7 @@ public class ListCheckersIT extends AbstractCheckersTest {
   public void listWithoutAdministrateCheckersCapabilityFails() throws Exception {
     checkerOperations.newChecker().name("my-checker").create();
 
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     try {
       checkersApi.all();

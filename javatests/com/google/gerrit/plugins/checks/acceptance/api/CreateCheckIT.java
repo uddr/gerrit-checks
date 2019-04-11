@@ -316,7 +316,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void cannotCreateCheckWithoutAdministrateCheckers() throws Exception {
-    requestScopeOperations.setApiUser(user.getId());
+    requestScopeOperations.setApiUser(user.id());
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
