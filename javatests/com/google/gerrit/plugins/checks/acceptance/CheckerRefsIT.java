@@ -61,7 +61,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("test:my-checker").toRefName();
 
     TestRepository<InMemoryRepository> testRepo = cloneProject(allProjects);
-    PushOneCommit.Result r = pushFactory.create(admin.getIdent(), testRepo).to(checkerRef);
+    PushOneCommit.Result r = pushFactory.create(admin.newIdent(), testRepo).to(checkerRef);
     r.assertErrorStatus();
     assertThat(r.getMessage()).contains("Not allowed to create checker ref.");
 
@@ -79,7 +79,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
     // checker ref can be created in any project except All-Projects
     TestRepository<InMemoryRepository> testRepo = cloneProject(project);
-    PushOneCommit.Result r = pushFactory.create(admin.getIdent(), testRepo).to(checkerRef);
+    PushOneCommit.Result r = pushFactory.create(admin.newIdent(), testRepo).to(checkerRef);
     r.assertOkStatus();
 
     try (Repository repo = repoManager.openRepository(project)) {
@@ -135,7 +135,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     repo.reset("checkerRef");
 
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
-    PushOneCommit.Result r = pushFactory.create(admin.getIdent(), repo).to(checkerRef);
+    PushOneCommit.Result r = pushFactory.create(admin.newIdent(), repo).to(checkerRef);
     r.assertErrorStatus();
     r.assertMessage("direct update of checker ref not allowed");
   }
@@ -152,7 +152,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     repo.reset("checkerRef");
 
     grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
-    PushOneCommit.Result r = pushFactory.create(admin.getIdent(), repo).to(checkerRef);
+    PushOneCommit.Result r = pushFactory.create(admin.newIdent(), repo).to(checkerRef);
     r.assertOkStatus();
   }
 
@@ -220,7 +220,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
     PushOneCommit.Result r =
-        pushFactory.create(admin.getIdent(), repo).to("refs/for/" + checkerRef);
+        pushFactory.create(admin.newIdent(), repo).to("refs/for/" + checkerRef);
     r.assertErrorStatus();
     r.assertMessage("creating change for checker ref not allowed");
   }
@@ -239,7 +239,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     // creating a change on a checker ref by push should work in any project except All-Projects
     grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
     PushOneCommit.Result r =
-        pushFactory.create(admin.getIdent(), repo).to("refs/for/" + checkerRef);
+        pushFactory.create(admin.newIdent(), repo).to("refs/for/" + checkerRef);
     r.assertOkStatus();
   }
 
@@ -295,7 +295,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
       RevCommit commit =
           new TestRepository<>(git)
               .commit()
-              .author(admin.getIdent())
+              .author(admin.newIdent())
               .message("A change.")
               .insertChangeId()
               .parent(head)
