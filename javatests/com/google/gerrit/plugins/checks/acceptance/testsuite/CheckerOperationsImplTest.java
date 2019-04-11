@@ -213,10 +213,16 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
-  public void retrievingNotExistingCheckerFails() throws Exception {
-    String notExistingCheckerUuid = "not-existing-checker";
-
+  public void retrievingCheckerForInvalidUuidFails() throws Exception {
     exception.expect(IllegalArgumentException.class);
+    checkerOperations.checker(CheckerTestData.INVALID_UUID).get();
+  }
+
+  @Test
+  public void retrievingNotExistingCheckerFails() throws Exception {
+    String notExistingCheckerUuid = "foo:bar";
+
+    exception.expect(IllegalStateException.class);
     checkerOperations.checker(notExistingCheckerUuid).get();
   }
 
