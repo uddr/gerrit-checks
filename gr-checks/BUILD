@@ -5,15 +5,15 @@ package_group(
 
 package(default_visibility = [":visibility"])
 
-load("//tools/bzl:js.bzl", "bundle_assets", "polygerrit_plugin")
+load("//tools/bzl:js.bzl", "polygerrit_plugin")
 
 polygerrit_plugin(
     name = "gr-checks",
-    app = "gr-checks.html",
-    plugin_name = "checks-pg",
-    externs = ["externs.js"],
     srcs = glob([
-            "*.html",
-            "*.js",
-        ]),
+        "*.html",
+        "*.js",
+    ]),
+    app = "gr-checks.html",
+    externs = ["externs.js"],
+    plugin_name = "checks-pg",
 )
