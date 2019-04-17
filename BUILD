@@ -19,5 +19,6 @@ gerrit_plugin(
         "Gerrit-HttpModule: com.google.gerrit.plugins.checks.api.HttpModule",
     ],
     resource_jars = ["//plugins/checks/gr-checks:gr-checks-static"],
-    resources = glob(["src/main/resources/**/*"]),
+    resource_strip_prefix = "plugins/checks/resources",
+    resources = glob(["resources/**/*"]),
 )
