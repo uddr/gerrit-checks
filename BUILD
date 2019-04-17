@@ -19,17 +19,4 @@ gerrit_plugin(
         "Gerrit-HttpModule: com.google.gerrit.plugins.checks.api.HttpModule",
     ],
     resources = glob(["src/main/resources/**/*"]),
-    deps = [":checks-deps-neverlink"],
-)
-
-java_library(
-    name = "checks-deps-neverlink",
-    neverlink = True,
-    visibility = ["//visibility:private"],
-    exports = [
-        "//java/com/google/gerrit/server/api",
-        "//lib/antlr:java-runtime",
-        "//lib/auto:auto-value",
-        "//lib/auto:auto-value-annotations",
-    ],
 )
