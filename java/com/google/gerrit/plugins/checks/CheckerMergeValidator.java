@@ -44,7 +44,7 @@ public class CheckerMergeValidator implements MergeValidationListener {
       IdentifiedUser caller)
       throws MergeValidationException {
     if (!allProjectsName.equals(destProject.getNameKey())
-        || !CheckerRef.isRefsCheckers(destBranch.get())) {
+        || !CheckerRef.isRefsCheckers(destBranch.branch())) {
       return;
     }
 

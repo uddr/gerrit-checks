@@ -112,7 +112,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(new Branch.NameKey(project, checkerRef));
+    createBranch(Branch.nameKey(project, checkerRef));
 
     // checker ref can be deleted in any project except All-Projects
     TestRepository<InMemoryRepository> testRepo = cloneProject(project);
@@ -145,7 +145,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(new Branch.NameKey(project, checkerRef));
+    createBranch(Branch.nameKey(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
@@ -186,7 +186,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(new Branch.NameKey(project, checkerRef));
+    createBranch(Branch.nameKey(project, checkerRef));
 
     String changeId = createChangeWithoutCommitValidation(project, checkerRef);
 
@@ -230,7 +230,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(new Branch.NameKey(project, checkerRef));
+    createBranch(Branch.nameKey(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
@@ -269,7 +269,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(new Branch.NameKey(project, checkerRef));
+    createBranch(Branch.nameKey(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
