@@ -16,7 +16,7 @@ gerrit_plugin(
     manifest_entries = [
         "Gerrit-PluginName: checks",
         "Gerrit-Module: com.google.gerrit.plugins.checks.Module",
-        "Gerrit-HttpModule: com.google.gerrit.plugins.checks.api.HttpModule",
+        "Gerrit-HttpModule: com.google.gerrit.plugins.checks.HttpModule",
     ],
     resource_jars = ["//plugins/checks/gr-checks:gr-checks-static"],
     resource_strip_prefix = "plugins/checks/resources",
