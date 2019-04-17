@@ -28,6 +28,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.index.query.IndexPredicate;
 import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
@@ -42,7 +43,6 @@ import com.google.gerrit.server.query.change.ChangeStatusPredicate;
 import com.google.gerrit.server.query.change.ProjectPredicate;
 import com.google.gerrit.server.update.RetryHelper;
 import com.google.gerrit.server.update.RetryHelper.ActionType;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.util.List;
@@ -184,7 +184,7 @@ public class CheckerQuery {
     this.queryBuilder = queryBuilderProvider.get().asUser(anonymousUserProvider.get());
   }
 
-  public boolean isCheckerRelevant(Checker checker, ChangeData cd) throws OrmException {
+  public boolean isCheckerRelevant(Checker checker, ChangeData cd) throws StorageException {
     if (!checker.getQuery().isPresent()) {
       return cd.change().isNew();
     }
@@ -221,7 +221,7 @@ public class CheckerQuery {
    *     of the allowed set.
    */
   public String validate(CheckerUuid checkerUuid, Project.NameKey repository, String query)
-      throws ConfigInvalidException, OrmException {
+      throws ConfigInvalidException, StorageException {
     // This parses the query string twice, which is unavoidable since there is currently no
     // QueryProcessor API which takes an Antlr Tree. That's ok; the parse cost is vastly outweighed
     // by the actual query execution.
@@ -235,7 +235,7 @@ public class CheckerQuery {
   }
 
   public List<ChangeData> queryMatchingChanges(Checker checker)
-      throws ConfigInvalidException, OrmException {
+      throws ConfigInvalidException, StorageException {
     return queryMatchingChanges(
         checker.getUuid(), checker.getRepository(), checker.getQuery(), qp -> {});
   }
@@ -245,7 +245,7 @@ public class CheckerQuery {
       Project.NameKey repository,
       Optional<String> optionalQuery,
       Consumer<ChangeQueryProcessor> queryProcessorSetup)
-      throws ConfigInvalidException, OrmException {
+      throws ConfigInvalidException, StorageException {
     try {
       return executeIndexQueryWithRetry(
           queryProcessorSetup, createQueryPredicate(checkerUuid, repository, optionalQuery));
@@ -299,7 +299,7 @@ public class CheckerQuery {
   // TODO(ekempin): Retrying the query should be done by ChangeQueryProcessor.
   private List<ChangeData> executeIndexQueryWithRetry(
       Consumer<ChangeQueryProcessor> queryProcessorSetup, Predicate<ChangeData> predicate)
-      throws OrmException, QueryParseException {
+      throws StorageException, QueryParseException {
     try {
       return retryHelper.execute(
           ActionType.INDEX_QUERY,
@@ -308,12 +308,12 @@ public class CheckerQuery {
             queryProcessorSetup.accept(qp);
             return qp.query(predicate).entities();
           },
-          OrmException.class::isInstance);
+          StorageException.class::isInstance);
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       Throwables.throwIfInstanceOf(e, QueryParseException.class);
-      Throwables.throwIfInstanceOf(e, OrmException.class);
-      throw new OrmException(e);
+      Throwables.throwIfInstanceOf(e, StorageException.class);
+      throw new StorageException(e);
     }
   }
 

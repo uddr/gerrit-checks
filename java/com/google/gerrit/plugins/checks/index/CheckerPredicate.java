@@ -16,10 +16,10 @@ package com.google.gerrit.plugins.checks.index;
 
 import static java.util.Objects.requireNonNull;
 
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gwtorm.server.OrmException;
 
 public class CheckerPredicate extends CheckPredicate {
   public static CheckerPredicate parse(String value) throws QueryParseException {
@@ -37,7 +37,7 @@ public class CheckerPredicate extends CheckPredicate {
   }
 
   @Override
-  public boolean match(Check check) throws OrmException {
+  public boolean match(Check check) throws StorageException {
     return checkerUuid.equals(check.key().checkerUuid());
   }
 

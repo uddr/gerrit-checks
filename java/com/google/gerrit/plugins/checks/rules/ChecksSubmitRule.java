@@ -20,6 +20,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.common.data.SubmitRecord.Status;
 import com.google.gerrit.common.data.SubmitRequirement;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.plugins.checks.Checks;
@@ -30,7 +31,6 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.project.SubmitRuleOptions;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.SubmitRule;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class ChecksSubmitRule implements SubmitRule {
     PatchSet.Id currentPathSetId;
     try {
       currentPathSetId = changeData.currentPatchSet().getId();
-    } catch (OrmException e) {
+    } catch (StorageException e) {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
@@ -80,7 +80,7 @@ public class ChecksSubmitRule implements SubmitRule {
     CombinedCheckState combinedCheckState;
     try {
       combinedCheckState = checks.getCombinedCheckState(project, currentPathSetId);
-    } catch (IOException | OrmException e) {
+    } catch (IOException | StorageException e) {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);

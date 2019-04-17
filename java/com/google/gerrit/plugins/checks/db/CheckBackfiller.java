@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerQuery;
@@ -23,7 +24,6 @@ import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -44,7 +44,7 @@ class CheckBackfiller {
   }
 
   ImmutableList<Check> getBackfilledChecksForRelevantCheckers(
-      Collection<Checker> candidates, ChangeData cd, PatchSet.Id psId) throws OrmException {
+      Collection<Checker> candidates, ChangeData cd, PatchSet.Id psId) throws StorageException {
     if (candidates.isEmpty()) {
       return ImmutableList.of();
     }
@@ -68,7 +68,7 @@ class CheckBackfiller {
   }
 
   Optional<Check> getBackfilledCheckForRelevantChecker(
-      CheckerUuid candidate, ChangeData cd, PatchSet.Id psId) throws OrmException, IOException {
+      CheckerUuid candidate, ChangeData cd, PatchSet.Id psId) throws StorageException, IOException {
     if (!psId.equals(cd.change().currentPatchSetId())) {
       // The query system can only match against the current patch set; it doesn't make sense to
       // backfill checkers for old patch sets.

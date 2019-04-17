@@ -14,12 +14,12 @@
 
 package com.google.gerrit.plugins.checks;
 
-import com.google.gwtorm.server.OrmDuplicateKeyException;
+import com.google.gerrit.exceptions.DuplicateKeyException;
 import java.io.IOException;
 
 public interface ChecksUpdate {
   Check createCheck(CheckKey key, CheckUpdate checkUpdate)
-      throws OrmDuplicateKeyException, IOException;
+      throws DuplicateKeyException, IOException;
 
   Check updateCheck(CheckKey key, CheckUpdate checkUpdate) throws IOException;
 }

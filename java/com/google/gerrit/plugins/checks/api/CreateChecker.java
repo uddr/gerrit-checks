@@ -16,6 +16,8 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.exceptions.DuplicateKeyException;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -41,8 +43,6 @@ import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
-import com.google.gwtorm.server.OrmDuplicateKeyException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -81,7 +81,7 @@ public class CreateChecker
   @Override
   public Response<CheckerInfo> apply(TopLevelResource parentResource, CheckerInput input)
       throws RestApiException, PermissionBackendException, IOException, ConfigInvalidException,
-          OrmException {
+          StorageException {
     if (!self.get().isIdentifiedUser()) {
       throw new AuthException("Authentication required");
     }
@@ -129,7 +129,7 @@ public class CreateChecker
               .get()
               .createChecker(checkerCreationBuilder.build(), checkerUpdateBuilder.build());
       return Response.created(checkerJson.format(checker));
-    } catch (OrmDuplicateKeyException e) {
+    } catch (DuplicateKeyException e) {
       throw new ResourceConflictException(e.getMessage());
     }
   }
@@ -149,7 +149,7 @@ public class CreateChecker
   }
 
   private String validateQuery(CheckerUuid checkerUuid, Project.NameKey repository, String query)
-      throws BadRequestException, OrmException {
+      throws BadRequestException, StorageException {
     try {
       return checkerQueryProvider.get().validate(checkerUuid, repository, query);
     } catch (ConfigInvalidException e) {

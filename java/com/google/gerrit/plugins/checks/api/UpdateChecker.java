@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
@@ -35,7 +36,6 @@ import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
   @Override
   public CheckerInfo apply(CheckerResource resource, CheckerInput input)
       throws RestApiException, PermissionBackendException, NoSuchCheckerException, IOException,
-          ConfigInvalidException, OrmException {
+          ConfigInvalidException, StorageException {
     permissionBackend.currentUser().check(permission);
 
     CheckerUuid checkerUuid = resource.getChecker().getUuid();
@@ -138,7 +138,7 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
   }
 
   private String validateQuery(CheckerUuid checkerUuid, Project.NameKey repository, String query)
-      throws BadRequestException, OrmException {
+      throws BadRequestException, StorageException {
     try {
       return checkerQueryProvider.get().validate(checkerUuid, repository, query);
     } catch (ConfigInvalidException e) {

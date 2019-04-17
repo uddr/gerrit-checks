@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.client.ListOption;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -26,7 +27,6 @@ import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.server.change.RevisionResource;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.util.EnumSet;
@@ -56,7 +56,7 @@ public class ListChecks implements RestReadView<RevisionResource> {
 
   @Override
   public ImmutableList<CheckInfo> apply(RevisionResource resource)
-      throws AuthException, BadRequestException, ResourceConflictException, OrmException,
+      throws AuthException, BadRequestException, ResourceConflictException, StorageException,
           IOException {
     ImmutableList.Builder<CheckInfo> result = ImmutableList.builder();
 

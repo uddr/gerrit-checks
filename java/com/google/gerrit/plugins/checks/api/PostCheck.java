@@ -14,6 +14,7 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -35,7 +36,6 @@ import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gwtorm.server.OrmException;
 import java.io.IOException;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -74,7 +74,7 @@ public class PostCheck
 
   @Override
   public CheckInfo apply(RevisionResource rsrc, CheckInput input)
-      throws OrmException, IOException, RestApiException, PermissionBackendException,
+      throws StorageException, IOException, RestApiException, PermissionBackendException,
           ConfigInvalidException {
     if (!self.get().isIdentifiedUser()) {
       throw new AuthException("Authentication required");

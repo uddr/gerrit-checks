@@ -14,6 +14,7 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ChildCollection;
@@ -29,7 +30,6 @@ import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
 
   @Override
   public CheckResource parse(RevisionResource parent, IdString id)
-      throws RestApiException, PermissionBackendException, IOException, OrmException {
+      throws RestApiException, PermissionBackendException, IOException, StorageException {
     CheckerUuid checkerUuid =
         CheckerUuid.tryParse(id.get())
             .orElseThrow(
