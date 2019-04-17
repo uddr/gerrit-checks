@@ -14,6 +14,9 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.extensions.registration.DynamicSet;
+import com.google.gerrit.extensions.webui.JavaScriptPlugin;
+import com.google.gerrit.extensions.webui.WebUiPlugin;
 import com.google.inject.servlet.ServletModule;
 
 public class HttpModule extends ServletModule {
@@ -22,5 +25,7 @@ public class HttpModule extends ServletModule {
   protected void configureServlets() {
     serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
     serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
+
+    DynamicSet.bind(binder(), WebUiPlugin.class).toInstance(new JavaScriptPlugin("checks-pg.html"));
   }
 }
