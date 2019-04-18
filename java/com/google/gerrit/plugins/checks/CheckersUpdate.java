@@ -14,7 +14,7 @@
 
 package com.google.gerrit.plugins.checks;
 
-import com.google.gwtorm.server.OrmDuplicateKeyException;
+import com.google.gerrit.exceptions.DuplicateKeyException;
 import java.io.IOException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
@@ -39,14 +39,14 @@ public interface CheckersUpdate {
    * @param checkerUpdate an {@code CheckerUpdate} which specifies optional properties of the
    *     checker. If this {@code CheckerUpdate} updates a property which was already specified by
    *     the {@code CheckerCreation}, the value of this {@code CheckerUpdate} wins.
-   * @throws OrmDuplicateKeyException if a checker with the chosen UUID already exists
+   * @throws DuplicateKeyException if a checker with the chosen UUID already exists
    * @throws IOException if an error occurs while reading/writing from/to storage
    * @throws ConfigInvalidException if a checker with the same UUID already exists but can't be read
    *     due to an invalid format
    * @return the created {@code Checker}
    */
   Checker createChecker(CheckerCreation checkerCreation, CheckerUpdate checkerUpdate)
-      throws OrmDuplicateKeyException, IOException, ConfigInvalidException;
+      throws DuplicateKeyException, IOException, ConfigInvalidException;
 
   /**
    * Updates the specified checker.

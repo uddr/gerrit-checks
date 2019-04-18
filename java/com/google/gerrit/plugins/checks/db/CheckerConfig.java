@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.gerrit.exceptions.DuplicateKeyException;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerRef;
@@ -31,7 +32,6 @@ import com.google.gerrit.reviewdb.client.Project.NameKey;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.git.meta.VersionedMetaData;
 import com.google.gerrit.server.util.time.TimeUtil;
-import com.google.gwtorm.server.OrmDuplicateKeyException;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -91,11 +91,11 @@ public class CheckerConfig extends VersionedMetaData {
    * @throws IOException if the repository can't be accessed for some reason
    * @throws ConfigInvalidException if a checker with the same UUID already exists but can't be read
    *     due to an invalid format
-   * @throws OrmDuplicateKeyException if a checker with the same UUID already exists
+   * @throws DuplicateKeyException if a checker with the same UUID already exists
    */
   public static CheckerConfig createForNewChecker(
       Project.NameKey projectName, Repository repository, CheckerCreation checkerCreation)
-      throws IOException, ConfigInvalidException, OrmDuplicateKeyException {
+      throws IOException, ConfigInvalidException, DuplicateKeyException {
     CheckerConfig checkerConfig =
         loadForChecker(projectName, repository, checkerCreation.getCheckerUuid());
     checkerConfig.setCheckerCreation(checkerCreation);
@@ -226,10 +226,10 @@ public class CheckerConfig extends VersionedMetaData {
     this.checkerUpdate = Optional.of(checkerUpdate);
   }
 
-  private void setCheckerCreation(CheckerCreation checkerCreation) throws OrmDuplicateKeyException {
+  private void setCheckerCreation(CheckerCreation checkerCreation) throws DuplicateKeyException {
     checkLoaded();
     if (loadedChecker.isPresent()) {
-      throw new OrmDuplicateKeyException(
+      throw new DuplicateKeyException(
           String.format("Checker %s already exists", loadedChecker.get().getUuid()));
     }
 

@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.base.Throwables;
+import com.google.gerrit.exceptions.DuplicateKeyException;
 import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Checker;
@@ -33,7 +34,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.update.RetryHelper;
 import com.google.gerrit.server.update.RetryHelper.ActionType;
-import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import java.io.IOException;
@@ -135,7 +135,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
 
   @Override
   public Checker createChecker(CheckerCreation checkerCreation, CheckerUpdate checkerUpdate)
-      throws OrmDuplicateKeyException, IOException, ConfigInvalidException {
+      throws DuplicateKeyException, IOException, ConfigInvalidException {
     try {
       return retryHelper.execute(
           RetryHelper.ActionType.PLUGIN_UPDATE,
@@ -143,7 +143,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
           LockFailureException.class::isInstance);
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
-      Throwables.throwIfInstanceOf(e, OrmDuplicateKeyException.class);
+      Throwables.throwIfInstanceOf(e, DuplicateKeyException.class);
       Throwables.throwIfInstanceOf(e, IOException.class);
       Throwables.throwIfInstanceOf(e, ConfigInvalidException.class);
       throw new IOException(e);
@@ -152,7 +152,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
 
   private Checker createCheckerInNoteDb(
       CheckerCreation checkerCreation, CheckerUpdate checkerUpdate)
-      throws OrmDuplicateKeyException, IOException, ConfigInvalidException {
+      throws DuplicateKeyException, IOException, ConfigInvalidException {
     try (Repository allProjectsRepo = repoManager.openRepository(allProjectsName)) {
       CheckerConfig checkerConfig =
           CheckerConfig.createForNewChecker(allProjectsName, allProjectsRepo, checkerCreation);

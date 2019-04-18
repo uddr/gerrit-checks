@@ -17,10 +17,10 @@ package com.google.gerrit.plugins.checks.index;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.Enums;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gwtorm.server.OrmException;
 import java.util.Optional;
 
 public class CheckStatePredicate extends CheckPredicate {
@@ -53,7 +53,7 @@ public class CheckStatePredicate extends CheckPredicate {
   }
 
   @Override
-  public boolean match(Check check) throws OrmException {
+  public boolean match(Check check) throws StorageException {
     return checkState.equals(check.state());
   }
 }

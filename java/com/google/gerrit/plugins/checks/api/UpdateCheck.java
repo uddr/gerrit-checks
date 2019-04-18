@@ -14,11 +14,11 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class UpdateCheck implements RestModifyView<CheckResource, CheckInput> {
 
   @Override
   public CheckInfo apply(CheckResource checkResource, CheckInput input)
-      throws RestApiException, IOException, OrmException, PermissionBackendException,
+      throws RestApiException, IOException, StorageException, PermissionBackendException,
           ConfigInvalidException {
     if (input == null) {
       input = new CheckInput();

@@ -20,6 +20,7 @@ import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.gerrit.exceptions.DuplicateKeyException;
 import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Check;
@@ -36,7 +37,6 @@ import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.notedb.ChangeNoteUtil;
 import com.google.gerrit.server.update.RetryHelper;
-import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import java.io.ByteArrayOutputStream;
@@ -126,7 +126,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
 
   @Override
   public Check createCheck(CheckKey checkKey, CheckUpdate checkUpdate)
-      throws OrmDuplicateKeyException, IOException {
+      throws DuplicateKeyException, IOException {
     try {
       return retryHelper.execute(
           RetryHelper.ActionType.PLUGIN_UPDATE,
@@ -134,7 +134,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
           LockFailureException.class::isInstance);
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
-      Throwables.throwIfInstanceOf(e, OrmDuplicateKeyException.class);
+      Throwables.throwIfInstanceOf(e, DuplicateKeyException.class);
       Throwables.throwIfInstanceOf(e, IOException.class);
       throw new IOException(e);
     }
@@ -155,7 +155,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
   }
 
   private Check upsertCheckInNoteDb(CheckKey checkKey, CheckUpdate checkUpdate, Operation operation)
-      throws IOException, ConfigInvalidException, OrmDuplicateKeyException {
+      throws IOException, ConfigInvalidException, DuplicateKeyException {
     if (operation == Operation.CREATE) {
       assertCheckerIsPresent(checkKey.checkerUuid());
     }
@@ -216,7 +216,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       ObjectId curr,
       CommitBuilder cb,
       Operation operation)
-      throws ConfigInvalidException, IOException, OrmDuplicateKeyException {
+      throws ConfigInvalidException, IOException, DuplicateKeyException {
     Ref patchSetRef = repo.exactRef(checkKey.patchSet().toRefName());
     if (patchSetRef == null) {
       throw new IOException(String.format("patchset %s not found", checkKey.patchSet()));
@@ -247,7 +247,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       writeNotesMap(newNotes, cb, ins);
       return true;
     } else if (operation == Operation.CREATE) {
-      throw new OrmDuplicateKeyException(
+      throw new DuplicateKeyException(
           String.format("checker %s already exists", checkKey.checkerUuid()));
     }
 

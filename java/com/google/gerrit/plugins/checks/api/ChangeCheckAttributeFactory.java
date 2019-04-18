@@ -14,12 +14,12 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.server.DynamicOptions.BeanProvider;
 import com.google.gerrit.server.DynamicOptions.DynamicBean;
 import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -54,14 +54,14 @@ public class ChangeCheckAttributeFactory implements ChangeAttributeFactory {
         return forGetChange(cd, (GetChangeOptions) opts);
       }
       // TODO(dborowitz): Compute from cache in query path.
-    } catch (OrmException | IOException e) {
+    } catch (StorageException | IOException e) {
       throw new RuntimeException(e);
     }
     throw new IllegalStateException("unexpected options type: " + opts);
   }
 
   private ChangeCheckInfo forGetChange(ChangeData cd, GetChangeOptions opts)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     if (opts == null || !opts.combined) {
       return null;
     }

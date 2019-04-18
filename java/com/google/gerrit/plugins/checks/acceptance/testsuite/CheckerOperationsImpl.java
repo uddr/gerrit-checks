@@ -23,6 +23,7 @@ import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
+import com.google.gerrit.exceptions.DuplicateKeyException;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
 import com.google.gerrit.plugins.checks.CheckerJson;
@@ -38,7 +39,6 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.GitRepositoryManager;
-import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -103,7 +103,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
   }
 
   private CheckerUuid createNewChecker(TestCheckerCreation testCheckerCreation)
-      throws OrmDuplicateKeyException, ConfigInvalidException, IOException {
+      throws DuplicateKeyException, ConfigInvalidException, IOException {
     CheckerCreation checkerCreation = toCheckerCreation(testCheckerCreation);
     CheckerUpdate checkerUpdate = toCheckerUpdate(testCheckerCreation);
     Checker checker = checkersUpdate.get().createChecker(checkerCreation, checkerUpdate);

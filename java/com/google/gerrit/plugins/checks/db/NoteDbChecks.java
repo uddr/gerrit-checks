@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
@@ -36,7 +37,6 @@ import com.google.gerrit.reviewdb.client.PatchSet.Id;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.Project.NameKey;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -72,13 +72,13 @@ class NoteDbChecks implements Checks {
   @Override
   public ImmutableList<Check> getChecks(
       Project.NameKey projectName, PatchSet.Id psId, GetCheckOptions options)
-      throws IOException, OrmException {
+      throws IOException, StorageException {
     return getChecksFromNoteDb(projectName, psId, options);
   }
 
   @Override
   public Optional<Check> getCheck(CheckKey checkKey, GetCheckOptions options)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     Optional<Check> result =
         getChecksFromNoteDb(checkKey.repository(), checkKey.patchSet(), GetCheckOptions.defaults())
@@ -98,7 +98,7 @@ class NoteDbChecks implements Checks {
 
   private ImmutableList<Check> getChecksFromNoteDb(
       Project.NameKey repositoryName, PatchSet.Id psId, GetCheckOptions options)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     ChangeData changeData = changeDataFactory.create(repositoryName, psId.getParentKey());
     PatchSet patchSet = changeData.patchSet(psId);
@@ -127,7 +127,7 @@ class NoteDbChecks implements Checks {
 
   @Override
   public CombinedCheckState getCombinedCheckState(NameKey projectName, Id patchSetId)
-      throws IOException, OrmException {
+      throws IOException, StorageException {
     ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId);
     CheckerQuery checkerQuery = checkerQueryProvider.get();
     ImmutableMap<String, Checker> allCheckersOfProject =
