@@ -301,7 +301,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
               .parent(head)
               .create();
 
-      Change.Id changeId = new Change.Id(seq.nextChangeId());
+      Change.Id changeId = Change.id(seq.nextChangeId());
       ChangeInserter ins = changeInserterFactory.create(changeId, commit, targetRef);
       ins.setValidate(false);
       ins.setMessage(String.format("Uploaded patch set %s.", ins.getPatchSetId().get()));

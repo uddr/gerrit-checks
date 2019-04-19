@@ -98,7 +98,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   @Test
   public void checkCannotBeCreatedForNonExistingPatchSet() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    CheckKey checkKey = CheckKey.create(project, PatchSet.id(new Change.Id(1), 1), checkerUuid);
+    CheckKey checkKey = CheckKey.create(project, PatchSet.id(Change.id(1), 1), checkerUuid);
 
     exception.expect(IllegalStateException.class);
     exception.expectCause(instanceOf(IOException.class));

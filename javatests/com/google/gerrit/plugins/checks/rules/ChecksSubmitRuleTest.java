@@ -41,7 +41,7 @@ public class ChecksSubmitRuleTest extends GerritBaseTests {
 
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);
     expect(cd.project()).andReturn(Project.nameKey("My-Project"));
-    expect(cd.getId()).andReturn(new Change.Id(1));
+    expect(cd.getId()).andReturn(Change.id(1));
     expect(cd.currentPatchSet()).andThrow(new StorageException("Fail for test"));
     replay(cd);
 
@@ -59,10 +59,10 @@ public class ChecksSubmitRuleTest extends GerritBaseTests {
 
     ChecksSubmitRule checksSubmitRule = new ChecksSubmitRule(checks);
 
-    Change.Id changeId = new Change.Id(1);
+    Change.Id changeId = Change.id(1);
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);
     expect(cd.project()).andReturn(Project.nameKey("My-Project"));
-    expect(cd.getId()).andReturn(new Change.Id(1));
+    expect(cd.getId()).andReturn(Change.id(1));
     expect(cd.currentPatchSet()).andReturn(new PatchSet(PatchSet.id(changeId, 1)));
     replay(cd);
 
