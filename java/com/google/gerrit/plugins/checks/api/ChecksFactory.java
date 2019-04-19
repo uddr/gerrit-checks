@@ -60,7 +60,7 @@ public class ChecksFactory {
   }
 
   public Checks revision(PatchSet.Id patchSetId) throws RestApiException {
-    ChangeResource changeResource = getChangeResource(patchSetId.getParentKey());
+    ChangeResource changeResource = getChangeResource(patchSetId.changeId());
     PatchSet patchSet = getPatchSet(changeResource.getNotes(), patchSetId);
     return getChecks(changeResource, patchSet);
   }

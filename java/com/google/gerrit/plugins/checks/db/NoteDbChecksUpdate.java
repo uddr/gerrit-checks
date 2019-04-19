@@ -163,7 +163,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     try (Repository repo = repoManager.openRepository(checkKey.repository());
         ObjectInserter objectInserter = repo.newObjectInserter();
         RevWalk rw = new RevWalk(repo)) {
-      Ref checkRef = repo.getRefDatabase().exactRef(checksRef(checkKey.patchSet().getParentKey()));
+      Ref checkRef = repo.getRefDatabase().exactRef(checksRef(checkKey.patchSet().changeId()));
       ObjectId parent = checkRef == null ? ObjectId.zeroId() : checkRef.getObjectId();
       CommitBuilder cb;
       String message;
@@ -185,7 +185,7 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
       ObjectId newCommitId = objectInserter.insert(cb);
       objectInserter.flush();
 
-      String refName = CheckerRef.checksRef(checkKey.patchSet().getParentKey());
+      String refName = CheckerRef.checksRef(checkKey.patchSet().changeId());
       RefUpdate refUpdate = repo.updateRef(refName);
       refUpdate.setExpectedOldObjectId(parent);
       refUpdate.setNewObjectId(newCommitId);

@@ -59,7 +59,8 @@ public class CreateCheckIT extends AbstractCheckersTest {
     TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
 
     patchSetId = createChange().getPatchSetId();
-    revId = new RevId(gApi.changes().id(patchSetId.changeId.get()).current().commit(false).commit);
+    revId =
+        new RevId(gApi.changes().id(patchSetId.changeId().get()).current().commit(false).commit);
   }
 
   @After

@@ -477,7 +477,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
         queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).hasSize(2);
 
-    gApi.changes().id(patchSetId2.getParentKey().toString()).abandon();
+    gApi.changes().id(patchSetId2.changeId().toString()).abandon();
 
     pendingChecksList = queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).hasSize(1);
@@ -504,7 +504,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
         queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).hasSize(2);
 
-    gApi.changes().id(patchSetId2.getParentKey().toString()).abandon();
+    gApi.changes().id(patchSetId2.changeId().toString()).abandon();
 
     pendingChecksList = queryPendingChecks(checkerUuid, CheckState.NOT_STARTED);
     assertThat(pendingChecksList).hasSize(2);
@@ -605,7 +605,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   @Test
   public void pendingChecksDontIncludeChecksForPrivateChangesOfOtherUsers() throws Exception {
     // make change private so that it is only visible to the admin user
-    gApi.changes().id(patchSetId.getParentKey().get()).setPrivate(true);
+    gApi.changes().id(patchSetId.changeId().get()).setPrivate(true);
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkOperations

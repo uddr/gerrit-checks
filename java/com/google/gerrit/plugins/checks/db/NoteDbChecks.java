@@ -88,7 +88,7 @@ class NoteDbChecks implements Checks {
 
     if (!result.isPresent() && options.backfillChecks()) {
       ChangeData changeData =
-          changeDataFactory.create(checkKey.repository(), checkKey.patchSet().getParentKey());
+          changeDataFactory.create(checkKey.repository(), checkKey.patchSet().changeId());
       return checkBackfiller.getBackfilledCheckForRelevantChecker(
           checkKey.checkerUuid(), changeData, checkKey.patchSet());
     }
@@ -100,7 +100,7 @@ class NoteDbChecks implements Checks {
       Project.NameKey repositoryName, PatchSet.Id psId, GetCheckOptions options)
       throws StorageException, IOException {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
-    ChangeData changeData = changeDataFactory.create(repositoryName, psId.getParentKey());
+    ChangeData changeData = changeDataFactory.create(repositoryName, psId.changeId());
     PatchSet patchSet = changeData.patchSet(psId);
     CheckNotes checkNotes = checkNotesFactory.create(changeData.change());
     checkNotes.load();
@@ -128,7 +128,7 @@ class NoteDbChecks implements Checks {
   @Override
   public CombinedCheckState getCombinedCheckState(NameKey projectName, Id patchSetId)
       throws IOException, StorageException {
-    ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId);
+    ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId());
     CheckerQuery checkerQuery = checkerQueryProvider.get();
     ImmutableMap<String, Checker> allCheckersOfProject =
         checkers.checkersOf(projectName).stream()

@@ -61,9 +61,9 @@ public class CheckJson {
   public CheckInfo format(Check check) throws IOException {
     CheckInfo info = new CheckInfo();
     info.checkerUuid = check.key().checkerUuid().get();
-    info.changeNumber = check.key().patchSet().changeId.id;
+    info.changeNumber = check.key().patchSet().changeId().get();
     info.repository = check.key().repository().get();
-    info.patchSetId = check.key().patchSet().patchSetId;
+    info.patchSetId = check.key().patchSet().get();
     info.state = check.state();
 
     info.message = check.message().orElse(null);

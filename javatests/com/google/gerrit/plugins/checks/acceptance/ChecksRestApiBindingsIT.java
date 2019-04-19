@@ -69,8 +69,8 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
     RestApiCallHelper.execute(
         adminRestSession,
         CHECK_ENDPOINTS,
-        String.valueOf(key.patchSet().changeId.id),
-        String.valueOf(key.patchSet().patchSetId));
+        String.valueOf(key.patchSet().changeId().get()),
+        String.valueOf(key.patchSet().get()));
   }
 
   @Test
@@ -81,8 +81,8 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
     RestApiCallHelper.execute(
         adminRestSession,
         SCOPED_CHECK_ENDPOINTS,
-        String.valueOf(key.patchSet().changeId.id),
-        String.valueOf(key.patchSet().patchSetId),
+        String.valueOf(key.patchSet().changeId().get()),
+        String.valueOf(key.patchSet().get()),
         checkerUuid.get());
   }
 
@@ -92,7 +92,7 @@ public class ChecksRestApiBindingsIT extends AbstractCheckersTest {
     RestApiCallHelper.execute(
         adminRestSession,
         RestCall.post("/changes/%s/revisions/%s/checks~checks/"),
-        String.valueOf(patchSetId.changeId.id),
-        String.valueOf(patchSetId.patchSetId));
+        String.valueOf(patchSetId.changeId().get()),
+        String.valueOf(patchSetId.get()));
   }
 }

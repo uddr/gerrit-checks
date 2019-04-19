@@ -220,7 +220,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
 
     pendingChecksInfo.patchSet = new CheckablePatchSetInfo();
     pendingChecksInfo.patchSet.repository = repositoryName.get();
-    pendingChecksInfo.patchSet.changeNumber = patchSet.getId().getParentKey().get();
+    pendingChecksInfo.patchSet.changeNumber = patchSet.getId().changeId().get();
     pendingChecksInfo.patchSet.patchSetId = patchSet.getPatchSetId();
 
     pendingChecksInfo.pendingChecks =

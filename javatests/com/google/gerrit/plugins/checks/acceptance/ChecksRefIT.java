@@ -40,10 +40,10 @@ public class ChecksRefIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).state(CheckState.NOT_STARTED).upsert();
-    String noteDbChecksRef = CheckerRef.checksRef(patchSetId.getParentKey());
+    String noteDbChecksRef = CheckerRef.checksRef(patchSetId.changeId());
     assertThat(projectOperations.project(project).hasHead(noteDbChecksRef)).isTrue();
 
-    gApi.changes().id(patchSetId.getParentKey().get()).delete();
+    gApi.changes().id(patchSetId.changeId().get()).delete();
 
     assertThat(projectOperations.project(project).hasHead(noteDbChecksRef)).isFalse();
   }

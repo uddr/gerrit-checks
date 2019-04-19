@@ -68,7 +68,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
 
     CheckInfo foundCheck = getCheckFromServer(checkKey);
     assertThat(foundCheck.repository).isEqualTo(project.get());
-    assertThat(foundCheck.changeNumber).isEqualTo(checkKey.patchSet().getParentKey().get());
+    assertThat(foundCheck.changeNumber).isEqualTo(checkKey.patchSet().changeId().get());
     assertThat(foundCheck.patchSetId).isEqualTo(checkKey.patchSet().get());
     assertThat(foundCheck.checkerUuid).isEqualTo(checkerUuid.get());
     assertThat(foundCheck.state).isNotNull();
@@ -98,7 +98,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   @Test
   public void checkCannotBeCreatedForNonExistingPatchSet() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    CheckKey checkKey = CheckKey.create(project, new PatchSet.Id(new Change.Id(1), 1), checkerUuid);
+    CheckKey checkKey = CheckKey.create(project, PatchSet.id(new Change.Id(1), 1), checkerUuid);
 
     exception.expect(IllegalStateException.class);
     exception.expectCause(instanceOf(IOException.class));
@@ -125,7 +125,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
 
     CheckInfo foundCheck = getCheckFromServer(checkKey);
     assertThat(foundCheck.repository).isEqualTo(project.get());
-    assertThat(foundCheck.changeNumber).isEqualTo(checkKey.patchSet().getParentKey().get());
+    assertThat(foundCheck.changeNumber).isEqualTo(checkKey.patchSet().changeId().get());
     assertThat(foundCheck.patchSetId).isEqualTo(checkKey.patchSet().get());
     assertThat(foundCheck.checkerUuid).isEqualTo(checkerUuid.get());
   }
@@ -502,7 +502,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
         RevWalk rw = new RevWalk(repo);
         ObjectReader reader = repo.newObjectReader()) {
       Ref checkRef =
-          repo.getRefDatabase().exactRef(CheckerRef.checksRef(checkKey.patchSet().changeId));
+          repo.getRefDatabase().exactRef(CheckerRef.checksRef(checkKey.patchSet().changeId()));
       checkNotNull(checkRef);
 
       NoteMap notes = NoteMap.read(reader, rw.parseCommit(checkRef.getObjectId()));
@@ -527,7 +527,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     Check check = checkOperations.check(checkKey).get();
     CheckInfo checkInfo = checkOperations.check(checkKey).asInfo();
     assertThat(checkInfo.repository).isEqualTo(check.key().repository().get());
-    assertThat(checkInfo.changeNumber).isEqualTo(check.key().patchSet().getParentKey().get());
+    assertThat(checkInfo.changeNumber).isEqualTo(check.key().patchSet().changeId().get());
     assertThat(checkInfo.patchSetId).isEqualTo(check.key().patchSet().get());
     assertThat(checkInfo.checkerUuid).isEqualTo(check.key().checkerUuid().get());
     assertThat(checkInfo.state).isEqualTo(check.state());
@@ -563,7 +563,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   private RevId getRevId(PatchSet.Id patchSetId) throws Exception {
     return new RevId(
         gApi.changes()
-            .id(patchSetId.changeId.get())
+            .id(patchSetId.changeId().get())
             .revision(patchSetId.get())
             .commit(false)
             .commit);

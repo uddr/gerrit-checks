@@ -45,7 +45,7 @@ public class PendingChecksInfoSubject extends Subject<PendingChecksInfoSubject, 
     CheckablePatchSetInfo patchSet = patchSet();
     check("patchSet().changeNumber()")
         .that(patchSet.changeNumber)
-        .isEqualTo(expectedPatchSetId.getParentKey().get());
+        .isEqualTo(expectedPatchSetId.changeId().get());
     check("patchSet().id()").that(patchSet.patchSetId).isEqualTo(expectedPatchSetId.get());
   }
 

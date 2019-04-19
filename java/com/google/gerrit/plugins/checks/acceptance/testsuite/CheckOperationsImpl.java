@@ -92,7 +92,7 @@ public final class CheckOperationsImpl implements CheckOperations {
       try (Repository repo = repoManager.openRepository(key.repository());
           RevWalk rw = new RevWalk(repo)) {
         Ref checkRef =
-            repo.getRefDatabase().exactRef(CheckerRef.checksRef(key.patchSet().changeId));
+            repo.getRefDatabase().exactRef(CheckerRef.checksRef(key.patchSet().changeId()));
         checkNotNull(checkRef);
 
         NoteMap notes = NoteMap.read(rw.getObjectReader(), rw.parseCommit(checkRef.getObjectId()));

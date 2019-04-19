@@ -63,7 +63,7 @@ public class ChecksSubmitRuleTest extends GerritBaseTests {
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);
     expect(cd.project()).andReturn(new Project.NameKey("My-Project"));
     expect(cd.getId()).andReturn(new Change.Id(1));
-    expect(cd.currentPatchSet()).andReturn(new PatchSet(new PatchSet.Id(changeId, 1)));
+    expect(cd.currentPatchSet()).andReturn(new PatchSet(PatchSet.id(changeId, 1)));
     replay(cd);
 
     Collection<SubmitRecord> submitRecords =

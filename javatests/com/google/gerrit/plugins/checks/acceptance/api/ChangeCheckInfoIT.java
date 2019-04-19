@@ -42,7 +42,7 @@ public class ChangeCheckInfoIT extends AbstractCheckersTest {
   @Before
   public void setUp() throws Exception {
     psId = createChange().getPatchSetId();
-    changeId = psId.getParentKey();
+    changeId = psId.changeId();
   }
 
   @Test

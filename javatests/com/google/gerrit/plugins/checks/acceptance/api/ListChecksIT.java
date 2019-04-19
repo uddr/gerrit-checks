@@ -127,7 +127,7 @@ public class ListChecksIT extends AbstractCheckersTest {
         adminRestSession.get(
             String.format(
                 "/changes/%s/revisions/%s/checks~checks/?o=CHECKER",
-                patchSetId.getParentKey().get(), patchSetId.get()));
+                patchSetId.changeId().get(), patchSetId.get()));
     r.assertOK();
     List<CheckInfo> checkInfos =
         newGson().fromJson(r.getReader(), new TypeToken<List<CheckInfo>>() {}.getType());
@@ -138,7 +138,7 @@ public class ListChecksIT extends AbstractCheckersTest {
         adminRestSession.get(
             String.format(
                 "/changes/%s/revisions/%s/checks~checks/?O=1",
-                patchSetId.getParentKey().get(), patchSetId.get()));
+                patchSetId.changeId().get(), patchSetId.get()));
     r.assertOK();
     checkInfos = newGson().fromJson(r.getReader(), new TypeToken<List<CheckInfo>>() {}.getType());
     r.consume();
@@ -234,12 +234,12 @@ public class ListChecksIT extends AbstractCheckersTest {
     assertThat(checksApiFactory.revision(patchSetId).list()).isEmpty();
 
     // Update change to match checker's query.
-    gApi.changes().id(patchSetId.getParentKey().get()).topic(topic);
+    gApi.changes().id(patchSetId.changeId().get()).topic(topic);
 
-    Timestamp psCreated = getPatchSetCreated(patchSetId.getParentKey());
+    Timestamp psCreated = getPatchSetCreated(patchSetId.changeId());
     CheckInfo checkInfo = new CheckInfo();
     checkInfo.repository = project.get();
-    checkInfo.changeNumber = patchSetId.getParentKey().get();
+    checkInfo.changeNumber = patchSetId.changeId().get();
     checkInfo.patchSetId = patchSetId.get();
     checkInfo.checkerUuid = checkerUuid.get();
     checkInfo.state = CheckState.NOT_STARTED;
@@ -253,10 +253,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
 
-    Timestamp psCreated = getPatchSetCreated(patchSetId.getParentKey());
+    Timestamp psCreated = getPatchSetCreated(patchSetId.changeId());
     CheckInfo checkInfo = new CheckInfo();
     checkInfo.repository = checkKey.repository().get();
-    checkInfo.changeNumber = checkKey.patchSet().getParentKey().get();
+    checkInfo.changeNumber = checkKey.patchSet().changeId().get();
     checkInfo.patchSetId = checkKey.patchSet().get();
     checkInfo.checkerUuid = checkKey.checkerUuid().get();
     checkInfo.state = CheckState.NOT_STARTED;
@@ -291,7 +291,7 @@ public class ListChecksIT extends AbstractCheckersTest {
         .containsExactly(checkOperations.check(checkKey1).asInfo());
 
     // list checks for the new patch set (2 ways)
-    assertThat(checksApiFactory.currentRevision(currentPatchSet.getParentKey()).list())
+    assertThat(checksApiFactory.currentRevision(currentPatchSet.changeId()).list())
         .containsExactly(checkOperations.check(checkKey2).asInfo());
     assertThat(checksApiFactory.revision(currentPatchSet).list())
         .containsExactly(checkOperations.check(checkKey2).asInfo());
@@ -336,7 +336,7 @@ public class ListChecksIT extends AbstractCheckersTest {
   private PatchSet.Id createPatchSet() throws Exception {
     PushOneCommit.Result r = amendChange(changeId);
     PatchSet.Id currentPatchSetId = r.getPatchSetId();
-    assertThat(patchSetId.changeId).isEqualTo(currentPatchSetId.changeId);
+    assertThat(patchSetId.changeId()).isEqualTo(currentPatchSetId.changeId());
     assertThat(patchSetId.get()).isLessThan(currentPatchSetId.get());
     return currentPatchSetId;
   }
