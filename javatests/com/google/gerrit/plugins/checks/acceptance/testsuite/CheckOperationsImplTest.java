@@ -88,7 +88,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     CheckKey checkKey =
         CheckKey.create(
-            new Project.NameKey("non-existing"), createChange().getPatchSetId(), checkerUuid);
+            Project.nameKey("non-existing"), createChange().getPatchSetId(), checkerUuid);
 
     exception.expect(IllegalStateException.class);
     exception.expectCause(instanceOf(RepositoryNotFoundException.class));

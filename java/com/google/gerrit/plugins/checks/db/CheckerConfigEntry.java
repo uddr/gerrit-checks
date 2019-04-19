@@ -204,7 +204,7 @@ enum CheckerConfigEntry {
                 "%s.%s is not set in config file for checker %s",
                 SECTION_NAME, super.keyName, checkerUuid));
       }
-      checker.setRepository(new Project.NameKey(repository));
+      checker.setRepository(Project.nameKey(repository));
     }
 
     @Override

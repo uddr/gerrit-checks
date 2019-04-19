@@ -703,7 +703,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
   @Test
   public void getCheckersOfNonExistingRepository() throws Exception {
-    assertThat(checkerOperations.checkersOf(new Project.NameKey("non-existing"))).isEmpty();
+    assertThat(checkerOperations.checkersOf(Project.nameKey("non-existing"))).isEmpty();
   }
 
   @Test

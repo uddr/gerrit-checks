@@ -140,7 +140,7 @@ public class CreateChecker
       throw new BadRequestException("repository is required");
     }
 
-    ProjectState projectState = projectCache.checkedGet(new Project.NameKey(repository.trim()));
+    ProjectState projectState = projectCache.checkedGet(Project.nameKey(repository.trim()));
     if (projectState == null) {
       throw new UnprocessableEntityException(String.format("repository %s not found", repository));
     }

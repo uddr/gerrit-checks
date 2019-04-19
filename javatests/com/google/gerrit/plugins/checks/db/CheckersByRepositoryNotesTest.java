@@ -51,15 +51,15 @@ public class CheckersByRepositoryNotesTest {
   @Test
   public void getEmptyCheckersList() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
-    assertThat(checkersByRepositoryNotes.get(new Project.NameKey("some-project"))).isEmpty();
+    assertThat(checkersByRepositoryNotes.get(Project.nameKey("some-project"))).isEmpty();
   }
 
   @Test
   public void insertCheckers() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project1 = new Project.NameKey("some-project");
-    Project.NameKey project2 = new Project.NameKey("other-project");
+    Project.NameKey project1 = Project.nameKey("some-project");
+    Project.NameKey project2 = Project.nameKey("other-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
     checkersByRepositoryNotes.insert(checkerUuid1, project1);
@@ -89,7 +89,7 @@ public class CheckersByRepositoryNotesTest {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
     CheckerUuid checkerUuid = CheckerUuid.parse("foo:bar");
-    Project.NameKey project = new Project.NameKey("some-project");
+    Project.NameKey project = Project.nameKey("some-project");
 
     checkersByRepositoryNotes.insert(checkerUuid, project);
     commit(checkersByRepositoryNotes);
@@ -106,7 +106,7 @@ public class CheckersByRepositoryNotesTest {
   public void removeCheckers() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project = new Project.NameKey("some-project");
+    Project.NameKey project = Project.nameKey("some-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("bar:baz");
     CheckerUuid checkerUuid2 = CheckerUuid.parse("foo:bar");
@@ -139,8 +139,8 @@ public class CheckersByRepositoryNotesTest {
   public void removeNonExistingChecker() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project1 = new Project.NameKey("some-project");
-    Project.NameKey project2 = new Project.NameKey("other-project");
+    Project.NameKey project1 = Project.nameKey("some-project");
+    Project.NameKey project2 = Project.nameKey("other-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
     CheckerUuid checkerUuid2 = CheckerUuid.parse("foo:baz");
@@ -163,8 +163,8 @@ public class CheckersByRepositoryNotesTest {
   public void updateCheckers() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project1 = new Project.NameKey("some-project");
-    Project.NameKey project2 = new Project.NameKey("other-project");
+    Project.NameKey project1 = Project.nameKey("some-project");
+    Project.NameKey project2 = Project.nameKey("other-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
     CheckerUuid checkerUuid2 = CheckerUuid.parse("foo:baz");
@@ -194,7 +194,7 @@ public class CheckersByRepositoryNotesTest {
   public void sortOrder() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project = new Project.NameKey("some-project");
+    Project.NameKey project = Project.nameKey("some-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
     CheckerUuid checkerUuid2 = CheckerUuid.parse("foo:baz");
@@ -221,7 +221,7 @@ public class CheckersByRepositoryNotesTest {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
     CheckerUuid checkerUuid = CheckerUuid.parse("foo:bar");
-    Project.NameKey project = new Project.NameKey("some-project");
+    Project.NameKey project = Project.nameKey("some-project");
 
     checkersByRepositoryNotes.insert(checkerUuid, project);
     commit(checkersByRepositoryNotes);
@@ -237,7 +237,7 @@ public class CheckersByRepositoryNotesTest {
   public void noOpUpdate() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project = new Project.NameKey("some-project");
+    Project.NameKey project = Project.nameKey("some-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
     checkersByRepositoryNotes.insert(checkerUuid1, project);
@@ -262,7 +262,7 @@ public class CheckersByRepositoryNotesTest {
   public void getCheckersFromOldRevision() throws Exception {
     CheckersByRepositoryNotes checkersByRepositoryNotes = loadCheckersByRepositoryNotes();
 
-    Project.NameKey project = new Project.NameKey("some-project");
+    Project.NameKey project = Project.nameKey("some-project");
 
     CheckerUuid checkerUuid1 = CheckerUuid.parse("foo:bar");
     checkersByRepositoryNotes.insert(checkerUuid1, project);
@@ -286,7 +286,7 @@ public class CheckersByRepositoryNotesTest {
   public void getCheckersFromZeroIdRevision() throws Exception {
     assertThat(
             CheckersByRepositoryNotes.load(projectName, repository, ObjectId.zeroId())
-                .get(new Project.NameKey("some-project")))
+                .get(Project.nameKey("some-project")))
         .isEmpty();
   }
 
@@ -294,7 +294,7 @@ public class CheckersByRepositoryNotesTest {
   public void getCheckersFromNullRevision() throws Exception {
     assertThat(
             CheckersByRepositoryNotes.load(projectName, repository, null)
-                .get(new Project.NameKey("some-project")))
+                .get(Project.nameKey("some-project")))
         .isEmpty();
   }
 
@@ -315,7 +315,7 @@ public class CheckersByRepositoryNotesTest {
 
     MetaDataUpdate metaDataUpdate =
         new MetaDataUpdate(
-            GitReferenceUpdated.DISABLED, new Project.NameKey("Test Repository"), repository);
+            GitReferenceUpdated.DISABLED, Project.nameKey("Test Repository"), repository);
     metaDataUpdate.getCommitBuilder().setCommitter(serverIdent);
     metaDataUpdate.getCommitBuilder().setAuthor(serverIdent);
     return metaDataUpdate;

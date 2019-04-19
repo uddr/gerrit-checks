@@ -53,12 +53,12 @@ public class CheckerConfigTest extends GerritBaseTests {
   private TestRepository<?> testRepository;
 
   private final CheckerUuid checkerUuid = CheckerUuid.parse("test:my-checker");
-  private final Project.NameKey checkerRepository = new Project.NameKey("my-repo");
+  private final Project.NameKey checkerRepository = Project.nameKey("my-repo");
   private final TimeZone timeZone = TimeZone.getTimeZone("America/Los_Angeles");
 
   @Before
   public void setUp() throws Exception {
-    projectName = new Project.NameKey("Test Repository");
+    projectName = Project.nameKey("Test Repository");
     repository = new InMemoryRepository(new DfsRepositoryDescription("Test Repository"));
     testRepository = new TestRepository<>(repository);
   }
@@ -186,7 +186,7 @@ public class CheckerConfigTest extends GerritBaseTests {
 
   @Test
   public void repositoryOfCheckerUpdateOverridesCheckerCreation() throws Exception {
-    Project.NameKey anotherRepository = new Project.NameKey("another-repo");
+    Project.NameKey anotherRepository = Project.nameKey("another-repo");
 
     CheckerCreation checkerCreation =
         getPrefilledCheckerCreationBuilder().setRepository(checkerRepository).build();
@@ -203,7 +203,7 @@ public class CheckerConfigTest extends GerritBaseTests {
   @Test
   public void repositoryOfNewCheckerMustNotBeEmpty() throws Exception {
     CheckerCreation checkerCreation =
-        getPrefilledCheckerCreationBuilder().setRepository(new Project.NameKey("")).build();
+        getPrefilledCheckerCreationBuilder().setRepository(Project.nameKey("")).build();
     CheckerConfig checkerConfig =
         CheckerConfig.createForNewChecker(projectName, repository, checkerCreation);
 
@@ -327,7 +327,7 @@ public class CheckerConfigTest extends GerritBaseTests {
             .build();
     createChecker(checkerCreation);
 
-    Project.NameKey newRepository = new Project.NameKey("another-repo");
+    Project.NameKey newRepository = Project.nameKey("another-repo");
     CheckerUpdate checkerUpdate = CheckerUpdate.builder().setRepository(newRepository).build();
     updateChecker(checkerUuid, checkerUpdate);
 
@@ -343,7 +343,7 @@ public class CheckerConfigTest extends GerritBaseTests {
     createArbitraryChecker(checkerUuid);
 
     CheckerUpdate checkerUpdate =
-        CheckerUpdate.builder().setRepository(new Project.NameKey("")).build();
+        CheckerUpdate.builder().setRepository(Project.nameKey("")).build();
 
     exception.expect(IOException.class);
     exception.expectMessage(
@@ -561,7 +561,7 @@ public class CheckerConfigTest extends GerritBaseTests {
 
     MetaDataUpdate metaDataUpdate =
         new MetaDataUpdate(
-            GitReferenceUpdated.DISABLED, new Project.NameKey("Test Repository"), repository);
+            GitReferenceUpdated.DISABLED, Project.nameKey("Test Repository"), repository);
     metaDataUpdate.getCommitBuilder().setCommitter(serverIdent);
     metaDataUpdate.getCommitBuilder().setAuthor(serverIdent);
     return metaDataUpdate;

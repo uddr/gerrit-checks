@@ -20,7 +20,7 @@ import static com.google.gerrit.plugins.checks.api.BlockingCondition.STATE_NOT_P
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.Project.NameKey;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.util.time.TimeUtil;
 import java.util.EnumSet;
 import org.eclipse.jgit.lib.ObjectId;
@@ -50,7 +50,7 @@ public class CheckerDefinitionTest {
 
   private Checker.Builder newChecker() {
     return Checker.builder()
-        .setRepository(new NameKey("test-repo"))
+        .setRepository(Project.nameKey("test-repo"))
         .setStatus(CheckerStatus.ENABLED)
         .setUuid(CheckerUuid.parse("schema:any-id"))
         .setCreated(TimeUtil.nowTs())
