@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.gerrit.plugins.checks.api;
+package com.google.gerrit.plugins.checks;
 
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.webui.JavaScriptPlugin;
 import com.google.gerrit.extensions.webui.WebUiPlugin;
+import com.google.gerrit.plugins.checks.api.CheckersRestApiServlet;
+import com.google.gerrit.plugins.checks.api.PendingChecksRestApiServlet;
 import com.google.inject.servlet.ServletModule;
 
 public class HttpModule extends ServletModule {
