@@ -32,7 +32,7 @@ import org.junit.Before;
 @TestPlugin(
     name = "checks",
     sysModule = "com.google.gerrit.plugins.checks.acceptance.TestModule",
-    httpModule = "com.google.gerrit.plugins.checks.api.HttpModule")
+    httpModule = "com.google.gerrit.plugins.checks.HttpModule")
 public class AbstractCheckersTest extends LightweightPluginDaemonTest {
   protected CheckerOperations checkerOperations;
   protected CheckOperations checkOperations;
