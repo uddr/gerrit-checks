@@ -28,7 +28,7 @@ import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.Branch;
+import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.change.ChangeInserter;
@@ -112,7 +112,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(Branch.nameKey(project, checkerRef));
+    createBranch(BranchNameKey.create(project, checkerRef));
 
     // checker ref can be deleted in any project except All-Projects
     TestRepository<InMemoryRepository> testRepo = cloneProject(project);
@@ -145,7 +145,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(Branch.nameKey(project, checkerRef));
+    createBranch(BranchNameKey.create(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
@@ -186,7 +186,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(Branch.nameKey(project, checkerRef));
+    createBranch(BranchNameKey.create(project, checkerRef));
 
     String changeId = createChangeWithoutCommitValidation(project, checkerRef);
 
@@ -230,7 +230,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(Branch.nameKey(project, checkerRef));
+    createBranch(BranchNameKey.create(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
@@ -269,7 +269,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
     allow(checkerRef, Permission.CREATE, adminGroupUuid());
-    createBranch(Branch.nameKey(project, checkerRef));
+    createBranch(BranchNameKey.create(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
