@@ -31,6 +31,7 @@ import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.testing.GerritBaseTests;
 import java.util.Collection;
 import org.easymock.EasyMock;
+import org.eclipse.jgit.lib.ObjectId;
 import org.junit.Test;
 
 public class ChecksSubmitRuleTest extends GerritBaseTests {
@@ -63,7 +64,8 @@ public class ChecksSubmitRuleTest extends GerritBaseTests {
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);
     expect(cd.project()).andReturn(Project.nameKey("My-Project"));
     expect(cd.getId()).andReturn(Change.id(1));
-    expect(cd.currentPatchSet()).andReturn(new PatchSet(PatchSet.id(changeId, 1)));
+    expect(cd.currentPatchSet())
+        .andReturn(new PatchSet(PatchSet.id(changeId, 1), ObjectId.zeroId()));
     replay(cd);
 
     Collection<SubmitRecord> submitRecords =
