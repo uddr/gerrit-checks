@@ -30,7 +30,6 @@ import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.GerritPersonIdent;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
@@ -221,19 +220,19 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     if (patchSetRef == null) {
       throw new IOException(String.format("patchset %s not found", checkKey.patchSet()));
     }
-    RevId revId = new RevId(patchSetRef.getObjectId().name());
+    ObjectId commitId = patchSetRef.getObjectId();
 
     // Read a fresh copy of the notes map
-    Map<RevId, NoteDbCheckMap> newNotes = getRevisionNoteByRevId(rw, curr);
-    if (!newNotes.containsKey(revId)) {
+    Map<ObjectId, NoteDbCheckMap> newNotes = getRevisionNoteByCommitId(rw, curr);
+    if (!newNotes.containsKey(commitId)) {
       if (operation == Operation.UPDATE) {
         throw new IOException(String.format("checker %s not found", checkKey.checkerUuid()));
       }
 
-      newNotes.put(revId, NoteDbCheckMap.empty());
+      newNotes.put(commitId, NoteDbCheckMap.empty());
     }
 
-    NoteDbCheckMap checksForRevision = newNotes.get(revId);
+    NoteDbCheckMap checksForRevision = newNotes.get(commitId);
     if (!checksForRevision.checks.containsKey(checkKey.checkerUuid().get())) {
       if (operation == Operation.UPDATE) {
         throw new IOException(String.format("checker %s not found", checkKey.checkerUuid()));
@@ -264,11 +263,11 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
   }
 
   private void writeNotesMap(
-      Map<RevId, NoteDbCheckMap> notesMap, CommitBuilder cb, ObjectInserter ins)
+      Map<ObjectId, NoteDbCheckMap> notesMap, CommitBuilder cb, ObjectInserter ins)
       throws IOException {
     CheckRevisionNoteMap output = CheckRevisionNoteMap.emptyMap();
-    for (Map.Entry<RevId, NoteDbCheckMap> e : notesMap.entrySet()) {
-      ObjectId id = ObjectId.fromString(e.getKey().get());
+    for (Map.Entry<ObjectId, NoteDbCheckMap> e : notesMap.entrySet()) {
+      ObjectId id = e.getKey();
       byte[] data = toData(e.getValue());
       if (data.length != 0) {
         ObjectId dataBlob = ins.insert(OBJ_BLOB, data);
@@ -278,14 +277,14 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     cb.setTreeId(output.noteMap.writeTree(ins));
   }
 
-  private Map<RevId, NoteDbCheckMap> getRevisionNoteByRevId(RevWalk rw, ObjectId curr)
+  private Map<ObjectId, NoteDbCheckMap> getRevisionNoteByCommitId(RevWalk rw, ObjectId curr)
       throws ConfigInvalidException, IOException {
     CheckRevisionNoteMap existingNotes = getRevisionNoteMap(rw, curr);
 
     // Generate a list with all current checks keyed by patch set
-    Map<RevId, NoteDbCheckMap> newNotes =
+    Map<ObjectId, NoteDbCheckMap> newNotes =
         Maps.newHashMapWithExpectedSize(existingNotes.revisionNotes.size());
-    for (Map.Entry<RevId, CheckRevisionNote> e : existingNotes.revisionNotes.entrySet()) {
+    for (Map.Entry<ObjectId, CheckRevisionNote> e : existingNotes.revisionNotes.entrySet()) {
       newNotes.put(e.getKey(), e.getValue().getOnlyEntity());
     }
     return newNotes;
@@ -335,12 +334,12 @@ public class NoteDbChecksUpdate implements ChecksUpdate {
     if (patchSetRef == null) {
       throw new IllegalStateException("patchset " + checkKey.patchSet() + " not found");
     }
-    RevId revId = new RevId(patchSetRef.getObjectId().name());
-    Map<RevId, NoteDbCheckMap> newNotes = getRevisionNoteByRevId(rw, tip);
-    if (!newNotes.containsKey(revId)) {
-      throw new IllegalStateException("revision " + revId + " not found");
+    ObjectId commitId = patchSetRef.getObjectId();
+    Map<ObjectId, NoteDbCheckMap> newNotes = getRevisionNoteByCommitId(rw, tip);
+    if (!newNotes.containsKey(commitId)) {
+      throw new IllegalStateException("revision " + commitId.name() + " not found");
     }
-    Map<String, NoteDbCheck> checks = newNotes.get(revId).checks;
+    Map<String, NoteDbCheck> checks = newNotes.get(commitId).checks;
     String checkerUuidString = checkKey.checkerUuid().get();
     if (!checks.containsKey(checkerUuidString)) {
       throw new IllegalStateException("checker " + checkerUuidString + " not found");

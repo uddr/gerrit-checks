@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.eclipse.jgit.lib.ObjectId;
 
 /** Class to read checks from NoteDb. */
 @Singleton
@@ -105,9 +106,10 @@ class NoteDbChecks implements Checks {
     CheckNotes checkNotes = checkNotesFactory.create(changeData.change());
     checkNotes.load();
 
+    ObjectId commitId = ObjectId.fromString(patchSet.getRevision().get());
     ImmutableList<Check> existingChecks =
-        checkNotes.getChecks().getOrDefault(patchSet.getRevision(), NoteDbCheckMap.empty()).checks
-            .entrySet().stream()
+        checkNotes.getChecks().getOrDefault(commitId, NoteDbCheckMap.empty()).checks.entrySet()
+            .stream()
             .map(e -> e.getValue().toCheck(repositoryName, psId, CheckerUuid.parse(e.getKey())))
             .collect(toImmutableList());
 

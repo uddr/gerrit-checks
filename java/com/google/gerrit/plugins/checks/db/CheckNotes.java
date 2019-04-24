@@ -19,7 +19,6 @@ import com.google.gerrit.common.Nullable;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.logging.TraceContext;
 import com.google.gerrit.server.logging.TraceContext.TraceTimer;
 import com.google.gerrit.server.notedb.AbstractChangeNotes;
@@ -40,7 +39,7 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
 
   private final Change change;
 
-  private ImmutableMap<RevId, NoteDbCheckMap> entities;
+  private ImmutableMap<ObjectId, NoteDbCheckMap> entities;
   private CheckRevisionNoteMap revisionNoteMap;
   private ObjectId metaId;
 
@@ -50,7 +49,7 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
     this.change = change;
   }
 
-  public ImmutableMap<RevId, NoteDbCheckMap> getChecks() {
+  public ImmutableMap<ObjectId, NoteDbCheckMap> getChecks() {
     return entities;
   }
 
@@ -83,8 +82,8 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
               args.changeNoteJson, reader, NoteMap.read(reader, tipCommit));
     }
 
-    ImmutableMap.Builder<RevId, NoteDbCheckMap> cs = ImmutableMap.builder();
-    for (Map.Entry<RevId, CheckRevisionNote> rn : revisionNoteMap.revisionNotes.entrySet()) {
+    ImmutableMap.Builder<ObjectId, NoteDbCheckMap> cs = ImmutableMap.builder();
+    for (Map.Entry<ObjectId, CheckRevisionNote> rn : revisionNoteMap.revisionNotes.entrySet()) {
       cs.put(rn.getKey(), rn.getValue().getOnlyEntity());
     }
     entities = cs.build();
