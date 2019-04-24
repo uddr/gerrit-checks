@@ -22,11 +22,13 @@ import static org.easymock.EasyMock.replay;
 import com.google.common.collect.Iterables;
 import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
+import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.project.SubmitRuleOptions;
 import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.util.time.TimeUtil;
 import java.util.Collection;
 import org.easymock.EasyMock;
 import org.eclipse.jgit.lib.ObjectId;
@@ -63,7 +65,13 @@ public class ChecksSubmitRuleTest {
     expect(cd.project()).andReturn(Project.nameKey("My-Project"));
     expect(cd.getId()).andReturn(Change.id(1));
     expect(cd.currentPatchSet())
-        .andReturn(new PatchSet(PatchSet.id(changeId, 1), ObjectId.zeroId()));
+        .andReturn(
+            PatchSet.builder()
+                .id(PatchSet.id(changeId, 1))
+                .commitId(ObjectId.zeroId())
+                .uploader(Account.id(1000))
+                .createdOn(TimeUtil.nowTs())
+                .build());
     replay(cd);
 
     Collection<SubmitRecord> submitRecords =
