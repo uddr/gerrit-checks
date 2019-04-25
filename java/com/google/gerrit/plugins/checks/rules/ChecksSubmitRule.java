@@ -67,7 +67,7 @@ public class ChecksSubmitRule implements SubmitRule {
 
     PatchSet.Id currentPathSetId;
     try {
-      currentPathSetId = changeData.currentPatchSet().getId();
+      currentPathSetId = changeData.currentPatchSet().id();
     } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);

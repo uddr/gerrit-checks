@@ -93,7 +93,7 @@ public class PostCheck
 
     CheckerUuid checkerUuid = CheckerUuid.parse(input.checkerUuid);
 
-    CheckKey key = CheckKey.create(rsrc.getProject(), rsrc.getPatchSet().getId(), checkerUuid);
+    CheckKey key = CheckKey.create(rsrc.getProject(), rsrc.getPatchSet().id(), checkerUuid);
     Optional<Check> check = checks.getCheck(key, GetCheckOptions.defaults());
     Check updatedCheck;
     if (!check.isPresent()) {
