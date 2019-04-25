@@ -16,7 +16,7 @@ polygerrit_plugin(
     ]),
     app = "gr-checks.html",
     externs = ["externs.js"],
-    plugin_name = "checks-pg",
+    plugin_name = "checks",
 )
 
 genrule2(
