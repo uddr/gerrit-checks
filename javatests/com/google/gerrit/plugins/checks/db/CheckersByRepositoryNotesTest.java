@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.truth.StringSubject;
 import com.google.gerrit.plugins.checks.CheckerRef;
@@ -328,7 +329,7 @@ public class CheckersByRepositoryNotesTest {
   private StringSubject assertThatCommitMessage() throws IOException {
     try (RevWalk rw = new RevWalk(repository)) {
       RevCommit commit = rw.parseCommit(getRefsMetaCheckersState());
-      return assertThat(commit.getFullMessage()).named("commit message");
+      return assertWithMessage("commit message").that(commit.getFullMessage());
     }
   }
 }

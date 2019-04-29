@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.plugins.checks.testing.CheckerConfigSubject.assertThat;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -583,7 +584,7 @@ public class CheckerConfigTest extends GerritBaseTests {
   private StringSubject assertThatCommitMessage(CheckerUuid checkerUuid) throws IOException {
     try (RevWalk rw = new RevWalk(repository)) {
       RevCommit commit = rw.parseCommit(getCheckerRefState(checkerUuid));
-      return assertThat(commit.getFullMessage()).named("commit message");
+      return assertWithMessage("commit message").that(commit.getFullMessage());
     }
   }
 }
