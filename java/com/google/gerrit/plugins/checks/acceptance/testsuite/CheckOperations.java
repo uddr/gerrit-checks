@@ -19,7 +19,7 @@ import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
-import com.google.gerrit.reviewdb.client.RevId;
+import org.eclipse.jgit.lib.ObjectId;
 
 /**
  * An aggregation of operations on checks for test purposes.
@@ -96,7 +96,7 @@ public interface CheckOperations {
      *
      * @return the map with the checks of the change as text in a map keyed by the revision IDs
      */
-    ImmutableMap<RevId, String> notesAsText() throws Exception;
+    ImmutableMap<ObjectId, String> notesAsText() throws Exception;
 
     /**
      * Returns this check as {@link CheckInfo}.

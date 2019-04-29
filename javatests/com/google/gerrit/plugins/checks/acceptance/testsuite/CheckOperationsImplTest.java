@@ -35,7 +35,6 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.util.time.TimeUtil;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -492,9 +491,9 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckKey checkKey =
         createCheckInServer(project, patchSetId, createArbitraryCheckInput(checkerUuid));
 
-    ImmutableMap<RevId, String> notesAsText = checkOperations.check(checkKey).notesAsText();
-    RevId expectedRevId = getRevId(patchSetId);
-    assertThat(notesAsText).containsExactly(expectedRevId, readNoteText(checkKey));
+    ImmutableMap<ObjectId, String> notesAsText = checkOperations.check(checkKey).notesAsText();
+    ObjectId expectedCommitId = getCommitId(patchSetId);
+    assertThat(notesAsText).containsExactly(expectedCommitId, readNoteText(checkKey));
   }
 
   private String readNoteText(CheckKey checkKey) throws Exception {
@@ -506,7 +505,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
       checkNotNull(checkRef);
 
       NoteMap notes = NoteMap.read(reader, rw.parseCommit(checkRef.getObjectId()));
-      ObjectId noteId = notes.get(ObjectId.fromString(getRevId(checkKey.patchSet()).get()));
+      ObjectId noteId = notes.get(getCommitId(checkKey.patchSet()));
       return new String(reader.open(noteId, OBJ_BLOB).getCachedBytes(Integer.MAX_VALUE), UTF_8);
     }
   }
@@ -560,8 +559,8 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     return CheckKey.create(repositoryName, patchSetId, CheckerUuid.parse(checkInput.checkerUuid));
   }
 
-  private RevId getRevId(PatchSet.Id patchSetId) throws Exception {
-    return new RevId(
+  private ObjectId getCommitId(PatchSet.Id patchSetId) throws Exception {
+    return ObjectId.fromString(
         gApi.changes()
             .id(patchSetId.changeId().get())
             .revision(patchSetId.get())

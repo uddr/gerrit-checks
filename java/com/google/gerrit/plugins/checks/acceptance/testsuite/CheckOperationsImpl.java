@@ -28,11 +28,11 @@ import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.ChecksUpdate;
 import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
@@ -88,7 +88,7 @@ public final class CheckOperationsImpl implements CheckOperations {
     }
 
     @Override
-    public ImmutableMap<RevId, String> notesAsText() throws Exception {
+    public ImmutableMap<ObjectId, String> notesAsText() throws Exception {
       try (Repository repo = repoManager.openRepository(key.repository());
           RevWalk rw = new RevWalk(repo)) {
         Ref checkRef =
@@ -96,12 +96,11 @@ public final class CheckOperationsImpl implements CheckOperations {
         checkNotNull(checkRef);
 
         NoteMap notes = NoteMap.read(rw.getObjectReader(), rw.parseCommit(checkRef.getObjectId()));
-        ImmutableMap.Builder<RevId, String> raw = ImmutableMap.builder();
+        ImmutableMap.Builder<ObjectId, String> raw = ImmutableMap.builder();
 
         for (Note note : notes) {
           raw.put(
-              new RevId(note.name()),
-              new String(notes.getCachedBytes(note.toObjectId(), Integer.MAX_VALUE)));
+              note.copy(), new String(notes.getCachedBytes(note.toObjectId(), Integer.MAX_VALUE)));
         }
         return raw.build();
       }

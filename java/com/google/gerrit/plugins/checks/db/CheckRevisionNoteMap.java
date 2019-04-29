@@ -15,28 +15,28 @@
 package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.notedb.ChangeNoteJson;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.notes.NoteMap;
 
 public class CheckRevisionNoteMap {
   final NoteMap noteMap;
-  final ImmutableMap<RevId, CheckRevisionNote> revisionNotes;
+  final ImmutableMap<ObjectId, CheckRevisionNote> revisionNotes;
 
   static CheckRevisionNoteMap parseChecks(
       ChangeNoteJson changeNoteJson, ObjectReader reader, NoteMap noteMap)
       throws ConfigInvalidException, IOException {
-    Map<RevId, CheckRevisionNote> result = new HashMap<>();
+    Map<ObjectId, CheckRevisionNote> result = new HashMap<>();
     for (Note note : noteMap) {
       CheckRevisionNote rn = new CheckRevisionNote(changeNoteJson, reader, note.getData());
       rn.parse();
-      result.put(new RevId(note.name()), rn);
+      result.put(note.copy(), rn);
     }
     return new CheckRevisionNoteMap(noteMap, ImmutableMap.copyOf(result));
   }
@@ -46,7 +46,7 @@ public class CheckRevisionNoteMap {
   }
 
   private CheckRevisionNoteMap(
-      NoteMap noteMap, ImmutableMap<RevId, CheckRevisionNote> revisionNotes) {
+      NoteMap noteMap, ImmutableMap<ObjectId, CheckRevisionNote> revisionNotes) {
     this.noteMap = noteMap;
     this.revisionNotes = revisionNotes;
   }

@@ -106,7 +106,7 @@ class NoteDbChecks implements Checks {
     checkNotes.load();
 
     ImmutableList<Check> existingChecks =
-        checkNotes.getChecks().getOrDefault(patchSet.getRevision(), NoteDbCheckMap.empty()).checks
+        checkNotes.getChecks().getOrDefault(patchSet.getCommitId(), NoteDbCheckMap.empty()).checks
             .entrySet().stream()
             .map(e -> e.getValue().toCheck(repositoryName, psId, CheckerUuid.parse(e.getKey())))
             .collect(toImmutableList());

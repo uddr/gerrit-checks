@@ -35,7 +35,6 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
@@ -43,6 +42,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.eclipse.jgit.lib.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
 
   private PatchSet.Id patchSetId;
-  private RevId revId;
+  private ObjectId commitId;
 
   @Before
   public void setUp() throws Exception {
@@ -59,8 +59,9 @@ public class CreateCheckIT extends AbstractCheckersTest {
     TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
 
     patchSetId = createChange().getPatchSetId();
-    revId =
-        new RevId(gApi.changes().id(patchSetId.changeId().get()).current().commit(false).commit);
+    commitId =
+        ObjectId.fromString(
+            gApi.changes().id(patchSetId.changeId().get()).current().commit(false).commit);
   }
 
   @After
@@ -91,10 +92,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     PerCheckOperations perCheckOps = checkOperations.check(key);
 
     // TODO(gerrit-team) Add a Truth subject for the notes map
-    Map<RevId, String> notes = perCheckOps.notesAsText();
+    Map<ObjectId, String> notes = perCheckOps.notesAsText();
     assertThat(notes)
         .containsExactly(
-            revId,
+            commitId,
             noteDbContent(checkerUuid.get(), expectedCreationTimestamp, expectedCreationTimestamp));
   }
 
