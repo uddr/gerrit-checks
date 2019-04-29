@@ -26,7 +26,6 @@ import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -148,7 +147,7 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
     return checkerOperations
         .newChecker()
         .repository(project)
-        .status(CheckerStatus.ENABLED)
+        .enable()
         .blockingConditions(BlockingCondition.STATE_NOT_PASSING);
   }
 

@@ -27,7 +27,6 @@ import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
@@ -158,8 +157,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
   @Test
   public void submitToCheckerRefsIsDisabled() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().status(CheckerStatus.DISABLED).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().disable().create();
     String checkerRef = checkerUuid.toRefName();
     String changeId = createChangeWithoutCommitValidation(allProjects, checkerRef);
 

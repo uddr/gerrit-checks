@@ -112,14 +112,13 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckerReturnsStatus() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().status(CheckerStatus.ENABLED).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().enable().create();
     assertThat(getCheckerInfo(checkerUuid).status).isEqualTo(CheckerStatus.ENABLED);
   }
 
   @Test
   public void getDisabledChecker() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().status(CheckerStatus.DISABLED).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().disable().create();
     assertThat(getCheckerInfo(checkerUuid).status).isEqualTo(CheckerStatus.DISABLED);
   }
 

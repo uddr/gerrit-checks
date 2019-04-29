@@ -72,7 +72,15 @@ public abstract class TestCheckerCreation {
 
     public abstract Builder repository(Project.NameKey repository);
 
-    public abstract Builder status(CheckerStatus status);
+    public Builder enable() {
+      return status(CheckerStatus.ENABLED);
+    }
+
+    public Builder disable() {
+      return status(CheckerStatus.DISABLED);
+    }
+
+    abstract Builder status(CheckerStatus status);
 
     public abstract Builder blockingConditions(
         ImmutableSortedSet<BlockingCondition> blockingConditions);

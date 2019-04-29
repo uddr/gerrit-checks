@@ -24,7 +24,6 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
@@ -51,7 +50,7 @@ public class GetCombinedCheckStateIT extends AbstractCheckersTest {
 
   @Test
   public void returnsSuccessfulWhenForSuccessfulCheckWhoseCheckerIsDisabled() throws Exception {
-    CheckerUuid checkerUuid = newRequiredChecker().status(CheckerStatus.DISABLED).create();
+    CheckerUuid checkerUuid = newRequiredChecker().disable().create();
     setCheckSuccessful(checkerUuid);
 
     CombinedCheckState combinedCheckState = checks.getCombinedCheckState(project, patchSetId);
@@ -117,7 +116,7 @@ public class GetCombinedCheckStateIT extends AbstractCheckersTest {
     return checkerOperations
         .newChecker()
         .repository(project)
-        .status(CheckerStatus.ENABLED)
+        .enable()
         .blockingConditions(BlockingCondition.STATE_NOT_PASSING);
   }
 

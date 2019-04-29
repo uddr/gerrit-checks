@@ -125,12 +125,19 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
-  public void specifiedStatusIsRespectedForCheckerCreation() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().status(CheckerStatus.DISABLED).create();
+  public void disabledStatusIsRespectedForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().disable().create();
 
     CheckerInfo checker = getCheckerFromServer(checkerUuid);
     assertThat(checker.status).isEqualTo(CheckerStatus.DISABLED);
+  }
+
+  @Test
+  public void enabledStatusIsRespectedForCheckerCreation() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().enable().create();
+
+    CheckerInfo checker = getCheckerFromServer(checkerUuid);
+    assertThat(checker.status).isEqualTo(CheckerStatus.ENABLED);
   }
 
   @Test

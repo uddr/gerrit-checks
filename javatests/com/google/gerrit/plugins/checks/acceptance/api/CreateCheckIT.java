@@ -32,7 +32,6 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.util.time.TimeUtil;
@@ -235,8 +234,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void canCreateCheckForDisabledChecker() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).status(CheckerStatus.DISABLED).create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).disable().create();
 
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.get();
