@@ -23,16 +23,13 @@ import com.google.gerrit.extensions.common.SubmitRequirementInfo;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
-import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation;
+import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation.Builder;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-/**
- * TODO(xchangcheng): add more tests after figuring out the expecting behavior of {@code
- * CombinedCheckState}.
- */
 public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   private static final SubmitRequirementInfo SUBMIT_REQUIREMENT_INFO =
       new SubmitRequirementInfo(
@@ -53,11 +50,10 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void nonApplicableCheckerNotBlockingSubmit() throws Exception {
-    CheckerUuid checkerUuid = newRequiredChecker().create();
-    postCheckResult(checkerUuid, CheckState.FAILED);
-    // Updates the checker so that it isn't applicable to the change any more.
-    checkerOperations.checker(checkerUuid).forUpdate().repository(allProjects).update();
+  public void changeWithoutAnyApplyingChecksMayBeSubmitted() throws Exception {
+    // Set up a checker which applies to a different repository than the considered change and don't
+    // post any check result to the change. (More realistic than having no checkers at all.)
+    checkerOperations.newChecker().repository(allProjects).required().create();
 
     ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
 
@@ -66,45 +62,40 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void disabledCheckerDoesNotBlockingSubmit() throws Exception {
+  public void notStartedRequiredCheckBlocksSubmit() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().create();
-    postCheckResult(checkerUuid, CheckState.FAILED);
-    checkerOperations.checker(checkerUuid).forUpdate().disable().update();
+    postCheckResult(checkerUuid, CheckState.NOT_STARTED);
 
     ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
 
-    assertThat(changeInfo.submittable).isTrue();
-    assertThat(changeInfo.requirements).isEmpty();
+    assertThat(changeInfo.submittable).isFalse();
+    assertThat(changeInfo.requirements).containsExactly(SUBMIT_REQUIREMENT_INFO);
   }
 
-  // @Test
-  // public void enabledCheckerNotBlockingSubmitIfNotRequired() throws Exception {
-  //   CheckerUuid checkerUuid = newRequiredChecker().create();
-  //   postCheckResult(checkerUuid, CheckState.FAILED);
-  //   checkerOperations
-  //       .checker(checkerUuid)
-  //       .forUpdate()
-  //       .blockingConditions(ImmutableSortedSet.of())
-  //       .update();
-  //
-  //   ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
-  //
-  //   assertThat(changeInfo.submittable).isTrue();
-  // }
-
   @Test
-  public void enabledCheckerNotBlockingSubmitIfNotInBlockingState() throws Exception {
+  public void scheduledRequiredCheckBlocksSubmit() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().create();
-    postCheckResult(checkerUuid, CheckState.SUCCESSFUL);
+    postCheckResult(checkerUuid, CheckState.SCHEDULED);
 
     ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
 
-    assertThat(changeInfo.submittable).isTrue();
-    assertThat(changeInfo.requirements).isEmpty();
+    assertThat(changeInfo.submittable).isFalse();
+    assertThat(changeInfo.requirements).containsExactly(SUBMIT_REQUIREMENT_INFO);
   }
 
   @Test
-  public void enabledCheckerBlockingSubmitIfInBlockingState() throws Exception {
+  public void runningRequiredCheckBlocksSubmit() throws Exception {
+    CheckerUuid checkerUuid = newRequiredChecker().create();
+    postCheckResult(checkerUuid, CheckState.RUNNING);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isFalse();
+    assertThat(changeInfo.requirements).containsExactly(SUBMIT_REQUIREMENT_INFO);
+  }
+
+  @Test
+  public void failedRequiredCheckBlocksSubmit() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().create();
     postCheckResult(checkerUuid, CheckState.FAILED);
 
@@ -115,12 +106,149 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void multipleCheckerBlockingSubmit() throws Exception {
+  public void successfulRequiredCheckDoesNotBlockSubmit() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().create();
-    // Two enabled and required checkers. They are blocking if any of them isn't passing.
-    CheckerUuid testCheckerUuid2 = newRequiredChecker().create();
     postCheckResult(checkerUuid, CheckState.SUCCESSFUL);
-    postCheckResult(testCheckerUuid2, CheckState.FAILED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  public void notRelevantRequiredCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newRequiredChecker().create();
+    postCheckResult(checkerUuid, CheckState.NOT_RELEVANT);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
+  public void notStartedCheckOfNonApplicableCheckerDoesNotBlockSubmit() throws Exception {
+    // Set up a checker which applies to a different repository than the considered change but still
+    // post a check result to the change. -> Check is considered as optional.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(allProjects).required().create();
+    postCheckResult(checkerUuid, CheckState.NOT_STARTED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
+  public void runningCheckOfNonApplicableCheckerDoesNotBlockSubmit() throws Exception {
+    // Set up a checker which applies to a different repository than the considered change but still
+    // post a check result to the change. -> Check is considered as optional.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(allProjects).required().create();
+    postCheckResult(checkerUuid, CheckState.RUNNING);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  public void failedCheckOfNonApplicableCheckerDoesNotBlockSubmit() throws Exception {
+    // Set up a checker which applies to a different repository than the considered change but still
+    // post a check result to the change. -> Check is considered as optional.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(allProjects).required().create();
+    postCheckResult(checkerUuid, CheckState.FAILED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
+  public void notStartedDisabledRequiredCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newRequiredChecker().disable().create();
+    postCheckResult(checkerUuid, CheckState.NOT_STARTED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
+  public void runningDisabledRequiredCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newRequiredChecker().disable().create();
+    postCheckResult(checkerUuid, CheckState.RUNNING);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  public void failedDisabledRequiredCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newRequiredChecker().disable().create();
+    postCheckResult(checkerUuid, CheckState.FAILED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
+  public void notStartedOptionalCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newOptionalChecker().create();
+    postCheckResult(checkerUuid, CheckState.NOT_STARTED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
+  public void runningOptionalCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newOptionalChecker().create();
+    postCheckResult(checkerUuid, CheckState.RUNNING);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  public void failedOptionalCheckDoesNotBlockSubmit() throws Exception {
+    CheckerUuid checkerUuid = newOptionalChecker().create();
+    postCheckResult(checkerUuid, CheckState.FAILED);
+
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  @Test
+  public void oneFailedRequiredCheckAmongSuccessfulOnesBlocksSubmit() throws Exception {
+    CheckerUuid requiredCheckerUuid1 = newRequiredChecker().create();
+    CheckerUuid requiredCheckerUuid2 = newRequiredChecker().create();
+    CheckerUuid optionalCheckerUuid = newOptionalChecker().create();
+    postCheckResult(requiredCheckerUuid1, CheckState.SUCCESSFUL);
+    postCheckResult(requiredCheckerUuid2, CheckState.FAILED);
+    postCheckResult(optionalCheckerUuid, CheckState.SUCCESSFUL);
 
     ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
 
@@ -128,22 +256,27 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
     assertThat(changeInfo.requirements).containsExactly(SUBMIT_REQUIREMENT_INFO);
   }
 
-  // @Test
-  // public void multipleCheckerNotBlockingSubmit() throws Exception {
-  //   CheckerUuid checkerUuid = newRequiredChecker().create();
-  //   // Two enabled checkers. The one failed doesn't block because it's not required.
-  //   CheckerUuid testCheckerUuidNotRequired =
-  //       newRequiredChecker().blockingConditions(ImmutableSortedSet.of()).create();
-  //   postCheckResult(testCheckerUuidNotRequired, CheckState.FAILED);
-  //   postCheckResult(checkerUuid, CheckState.SUCCESSFUL);
-  //
-  //   ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
-  //
-  //   assertThat(changeInfo.submittable).isTrue();
-  // }
+  @Test
+  public void oneFailedOptionalCheckAmongSuccessfulOnesDoesNotBlockSubmit() throws Exception {
+    CheckerUuid requiredCheckerUuid1 = newRequiredChecker().create();
+    CheckerUuid requiredCheckerUuid2 = newRequiredChecker().create();
+    CheckerUuid optionalCheckerUuid = newOptionalChecker().create();
+    postCheckResult(requiredCheckerUuid1, CheckState.SUCCESSFUL);
+    postCheckResult(requiredCheckerUuid2, CheckState.SUCCESSFUL);
+    postCheckResult(optionalCheckerUuid, CheckState.FAILED);
 
-  private TestCheckerCreation.Builder newRequiredChecker() {
-    return checkerOperations.newChecker().repository(project).enable().required();
+    ChangeInfo changeInfo = gApi.changes().id(testChangeId).get();
+
+    assertThat(changeInfo.submittable).isTrue();
+    assertThat(changeInfo.requirements).isEmpty();
+  }
+
+  private Builder newRequiredChecker() {
+    return checkerOperations.newChecker().repository(project).required();
+  }
+
+  private Builder newOptionalChecker() {
+    return checkerOperations.newChecker().repository(project).optional();
   }
 
   private void postCheckResult(CheckerUuid checkerUuid, CheckState checkState) {
