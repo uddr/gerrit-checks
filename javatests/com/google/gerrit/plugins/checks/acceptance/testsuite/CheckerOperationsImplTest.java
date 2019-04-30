@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -182,20 +183,16 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
-  public void specifiedBlockingConditionsAreRespectedForCheckerCreation() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations
-            .newChecker()
-            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
-            .create();
+  public void requiredCheckerCanBeCreated() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().required().create();
 
     CheckerInfo checker = getCheckerFromServer(checkerUuid);
-    assertThat(checker.blocking).containsExactly(BlockingCondition.STATE_NOT_PASSING);
+    assertThat(checker.blocking).isNotEmpty();
   }
 
   @Test
-  public void requestingNoBlockingConditionsIsPossibleForCheckerCreation() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().clearBlockingConditions().create();
+  public void optionalCheckerCanBeCreated() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().optional().create();
 
     CheckerInfo checker = getCheckerFromServer(checkerUuid);
     assertThat(checker.blocking).isEmpty();
@@ -350,17 +347,35 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
-  public void blockConditionsOfExistingCheckerCanBeRetrieved() throws Exception {
+  public void blockingConditionsOfExistingCheckerCanBeRetrieved() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations
             .newChecker()
-            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+            .blockingConditions(ImmutableSortedSet.of(BlockingCondition.STATE_NOT_PASSING))
             .create();
 
     ImmutableSortedSet<BlockingCondition> blockingConditions =
         checkerOperations.checker(checkerUuid).get().getBlockingConditions();
 
     assertThat(blockingConditions).containsExactly(BlockingCondition.STATE_NOT_PASSING);
+  }
+
+  @Test
+  public void requiredStateOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().required().create();
+
+    boolean required = checkerOperations.checker(checkerUuid).get().isRequired();
+
+    assertWithMessage("checker.required()").that(required).isTrue();
+  }
+
+  @Test
+  public void optionalStateOfExistingCheckerCanBeRetrieved() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().optional().create();
+
+    boolean required = checkerOperations.checker(checkerUuid).get().isRequired();
+
+    assertWithMessage("checker.required()").that(required).isFalse();
   }
 
   @Test
@@ -464,19 +479,24 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
-  public void blockingConditionsCanBeUpdated() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking).isEmpty();
+  public void requiredCheckerCanBeMadeOptional() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().required().create();
 
-    checkerOperations
-        .checker(checkerUuid)
-        .forUpdate()
-        .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
-        .update();
-    assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking)
-        .containsExactly(BlockingCondition.STATE_NOT_PASSING);
-    checkerOperations.checker(checkerUuid).forUpdate().clearBlockingConditions().update();
-    assertThat(checkerOperations.checker(checkerUuid).asInfo().blocking).isEmpty();
+    checkerOperations.checker(checkerUuid).forUpdate().optional().update();
+
+    assertWithMessage("checker.required()")
+        .that(checkerOperations.checker(checkerUuid).get().isRequired())
+        .isFalse();
+  }
+
+  @Test
+  public void optionalCheckerCanBeMadeRequired() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().optional().create();
+
+    checkerOperations.checker(checkerUuid).forUpdate().required().update();
+    assertWithMessage("checker.required()")
+        .that(checkerOperations.checker(checkerUuid).get().isRequired())
+        .isTrue();
   }
 
   @Test

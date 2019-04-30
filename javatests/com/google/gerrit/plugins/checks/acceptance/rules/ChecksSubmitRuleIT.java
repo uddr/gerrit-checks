@@ -24,7 +24,6 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation;
-import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
@@ -144,11 +143,7 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   // }
 
   private TestCheckerCreation.Builder newRequiredChecker() {
-    return checkerOperations
-        .newChecker()
-        .repository(project)
-        .enable()
-        .blockingConditions(BlockingCondition.STATE_NOT_PASSING);
+    return checkerOperations.newChecker().repository(project).enable().required();
   }
 
   private void postCheckResult(CheckerUuid checkerUuid, CheckState checkState) {

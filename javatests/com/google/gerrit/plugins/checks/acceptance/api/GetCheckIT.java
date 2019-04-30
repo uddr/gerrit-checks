@@ -35,7 +35,6 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.ListChecksOption;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
-import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
@@ -265,18 +264,14 @@ public class GetCheckIT extends AbstractCheckersTest {
   @Test
   public void getCheckReturnsBlockingConditionsOnlyForCheckerOption() throws Exception {
     CheckerUuid checkerUuid =
-        checkerOperations
-            .newChecker()
-            .repository(project)
-            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
-            .create();
+        checkerOperations.newChecker().repository(project).required().create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
 
     assertThat(getCheckInfo(patchSetId, checkerUuid).blocking).isNull();
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).blocking)
-        .containsExactly(BlockingCondition.STATE_NOT_PASSING);
+        .isNotEmpty();
   }
 
   @Test

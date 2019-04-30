@@ -127,16 +127,15 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid =
         checkerOperations
             .newChecker()
-            .blockingConditions(BlockingCondition.STATE_NOT_PASSING)
+            .blockingConditions(ImmutableSortedSet.of(BlockingCondition.STATE_NOT_PASSING))
             .create();
     assertThat(getCheckerInfo(checkerUuid).blocking)
         .containsExactly(BlockingCondition.STATE_NOT_PASSING);
   }
 
   @Test
-  public void getCheckerWithoutBlockingCondition() throws Exception {
-    CheckerUuid checkerUuid =
-        checkerOperations.newChecker().blockingConditions(ImmutableSortedSet.of()).create();
+  public void getOptionalChecker() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().optional().create();
     assertThat(getCheckerInfo(checkerUuid).blocking).isEmpty();
   }
 
