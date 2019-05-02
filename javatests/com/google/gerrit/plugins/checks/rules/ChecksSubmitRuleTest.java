@@ -21,7 +21,6 @@ import static org.easymock.EasyMock.replay;
 
 import com.google.common.collect.Iterables;
 import com.google.gerrit.common.data.SubmitRecord;
-import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
@@ -43,7 +42,7 @@ public class ChecksSubmitRuleTest extends GerritBaseTests {
     ChangeData cd = EasyMock.createStrictMock(ChangeData.class);
     expect(cd.project()).andReturn(Project.nameKey("My-Project"));
     expect(cd.getId()).andReturn(Change.id(1));
-    expect(cd.currentPatchSet()).andThrow(new StorageException("Fail for test"));
+    expect(cd.currentPatchSet()).andThrow(new IllegalStateException("Fail for test"));
     replay(cd);
 
     Collection<SubmitRecord> submitRecords =
@@ -54,7 +53,8 @@ public class ChecksSubmitRuleTest extends GerritBaseTests {
   @Test
   public void getCombinedCheckStateFails() throws Exception {
     CombinedCheckStateCache cache = EasyMock.createStrictMock(CombinedCheckStateCache.class);
-    expect(cache.reload(anyObject(), anyObject())).andThrow(new StorageException("Fail for test"));
+    expect(cache.reload(anyObject(), anyObject()))
+        .andThrow(new IllegalStateException("Fail for test"));
     replay(cache);
 
     ChecksSubmitRule checksSubmitRule = new ChecksSubmitRule(cache);

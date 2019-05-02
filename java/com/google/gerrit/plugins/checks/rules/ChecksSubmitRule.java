@@ -20,7 +20,6 @@ import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.common.data.SubmitRecord.Status;
 import com.google.gerrit.common.data.SubmitRequirement;
-import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
@@ -69,7 +68,7 @@ public class ChecksSubmitRule implements SubmitRule {
     PatchSet.Id currentPathSetId;
     try {
       currentPathSetId = changeData.currentPatchSet().getId();
-    } catch (StorageException e) {
+    } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
@@ -80,7 +79,7 @@ public class ChecksSubmitRule implements SubmitRule {
     try {
       // Reload value in cache to fix up inconsistencies between cache and actual state.
       combinedCheckState = combinedCheckStateCache.reload(project, currentPathSetId);
-    } catch (StorageException e) {
+    } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
