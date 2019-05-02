@@ -21,4 +21,5 @@ gerrit_plugin(
     resource_jars = ["//plugins/checks/gr-checks:gr-checks-static"],
     resource_strip_prefix = "plugins/checks/resources",
     resources = glob(["resources/**/*"]),
+    deps = ["//plugins/checks/proto:cache_java_proto"],
 )

@@ -20,10 +20,9 @@ import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.common.data.SubmitRecord.Status;
 import com.google.gerrit.common.data.SubmitRequirement;
-import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.FactoryModule;
-import com.google.gerrit.plugins.checks.Checks;
+import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
@@ -33,7 +32,6 @@ import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.SubmitRule;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import java.io.IOException;
 import java.util.Collection;
 
 @Singleton
@@ -55,11 +53,11 @@ public class ChecksSubmitRule implements SubmitRule {
     }
   }
 
-  private final Checks checks;
+  private final CombinedCheckStateCache combinedCheckStateCache;
 
   @Inject
-  public ChecksSubmitRule(Checks checks) {
-    this.checks = checks;
+  public ChecksSubmitRule(CombinedCheckStateCache combinedCheckStateCache) {
+    this.combinedCheckStateCache = combinedCheckStateCache;
   }
 
   @Override
@@ -70,7 +68,7 @@ public class ChecksSubmitRule implements SubmitRule {
     PatchSet.Id currentPathSetId;
     try {
       currentPathSetId = changeData.currentPatchSet().getId();
-    } catch (StorageException e) {
+    } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
@@ -79,8 +77,9 @@ public class ChecksSubmitRule implements SubmitRule {
 
     CombinedCheckState combinedCheckState;
     try {
-      combinedCheckState = checks.getCombinedCheckState(project, currentPathSetId);
-    } catch (IOException | StorageException e) {
+      // Reload value in cache to fix up inconsistencies between cache and actual state.
+      combinedCheckState = combinedCheckStateCache.reload(project, currentPathSetId);
+    } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);

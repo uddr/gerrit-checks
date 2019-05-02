@@ -65,6 +65,10 @@ public interface Checks {
   /**
    * Returns the combined check state of a given patch set.
    *
+   * <p>Most callers should prefer {@link
+   * com.google.gerrit.plugins.checks.CombinedCheckStateCache#reload} to automatically fix up the
+   * cache in case primary storage differs from the cached value.
+   *
    * @param projectName the name of the project.
    * @param patchSetId the ID of the patch set
    * @return the {@link CombinedCheckState} of the current patch set.
