@@ -32,7 +32,6 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.util.time.TimeUtil;
-import com.google.gerrit.testing.GerritBaseTests;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.TimeZone;
@@ -48,7 +47,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CheckerConfigTest extends GerritBaseTests {
+public class CheckerConfigTest {
   private Project.NameKey projectName;
   private Repository repository;
   private TestRepository<?> testRepository;

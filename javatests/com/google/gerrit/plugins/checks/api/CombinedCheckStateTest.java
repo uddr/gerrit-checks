@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.google.gerrit.testing.GerritBaseTests;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
 
-public class CombinedCheckStateTest extends GerritBaseTests {
+public class CombinedCheckStateTest {
   private static final ImmutableSet<CheckState> ALL_IN_PROGRESS =
       Arrays.stream(CheckState.values()).filter(CheckState::isInProgress).collect(toImmutableSet());
 

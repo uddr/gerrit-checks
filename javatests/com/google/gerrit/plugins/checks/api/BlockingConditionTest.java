@@ -17,10 +17,9 @@ package com.google.gerrit.plugins.checks.api;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gerrit.testing.GerritBaseTests;
 import org.junit.Test;
 
-public class BlockingConditionTest extends GerritBaseTests {
+public class BlockingConditionTest {
   @Test
   public void isRequired() {
     assertThat(BlockingCondition.isRequired(ImmutableSet.of())).isFalse();

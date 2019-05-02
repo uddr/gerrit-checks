@@ -18,10 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 
 import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.testing.GerritBaseTests;
 import org.junit.Test;
 
-public class UrlValidatorTest extends GerritBaseTests {
+public class UrlValidatorTest {
   @Test
   public void validUrls() throws Exception {
     assertThat(UrlValidator.clean("https://foo.com/")).isEqualTo("https://foo.com/");

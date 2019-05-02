@@ -19,13 +19,12 @@ import static com.google.common.truth.Truth.assert_;
 
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gerrit.testing.GerritBaseTests;
 import com.google.gerrit.testing.InMemoryModule;
 import com.google.inject.Guice;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.junit.Test;
 
-public class CheckerQueryTest extends GerritBaseTests {
+public class CheckerQueryTest {
   @Test
   public void emptyQuery() throws Exception {
     assertValidQuery("");

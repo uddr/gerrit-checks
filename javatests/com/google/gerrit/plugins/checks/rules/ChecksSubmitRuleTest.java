@@ -27,13 +27,12 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.project.SubmitRuleOptions;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.testing.GerritBaseTests;
 import java.util.Collection;
 import org.easymock.EasyMock;
 import org.eclipse.jgit.lib.ObjectId;
 import org.junit.Test;
 
-public class ChecksSubmitRuleTest extends GerritBaseTests {
+public class ChecksSubmitRuleTest {
   @Test
   public void loadingCurrentPatchSetFails() throws Exception {
     ChecksSubmitRule checksSubmitRule =

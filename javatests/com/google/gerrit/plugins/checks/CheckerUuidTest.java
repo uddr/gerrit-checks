@@ -24,12 +24,11 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.common.Nullable;
-import com.google.gerrit.testing.GerritBaseTests;
 import java.util.stream.Stream;
 import org.eclipse.jgit.lib.Repository;
 import org.junit.Test;
 
-public class CheckerUuidTest extends GerritBaseTests {
+public class CheckerUuidTest {
   private static final ImmutableSet<String> VALID_CHECKER_UUIDS =
       ImmutableSet.of(
           "test:my-checker-123",
