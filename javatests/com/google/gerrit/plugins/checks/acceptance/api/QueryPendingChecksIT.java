@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.plugins.checks.testing.PendingChecksInfoSubject.assertThat;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
-import static org.hamcrest.CoreMatchers.instanceOf;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.Iterables;
 import com.google.gerrit.acceptance.RestResponse;
@@ -155,7 +155,8 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     assertThat(
             queryPendingChecks(
                 String.format(
-                    "checker:\"%s\" AND (NOT state:FAILED AND NOT (state:RUNNING OR state:SUCCESSFUL))",
+                    "checker:\"%s\" AND (NOT state:FAILED AND NOT (state:RUNNING OR"
+                        + " state:SUCCESSFUL))",
                     checkerUuid)))
         .hasSize(1);
   }
@@ -515,10 +516,10 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot query pending checks");
-    exception.expectCause(instanceOf(ConfigInvalidException.class));
-    queryPendingChecks(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> queryPendingChecks(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot query pending checks");
+    assertThat(thrown).hasCauseThat().isInstanceOf(ConfigInvalidException.class);
   }
 
   @Test
@@ -530,10 +531,10 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
             .query(CheckerTestData.INVALID_QUERY)
             .create();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot query pending checks");
-    exception.expectCause(instanceOf(ConfigInvalidException.class));
-    queryPendingChecks(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> queryPendingChecks(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot query pending checks");
+    assertThat(thrown).hasCauseThat().isInstanceOf(ConfigInvalidException.class);
   }
 
   @Test

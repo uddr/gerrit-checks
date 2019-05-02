@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
@@ -100,9 +101,11 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void cannotCreateCheckWithoutCheckerUuid() throws Exception {
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("checker UUID is required");
-    checksApiFactory.revision(patchSetId).create(new CheckInput());
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> checksApiFactory.revision(patchSetId).create(new CheckInput()));
+    assertThat(thrown).hasMessageThat().contains("checker UUID is required");
   }
 
   @Test
@@ -165,9 +168,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = checkerUuid.get();
     input.url = CheckTestData.INVALID_URL;
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("only http/https URLs supported: " + input.url);
-    checksApiFactory.revision(patchSetId).create(input);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> checksApiFactory.revision(patchSetId).create(input));
+    assertThat(thrown).hasMessageThat().contains("only http/https URLs supported: " + input.url);
   }
 
   @Test
@@ -202,9 +206,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = CheckerTestData.INVALID_UUID;
     input.state = CheckState.RUNNING;
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("invalid checker UUID: " + input.checkerUuid);
-    checksApiFactory.revision(patchSetId).create(input);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> checksApiFactory.revision(patchSetId).create(input));
+    assertThat(thrown).hasMessageThat().contains("invalid checker UUID: " + input.checkerUuid);
   }
 
   @Test
@@ -213,9 +218,11 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = "foo:non-existing";
     input.state = CheckState.RUNNING;
 
-    exception.expect(UnprocessableEntityException.class);
-    exception.expectMessage("checker " + input.checkerUuid + " not found");
-    checksApiFactory.revision(patchSetId).create(input);
+    UnprocessableEntityException thrown =
+        assertThrows(
+            UnprocessableEntityException.class,
+            () -> checksApiFactory.revision(patchSetId).create(input));
+    assertThat(thrown).hasMessageThat().contains("checker " + input.checkerUuid + " not found");
   }
 
   @Test
@@ -227,9 +234,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot create check");
-    checksApiFactory.revision(patchSetId).create(input);
+    RestApiException thrown =
+        assertThrows(
+            RestApiException.class, () -> checksApiFactory.revision(patchSetId).create(input));
+    assertThat(thrown).hasMessageThat().contains("Cannot create check");
   }
 
   @Test
@@ -324,9 +332,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("not permitted");
-    checksApiFactory.revision(patchSetId).create(input);
+    AuthException thrown =
+        assertThrows(
+            AuthException.class, () -> checksApiFactory.revision(patchSetId).create(input));
+    assertThat(thrown).hasMessageThat().contains("not permitted");
   }
 
   @Test
@@ -339,9 +348,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
     input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("Authentication required");
-    checksApiFactory.revision(patchSetId).create(input);
+    AuthException thrown =
+        assertThrows(
+            AuthException.class, () -> checksApiFactory.revision(patchSetId).create(input));
+    assertThat(thrown).hasMessageThat().contains("Authentication required");
   }
 
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave

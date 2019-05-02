@@ -17,10 +17,12 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -89,9 +91,10 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
         CheckKey.create(
             Project.nameKey("non-existing"), createChange().getPatchSetId(), checkerUuid);
 
-    exception.expect(IllegalStateException.class);
-    exception.expectCause(instanceOf(RepositoryNotFoundException.class));
-    checkOperations.newCheck(checkKey).upsert();
+    IllegalStateException thrown =
+        assertThrows(
+            IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
+    assertThat(thrown.getCause(), instanceOf(RepositoryNotFoundException.class));
   }
 
   @Test
@@ -99,10 +102,11 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     CheckKey checkKey = CheckKey.create(project, PatchSet.id(Change.id(1), 1), checkerUuid);
 
-    exception.expect(IllegalStateException.class);
-    exception.expectCause(instanceOf(IOException.class));
-    exception.expectMessage("patchset 1,1 not found");
-    checkOperations.newCheck(checkKey).upsert();
+    IllegalStateException thrown =
+        assertThrows(
+            IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
+    assertThat(thrown.getCause(), instanceOf(IOException.class));
+    assertThat(thrown).hasMessageThat().contains("patchset 1,1 not found");
   }
 
   @Test
@@ -110,10 +114,11 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckKey checkKey =
         CheckKey.create(project, createChange().getPatchSetId(), CheckerUuid.parse("foo:bar"));
 
-    exception.expect(IllegalStateException.class);
-    exception.expectCause(instanceOf(IOException.class));
-    exception.expectMessage("checker foo:bar not found");
-    checkOperations.newCheck(checkKey).upsert();
+    IllegalStateException thrown =
+        assertThrows(
+            IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
+    assertThat(thrown.getCause(), instanceOf(IOException.class));
+    assertThat(thrown).hasMessageThat().contains("checker foo:bar not found");
   }
 
   @Test
@@ -228,9 +233,8 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(allProjects).create();
     CheckKey notExistingCheckKey =
         CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-
-    exception.expect(IllegalStateException.class);
-    checkOperations.check(notExistingCheckKey).get();
+    assertThrows(
+        IllegalStateException.class, () -> checkOperations.check(notExistingCheckKey).get());
   }
 
   @Test
@@ -239,8 +243,8 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     CheckKey notExistingCheckKey =
         CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
 
-    exception.expect(IllegalStateException.class);
-    checkOperations.check(notExistingCheckKey).get();
+    assertThrows(
+        IllegalStateException.class, () -> checkOperations.check(notExistingCheckKey).get());
   }
 
   @Test

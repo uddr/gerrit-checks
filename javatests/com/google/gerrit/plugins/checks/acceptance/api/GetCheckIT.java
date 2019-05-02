@@ -18,6 +18,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.collect.ImmutableSortedSet;
@@ -459,9 +460,13 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckForInvalidCheckerUuid() throws Exception {
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("invalid checker UUID: " + CheckerTestData.INVALID_UUID);
-    checksApiFactory.revision(patchSetId).id(CheckerTestData.INVALID_UUID);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> checksApiFactory.revision(patchSetId).id(CheckerTestData.INVALID_UUID));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("invalid checker UUID: " + CheckerTestData.INVALID_UUID);
   }
 
   @Test

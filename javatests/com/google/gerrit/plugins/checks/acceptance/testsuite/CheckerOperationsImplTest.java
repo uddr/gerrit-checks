@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
@@ -218,16 +219,17 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
   @Test
   public void retrievingCheckerForInvalidUuidFails() throws Exception {
-    exception.expect(IllegalArgumentException.class);
-    checkerOperations.checker(CheckerTestData.INVALID_UUID).get();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> checkerOperations.checker(CheckerTestData.INVALID_UUID).get());
   }
 
   @Test
   public void retrievingNotExistingCheckerFails() throws Exception {
     String notExistingCheckerUuid = "foo:bar";
 
-    exception.expect(IllegalStateException.class);
-    checkerOperations.checker(notExistingCheckerUuid).get();
+    assertThrows(
+        IllegalStateException.class, () -> checkerOperations.checker(notExistingCheckerUuid).get());
   }
 
   @Test

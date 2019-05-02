@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.acceptance.GitUtil.deleteRef;
 import static com.google.gerrit.acceptance.GitUtil.fetch;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
@@ -174,9 +175,10 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.SUBMIT);
 
-    exception.expect(ResourceConflictException.class);
-    exception.expectMessage("submit to checker ref not allowed");
-    gApi.changes().id(changeId).current().submit();
+    ResourceConflictException thrown =
+        assertThrows(
+            ResourceConflictException.class, () -> gApi.changes().id(changeId).current().submit());
+    assertThat(thrown).hasMessageThat().contains("submit to checker ref not allowed");
   }
 
   @Test
@@ -257,9 +259,9 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     input.baseCommit = head.name();
     input.subject = "A change.";
 
-    exception.expect(ResourceConflictException.class);
-    exception.expectMessage("creating change for checker ref not allowed");
-    gApi.changes().create(input);
+    ResourceConflictException thrown =
+        assertThrows(ResourceConflictException.class, () -> gApi.changes().create(input));
+    assertThat(thrown).hasMessageThat().contains("creating change for checker ref not allowed");
   }
 
   @Test

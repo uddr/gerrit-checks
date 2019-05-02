@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
@@ -194,9 +195,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
   public void getNonExistingCheckerFails() throws Exception {
     CheckerUuid checkerUuid = CheckerUuid.parse("test:non-existing");
 
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    ResourceNotFoundException thrown =
+        assertThrows(ResourceNotFoundException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Not found: " + checkerUuid);
   }
 
   @Test
@@ -204,9 +205,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -214,9 +215,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations.checker(checkerUuid).forInvalidation().invalidUuid().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -228,9 +229,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
         .invalidBlockingCondition()
         .invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -238,9 +239,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations.checker(checkerUuid).forInvalidation().invalidStatus().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -248,9 +249,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations.checker(checkerUuid).forInvalidation().unsetUuid().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -258,9 +259,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations.checker(checkerUuid).forInvalidation().unsetRepository().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -268,9 +269,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     checkerOperations.checker(checkerUuid).forInvalidation().unsetStatus().invalidate();
 
-    exception.expect(RestApiException.class);
-    exception.expectMessage("Cannot retrieve checker " + checkerUuid);
-    getCheckerInfo(checkerUuid);
+    RestApiException thrown =
+        assertThrows(RestApiException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Cannot retrieve checker " + checkerUuid);
   }
 
   @Test
@@ -278,9 +279,9 @@ public class GetCheckerIT extends AbstractCheckersTest {
     String name = "my-checker";
     checkerOperations.newChecker().name(name).create();
 
-    exception.expect(ResourceNotFoundException.class);
-    exception.expectMessage("Not found: " + name);
-    checkersApi.id(name);
+    ResourceNotFoundException thrown =
+        assertThrows(ResourceNotFoundException.class, () -> checkersApi.id(name));
+    assertThat(thrown).hasMessageThat().contains("Not found: " + name);
   }
 
   @Test
@@ -290,9 +291,10 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
     requestScopeOperations.setApiUser(user.id());
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("administrateCheckers for plugin checks not permitted");
-    getCheckerInfo(checkerUuid);
+    AuthException thrown = assertThrows(AuthException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("administrateCheckers for plugin checks not permitted");
   }
 
   @Test
@@ -302,9 +304,8 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
     requestScopeOperations.setApiUserAnonymous();
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("Authentication required");
-    getCheckerInfo(checkerUuid);
+    AuthException thrown = assertThrows(AuthException.class, () -> getCheckerInfo(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Authentication required");
   }
 
   @Test

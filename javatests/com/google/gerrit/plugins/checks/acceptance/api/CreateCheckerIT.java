@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.git.testing.CommitSubject.assertCommit;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
@@ -203,9 +204,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
 
     CheckerInput input = new CheckerInput();
     input.url = CheckerTestData.INVALID_URL;
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("only http/https URLs supported: " + input.url);
-    checkersApi.id(checkerUuid).update(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown).hasMessageThat().contains("only http/https URLs supported: " + input.url);
   }
 
   @Test
@@ -231,9 +232,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.repository = allProjects.get();
     checkersApi.create(input).get();
 
-    exception.expect(ResourceConflictException.class);
-    exception.expectMessage("Checker test:my-checker already exists");
-    checkersApi.create(input);
+    ResourceConflictException thrown =
+        assertThrows(ResourceConflictException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("Checker test:my-checker already exists");
   }
 
   @Test
@@ -241,9 +242,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.repository = allProjects.get();
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("uuid is required");
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("uuid is required");
   }
 
   @Test
@@ -252,9 +253,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = "";
     input.repository = allProjects.get();
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("uuid is required");
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("uuid is required");
   }
 
   @Test
@@ -263,9 +264,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = " ";
     input.repository = allProjects.get();
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("invalid uuid:  ");
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("invalid uuid:  ");
   }
 
   @Test
@@ -274,9 +275,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = CheckerTestData.INVALID_UUID;
     input.repository = allProjects.get();
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("invalid uuid: " + input.uuid);
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("invalid uuid: " + input.uuid);
   }
 
   @Test
@@ -284,9 +285,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("repository is required");
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("repository is required");
   }
 
   @Test
@@ -295,9 +296,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = "test:my-checker";
     input.repository = "";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("repository is required");
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("repository is required");
   }
 
   @Test
@@ -306,9 +307,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = "test:my-checker";
     input.repository = " ";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("repository is required");
-    checkersApi.create(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("repository is required");
   }
 
   @Test
@@ -317,9 +318,9 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = "test:my-checker";
     input.repository = "non-existing";
 
-    exception.expect(UnprocessableEntityException.class);
-    exception.expectMessage("repository non-existing not found");
-    checkersApi.create(input);
+    UnprocessableEntityException thrown =
+        assertThrows(UnprocessableEntityException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("repository non-existing not found");
   }
 
   @Test
@@ -460,9 +461,10 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = "test:my-checker";
     input.repository = allProjects.get();
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("administrateCheckers for plugin checks not permitted");
-    checkersApi.create(input);
+    AuthException thrown = assertThrows(AuthException.class, () -> checkersApi.create(input));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("administrateCheckers for plugin checks not permitted");
   }
 
   @Test
@@ -473,8 +475,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     input.uuid = "test:my-checker";
     input.repository = allProjects.get();
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("Authentication required");
-    checkersApi.create(input);
+    AuthException thrown = assertThrows(AuthException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("Authentication required");
   }
 }

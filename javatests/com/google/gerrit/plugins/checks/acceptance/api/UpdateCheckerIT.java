@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.git.testing.CommitSubject.assertCommit;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.SkipProjectClone;
@@ -114,9 +115,9 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.uuid = "some:id";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("uuid cannot be updated");
-    checkersApi.id(checkerUuid).update(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown).hasMessageThat().contains("uuid cannot be updated");
   }
 
   @Test
@@ -154,9 +155,10 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput checkerInput = new CheckerInput();
     checkerInput.name = "";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("name cannot be unset");
-    checkersApi.id(checkerUuid).update(checkerInput);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> checkersApi.id(checkerUuid).update(checkerInput));
+    assertThat(thrown).hasMessageThat().contains("name cannot be unset");
   }
 
   @Test
@@ -166,9 +168,10 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput checkerInput = new CheckerInput();
     checkerInput.name = " ";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("name cannot be unset");
-    checkersApi.id(checkerUuid).update(checkerInput);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> checkersApi.id(checkerUuid).update(checkerInput));
+    assertThat(thrown).hasMessageThat().contains("name cannot be unset");
   }
 
   @Test
@@ -338,9 +341,10 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput checkerInput = new CheckerInput();
     checkerInput.repository = "";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("repository cannot be unset");
-    checkersApi.id(checkerUuid).update(checkerInput);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> checkersApi.id(checkerUuid).update(checkerInput));
+    assertThat(thrown).hasMessageThat().contains("repository cannot be unset");
   }
 
   @Test
@@ -350,9 +354,10 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput checkerInput = new CheckerInput();
     checkerInput.repository = " ";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("repository cannot be unset");
-    checkersApi.id(checkerUuid).update(checkerInput);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> checkersApi.id(checkerUuid).update(checkerInput));
+    assertThat(thrown).hasMessageThat().contains("repository cannot be unset");
   }
 
   @Test
@@ -362,9 +367,11 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput checkerInput = new CheckerInput();
     checkerInput.repository = "non-existing";
 
-    exception.expect(UnprocessableEntityException.class);
-    exception.expectMessage("repository non-existing not found");
-    checkersApi.id(checkerUuid).update(checkerInput);
+    UnprocessableEntityException thrown =
+        assertThrows(
+            UnprocessableEntityException.class,
+            () -> checkersApi.id(checkerUuid).update(checkerInput));
+    assertThat(thrown).hasMessageThat().contains("repository non-existing not found");
   }
 
   @Test
@@ -373,9 +380,11 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     CheckerInput input = new CheckerInput();
     input.url = CheckerTestData.INVALID_URL;
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("only http/https URLs supported: ftp://example.com/my-checker");
-    checkersApi.id(checkerUuid).update(input);
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("only http/https URLs supported: ftp://example.com/my-checker");
   }
 
   @Test
@@ -575,9 +584,11 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.name = "my-renamed-checker";
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("administrateCheckers for plugin checks not permitted");
-    checkersApi.id(checkerUuid).update(input);
+    AuthException thrown =
+        assertThrows(AuthException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("administrateCheckers for plugin checks not permitted");
   }
 
   @Test
@@ -589,8 +600,8 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.name = "my-renamed-checker";
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("Authentication required");
-    checkersApi.id(checkerUuid).update(input);
+    AuthException thrown =
+        assertThrows(AuthException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown).hasMessageThat().contains("Authentication required");
   }
 }

@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.plugins.checks.testing.CheckerConfigSubject.assertThat;
-import static org.hamcrest.CoreMatchers.instanceOf;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.truth.StringSubject;
@@ -209,10 +209,11 @@ public class CheckerConfigTest extends GerritBaseTests {
         CheckerConfig.createForNewChecker(projectName, repository, checkerCreation);
 
     try (MetaDataUpdate metaDataUpdate = createMetaDataUpdate()) {
-      exception.expectCause(instanceOf(ConfigInvalidException.class));
-      exception.expectMessage(
-          String.format("Repository of the checker %s must be defined", checkerUuid));
-      checkerConfig.commit(metaDataUpdate);
+      Throwable thrown = assertThrows(Throwable.class, () -> checkerConfig.commit(metaDataUpdate));
+      assertThat(thrown).hasCauseThat().isInstanceOf(ConfigInvalidException.class);
+      assertThat(thrown)
+          .hasMessageThat()
+          .contains(String.format("Repository of the checker %s must be defined", checkerUuid));
     }
   }
 
@@ -230,9 +231,11 @@ public class CheckerConfigTest extends GerritBaseTests {
   public void uuidInConfigMayNotBeUndefined() throws Exception {
     populateCheckerConfig(checkerUuid, "[checker]");
 
-    exception.expect(ConfigInvalidException.class);
-    exception.expectMessage("checker.uuid is not set in config file for checker " + checkerUuid);
-    loadChecker(checkerUuid);
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> loadChecker(checkerUuid));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("checker.uuid is not set in config file for checker " + checkerUuid);
   }
 
   @Test
@@ -346,10 +349,11 @@ public class CheckerConfigTest extends GerritBaseTests {
     CheckerUpdate checkerUpdate =
         CheckerUpdate.builder().setRepository(Project.nameKey("")).build();
 
-    exception.expect(IOException.class);
-    exception.expectMessage(
-        String.format("Repository of the checker %s must be defined", checkerUuid));
-    updateChecker(checkerUuid, checkerUpdate);
+    IOException thrown =
+        assertThrows(IOException.class, () -> updateChecker(checkerUuid, checkerUpdate));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(String.format("Repository of the checker %s must be defined", checkerUuid));
   }
 
   @Test

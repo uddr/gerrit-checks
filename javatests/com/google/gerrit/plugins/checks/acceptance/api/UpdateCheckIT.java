@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
@@ -76,10 +77,13 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     CheckInput input = new CheckInput();
     input.checkerUuid = "foo:bar";
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage(
-        "checker UUID in input must either be null or the same as on the resource");
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("checker UUID in input must either be null or the same as on the resource");
   }
 
   @Test
@@ -135,9 +139,11 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     CheckInput input = new CheckInput();
     input.url = CheckTestData.INVALID_URL;
 
-    exception.expect(BadRequestException.class);
-    exception.expectMessage("only http/https URLs supported: " + input.url);
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input));
+    assertThat(thrown).hasMessageThat().contains("only http/https URLs supported: " + input.url);
   }
 
   @Test
@@ -287,18 +293,30 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   public void cannotUpdateCheckWithoutAdministrateCheckers() throws Exception {
     requestScopeOperations.setApiUser(user.id());
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("not permitted");
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
+    AuthException thrown =
+        assertThrows(
+            AuthException.class,
+            () ->
+                checksApiFactory
+                    .revision(patchSetId)
+                    .id(checkKey.checkerUuid())
+                    .update(new CheckInput()));
+    assertThat(thrown).hasMessageThat().contains("not permitted");
   }
 
   @Test
   public void cannotUpdateCheckAnonymously() throws Exception {
     requestScopeOperations.setApiUserAnonymous();
 
-    exception.expect(AuthException.class);
-    exception.expectMessage("Authentication required");
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(new CheckInput());
+    AuthException thrown =
+        assertThrows(
+            AuthException.class,
+            () ->
+                checksApiFactory
+                    .revision(patchSetId)
+                    .id(checkKey.checkerUuid())
+                    .update(new CheckInput()));
+    assertThat(thrown).hasMessageThat().contains("Authentication required");
   }
 
   @Test
