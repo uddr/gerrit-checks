@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.api;
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -83,8 +84,8 @@ public class CombinedCheckStateTest extends GerritBaseTests {
     for (CheckState inProgress : ALL_IN_PROGRESS) {
       for (Set<CheckState> subset : Sets.powerSet(others)) {
         Set<CheckState> toCombine = Sets.union(ImmutableSet.of(inProgress), subset);
-        assertThat(combine(toCombine))
-            .named(toCombine.toString())
+        assertWithMessage(toCombine.toString())
+            .that(combine(toCombine))
             .isEqualTo(CombinedCheckState.IN_PROGRESS);
       }
     }
@@ -94,8 +95,8 @@ public class CombinedCheckStateTest extends GerritBaseTests {
   public void combineFailedAlwaysWins() {
     for (CheckState other : EnumSet.complementOf(EnumSet.of(CheckState.FAILED))) {
       Set<CheckState> toCombine = ImmutableSet.of(CheckState.FAILED, other);
-      assertThat(combine(toCombine))
-          .named(toCombine.toString())
+      assertWithMessage(toCombine.toString())
+          .that(combine(toCombine))
           .isEqualTo(CombinedCheckState.FAILED);
     }
   }
@@ -104,8 +105,8 @@ public class CombinedCheckStateTest extends GerritBaseTests {
   public void combineFailedBeatsInProgress() {
     for (CheckState inProgress : ALL_IN_PROGRESS) {
       Set<CheckState> toCombine = ImmutableSet.of(inProgress, CheckState.FAILED);
-      assertThat(combine(toCombine))
-          .named(toCombine.toString())
+      assertWithMessage(toCombine.toString())
+          .that(combine(toCombine))
           .isEqualTo(CombinedCheckState.FAILED);
     }
   }

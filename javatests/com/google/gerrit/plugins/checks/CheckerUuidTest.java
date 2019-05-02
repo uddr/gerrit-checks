@@ -14,7 +14,9 @@
 
 package com.google.gerrit.plugins.checks;
 
+import static com.google.common.truth.OptionalSubject.optionals;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.plugins.checks.CheckerUuid.MAX_SCHEME_LENGTH;
 import static java.util.stream.Collectors.joining;
@@ -74,20 +76,21 @@ public class CheckerUuidTest extends GerritBaseTests {
   @Test
   public void isUuid() {
     for (String checkerUuid : VALID_CHECKER_UUIDS) {
-      assertThat(CheckerUuid.isUuid(checkerUuid)).named(checkerUuid).isTrue();
+      assertWithMessage(checkerUuid).that(CheckerUuid.isUuid(checkerUuid)).isTrue();
     }
 
     assertThat(CheckerUuid.isUuid(null)).isFalse();
     for (String invalidCheckerUuid : INVALID_CHECKER_UUIDS) {
-      assertThat(CheckerUuid.isUuid(invalidCheckerUuid)).named(invalidCheckerUuid).isFalse();
+      assertWithMessage(invalidCheckerUuid).that(CheckerUuid.isUuid(invalidCheckerUuid)).isFalse();
     }
   }
 
   @Test
   public void parseValidUuids() {
     for (String uuidString : VALID_CHECKER_UUIDS) {
-      assertThat(CheckerUuid.tryParse(uuidString).map(CheckerUuid::get))
-          .named(uuidString)
+      assertWithMessage(uuidString)
+          .about(optionals())
+          .that(CheckerUuid.tryParse(uuidString).map(CheckerUuid::get))
           .hasValue(uuidString);
       CheckerUuid checkerUuid;
       try {
@@ -95,9 +98,9 @@ public class CheckerUuidTest extends GerritBaseTests {
       } catch (RuntimeException e) {
         throw new AssertionError("failed to parse " + uuidString, e);
       }
-      assertThat(checkerUuid.get()).named(uuidString).isEqualTo(uuidString);
-      assertThat(Repository.isValidRefName(checkerUuid.toRefName()))
-          .named("valid ref name: %s", checkerUuid.toRefName())
+      assertWithMessage(uuidString).that(checkerUuid.get()).isEqualTo(uuidString);
+      assertWithMessage("valid ref name: %s", checkerUuid.toRefName())
+          .that(Repository.isValidRefName(checkerUuid.toRefName()))
           .isTrue();
     }
   }
@@ -134,6 +137,9 @@ public class CheckerUuidTest extends GerritBaseTests {
   }
 
   private static void assertInvalid(@Nullable String uuidString) {
-    assertThat(CheckerUuid.tryParse(uuidString)).named(String.valueOf(uuidString)).isEmpty();
+    assertWithMessage(String.valueOf(uuidString))
+        .about(optionals())
+        .that(CheckerUuid.tryParse(uuidString))
+        .isEmpty();
   }
 }
