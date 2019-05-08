@@ -41,8 +41,11 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
     return assertAbout(CheckerConfigSubject::new).that(checkerConfig);
   }
 
-  private CheckerConfigSubject(FailureMetadata metadata, CheckerConfig actual) {
-    super(metadata, actual);
+  private final CheckerConfig checkerConfig;
+
+  private CheckerConfigSubject(FailureMetadata metadata, CheckerConfig checkerConfig) {
+    super(metadata, checkerConfig);
+    this.checkerConfig = checkerConfig;
   }
 
   public void hasUuid(CheckerUuid expectedUuid) {
@@ -95,16 +98,16 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
 
   public IterableSubject configStringList(String name) {
     isNotNull();
-    Optional<Config> checkerConfig = actual().getConfigForTesting();
-    check("configValueOf(checker.%s)", name).about(optionals()).that(checkerConfig).isPresent();
+    Optional<Config> config = checkerConfig.getConfigForTesting();
+    check("configValueOf(checker.%s)", name).about(optionals()).that(config).isPresent();
     return check("configValueOf(checker.%s)", name)
-        .that(checkerConfig.get().getStringList("checker", null, name))
+        .that(config.get().getStringList("checker", null, name))
         .asList();
   }
 
   private Checker checker() {
     isNotNull();
-    Optional<Checker> checker = actual().getLoadedChecker();
+    Optional<Checker> checker = checkerConfig.getLoadedChecker();
     if (!checker.isPresent()) {
       failWithActual(simpleFact("expected checker to be loaded"));
     }

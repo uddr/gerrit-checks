@@ -31,8 +31,11 @@ public class PendingChecksInfoSubject extends Subject<PendingChecksInfoSubject, 
     return assertAbout(PendingChecksInfoSubject::new).that(pendingChecksInfo);
   }
 
-  private PendingChecksInfoSubject(FailureMetadata metadata, PendingChecksInfo actual) {
-    super(metadata, actual);
+  private final PendingChecksInfo pendingChecksInfo;
+
+  private PendingChecksInfoSubject(FailureMetadata metadata, PendingChecksInfo pendingChecksInfo) {
+    super(metadata, pendingChecksInfo);
+    this.pendingChecksInfo = pendingChecksInfo;
   }
 
   public void hasRepository(Project.NameKey expectedRepositoryName) {
@@ -55,14 +58,14 @@ public class PendingChecksInfoSubject extends Subject<PendingChecksInfoSubject, 
 
   private CheckablePatchSetInfo patchSet() {
     isNotNull();
-    CheckablePatchSetInfo patchSet = actual().patchSet;
+    CheckablePatchSetInfo patchSet = pendingChecksInfo.patchSet;
     check("patchSet()").that(patchSet).isNotNull();
     return patchSet;
   }
 
   private Map<String, PendingCheckInfo> pendingChecks() {
     isNotNull();
-    Map<String, PendingCheckInfo> pendingChecks = actual().pendingChecks;
+    Map<String, PendingCheckInfo> pendingChecks = pendingChecksInfo.pendingChecks;
     check("pendingChecks()").that(pendingChecks).isNotNull();
     return pendingChecks;
   }
