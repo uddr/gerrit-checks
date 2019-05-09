@@ -108,7 +108,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
     List<PendingChecksInfo> pendingChecks = new ArrayList<>(changes.size());
     for (ChangeData cd : changes) {
       PatchSet patchSet = cd.currentPatchSet();
-      CheckKey checkKey = CheckKey.create(cd.project(), patchSet.getId(), checkerUuid);
+      CheckKey checkKey = CheckKey.create(cd.project(), patchSet.id(), checkerUuid);
 
       // Backfill if check is not present.
       // Backfilling is only done for relevant checkers (checkers where the repository and the query
@@ -220,8 +220,8 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
 
     pendingChecksInfo.patchSet = new CheckablePatchSetInfo();
     pendingChecksInfo.patchSet.repository = repositoryName.get();
-    pendingChecksInfo.patchSet.changeNumber = patchSet.getId().changeId().get();
-    pendingChecksInfo.patchSet.patchSetId = patchSet.getPatchSetId();
+    pendingChecksInfo.patchSet.changeNumber = patchSet.id().changeId().get();
+    pendingChecksInfo.patchSet.patchSetId = patchSet.number();
 
     pendingChecksInfo.pendingChecks =
         ImmutableMap.of(checkerUuid.get(), new PendingCheckInfo(check.state()));

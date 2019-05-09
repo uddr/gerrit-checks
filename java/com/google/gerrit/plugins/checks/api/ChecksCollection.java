@@ -62,7 +62,7 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
             .orElseThrow(
                 () -> new BadRequestException(String.format("invalid checker UUID: %s", id.get())));
     CheckKey checkKey =
-        CheckKey.create(parent.getProject(), parent.getPatchSet().getId(), checkerUuid);
+        CheckKey.create(parent.getProject(), parent.getPatchSet().id(), checkerUuid);
     Optional<Check> check = checks.getCheck(checkKey, GetCheckOptions.withBackfilling());
     return new CheckResource(
         parent,

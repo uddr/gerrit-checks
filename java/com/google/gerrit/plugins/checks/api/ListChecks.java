@@ -62,7 +62,7 @@ public class ListChecks implements RestReadView<RevisionResource> {
 
     GetCheckOptions getCheckOptions = GetCheckOptions.withBackfilling();
     ImmutableList<Check> allChecks =
-        checks.getChecks(resource.getProject(), resource.getPatchSet().getId(), getCheckOptions);
+        checks.getChecks(resource.getProject(), resource.getPatchSet().id(), getCheckOptions);
 
     CheckJson checkJson = checkJsonFactory.create(options);
     for (Check check : allChecks) {
