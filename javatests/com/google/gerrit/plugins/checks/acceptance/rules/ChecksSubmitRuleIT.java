@@ -27,7 +27,6 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ChecksSubmitRuleIT extends AbstractCheckersTest {
@@ -128,7 +127,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
   public void notStartedCheckOfNonApplicableCheckerDoesNotBlockSubmit() throws Exception {
     // Set up a checker which applies to a different repository than the considered change but still
     // post a check result to the change. -> Check is considered as optional.
@@ -143,7 +141,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
   public void runningCheckOfNonApplicableCheckerDoesNotBlockSubmit() throws Exception {
     // Set up a checker which applies to a different repository than the considered change but still
     // post a check result to the change. -> Check is considered as optional.
@@ -172,7 +169,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
   public void notStartedDisabledRequiredCheckDoesNotBlockSubmit() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().disable().create();
     postCheckResult(checkerUuid, CheckState.NOT_STARTED);
@@ -184,7 +180,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
   public void runningDisabledRequiredCheckDoesNotBlockSubmit() throws Exception {
     CheckerUuid checkerUuid = newRequiredChecker().disable().create();
     postCheckResult(checkerUuid, CheckState.RUNNING);
@@ -207,7 +202,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
   public void notStartedOptionalCheckDoesNotBlockSubmit() throws Exception {
     CheckerUuid checkerUuid = newOptionalChecker().create();
     postCheckResult(checkerUuid, CheckState.NOT_STARTED);
@@ -219,7 +213,6 @@ public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   }
 
   @Test
-  @Ignore("TODO(aliceks): Fix behavior to make this test succeed.")
   public void runningOptionalCheckDoesNotBlockSubmit() throws Exception {
     CheckerUuid checkerUuid = newOptionalChecker().create();
     postCheckResult(checkerUuid, CheckState.RUNNING);
