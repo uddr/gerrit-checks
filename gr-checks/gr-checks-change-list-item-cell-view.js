@@ -1,11 +1,11 @@
 (function() {
 'use strict';
 
-Polymer({
-  is: 'gr-checks-change-list-item-cell-view',
+  Polymer({
+    is: 'gr-checks-change-list-item-cell-view',
 
-  properties: {
-    change: Object,
-  },
-});
+    properties: {
+      change: Object,
+    },
+  });
 })();
