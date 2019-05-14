@@ -17,11 +17,13 @@ package com.google.gerrit.plugins.checks.acceptance;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.acceptance.GitUtil.deleteRef;
 import static com.google.gerrit.acceptance.GitUtil.fetch;
+import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.allow;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
+import com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInput;
@@ -55,8 +57,12 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
   @Test
   public void cannotCreateCheckerRef() throws Exception {
-    grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.CREATE);
-    grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(allow(Permission.CREATE).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .add(allow(Permission.PUSH).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
 
     String checkerRef = CheckerUuid.parse("test:my-checker").toRefName();
 
@@ -72,8 +78,12 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
   @Test
   public void canCreateCheckerLikeRef() throws Exception {
-    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.CREATE);
-    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.CREATE).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .add(allow(Permission.PUSH).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
 
     String checkerRef = CheckerUuid.parse("test:my-checker").toRefName();
 
@@ -89,7 +99,15 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
   @Test
   public void cannotDeleteCheckerRef() throws Exception {
-    grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.DELETE, true, REGISTERED_USERS);
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(
+            allow(Permission.DELETE)
+                .ref(CheckerRef.REFS_CHECKERS + "*")
+                .group(REGISTERED_USERS)
+                .force(true))
+        .update();
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
     String checkerRef = checkerUuid.toRefName();
@@ -107,11 +125,17 @@ public class CheckerRefsIT extends AbstractCheckersTest {
 
   @Test
   public void canDeleteCheckerLikeRef() throws Exception {
-    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.DELETE, true, REGISTERED_USERS);
-
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
-
-    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(
+            allow(Permission.DELETE)
+                .ref(CheckerRef.REFS_CHECKERS + "*")
+                .group(REGISTERED_USERS)
+                .force(true))
+        .add(allow(Permission.CREATE).ref(checkerRef).group(adminGroupUuid()))
+        .update();
     createBranch(BranchNameKey.create(project, checkerRef));
 
     // checker ref can be deleted in any project except All-Projects
@@ -134,7 +158,11 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     fetch(repo, checkerRef + ":checkerRef");
     repo.reset("checkerRef");
 
-    grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(allow(Permission.PUSH).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
     PushOneCommit.Result r = pushFactory.create(admin.newIdent(), repo).to(checkerRef);
     r.assertErrorStatus();
     r.assertMessage("direct update of checker ref not allowed");
@@ -144,14 +172,22 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   public void updateCheckerLikeRefByPush() throws Exception {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
-    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.CREATE).ref(checkerRef).group(adminGroupUuid()))
+        .update();
     createBranch(BranchNameKey.create(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
     fetch(repo, checkerRef + ":checkerRef");
     repo.reset("checkerRef");
 
-    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.PUSH).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
     PushOneCommit.Result r = pushFactory.create(admin.newIdent(), repo).to(checkerRef);
     r.assertOkStatus();
   }
@@ -162,11 +198,23 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String checkerRef = checkerUuid.toRefName();
     String changeId = createChangeWithoutCommitValidation(allProjects, checkerRef);
 
-    grantLabel(
-        "Code-Review", -2, 2, allProjects, CheckerRef.REFS_CHECKERS + "*", adminGroupUuid(), false);
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(
+            TestProjectUpdate.allowLabel("Code-Review")
+                .ref(CheckerRef.REFS_CHECKERS + "*")
+                .group(adminGroupUuid())
+                .range(-2, 2)
+                .exclusive(false))
+        .update();
     approve(changeId);
 
-    grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.SUBMIT);
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(allow(Permission.SUBMIT).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
 
     ResourceConflictException thrown =
         assertThrows(
@@ -178,16 +226,32 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   public void submitToCheckerLikeRef() throws Exception {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
-    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.CREATE).ref(checkerRef).group(adminGroupUuid()))
+        .update();
     createBranch(BranchNameKey.create(project, checkerRef));
 
     String changeId = createChangeWithoutCommitValidation(project, checkerRef);
 
-    grantLabel(
-        "Code-Review", -2, 2, project, CheckerRef.REFS_CHECKERS + "*", adminGroupUuid(), false);
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(
+            TestProjectUpdate.allowLabel("Code-Review")
+                .ref(CheckerRef.REFS_CHECKERS + "*")
+                .group(adminGroupUuid())
+                .range(-2, 2)
+                .exclusive(false))
+        .update();
     approve(changeId);
 
-    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.SUBMIT);
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.SUBMIT).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
 
     // submitting to a checker ref should work in any project except All-Projects
     gApi.changes().id(changeId).current().submit();
@@ -204,7 +268,11 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     fetch(repo, checkerRef + ":checkerRef");
     repo.reset("checkerRef");
 
-    grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(allow(Permission.PUSH).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
     PushOneCommit.Result r =
         pushFactory.create(admin.newIdent(), repo).to("refs/for/" + checkerRef);
     r.assertErrorStatus();
@@ -215,7 +283,11 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   public void createChangeForCheckerLikeRefByPush() throws Exception {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
-    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.CREATE).ref(checkerRef).group(adminGroupUuid()))
+        .update();
     createBranch(BranchNameKey.create(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
@@ -223,7 +295,11 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     repo.reset("checkerRef");
 
     // creating a change on a checker ref by push should work in any project except All-Projects
-    grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.PUSH);
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.PUSH).ref(CheckerRef.REFS_CHECKERS + "*").group(adminGroupUuid()))
+        .update();
     PushOneCommit.Result r =
         pushFactory.create(admin.newIdent(), repo).to("refs/for/" + checkerRef);
     r.assertOkStatus();
@@ -254,7 +330,11 @@ public class CheckerRefsIT extends AbstractCheckersTest {
   public void createChangeForCheckerLikeRefViaApi() throws Exception {
     String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
 
-    allow(checkerRef, Permission.CREATE, adminGroupUuid());
+    projectOperations
+        .project(project)
+        .forUpdate()
+        .add(allow(Permission.CREATE).ref(checkerRef).group(adminGroupUuid()))
+        .update();
     createBranch(BranchNameKey.create(project, checkerRef));
 
     TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
