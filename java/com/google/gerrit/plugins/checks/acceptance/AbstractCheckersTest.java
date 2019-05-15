@@ -14,6 +14,8 @@
 
 package com.google.gerrit.plugins.checks.acceptance;
 
+import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.allowCapability;
+
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.ProjectResetter;
 import com.google.gerrit.acceptance.TestPlugin;
@@ -54,6 +56,12 @@ public class AbstractCheckersTest extends LightweightPluginDaemonTest {
     checksApiFactory = plugin.getHttpInjector().getInstance(ChecksFactory.class);
     pendingChecksApi = plugin.getHttpInjector().getInstance(PendingChecks.class);
 
-    allowGlobalCapabilities(group("Administrators").getGroupUUID(), "checks-administrateCheckers");
+    projectOperations
+        .project(allProjects)
+        .forUpdate()
+        .add(
+            allowCapability("checks-administrateCheckers")
+                .group(group("Administrators").getGroupUUID()))
+        .update();
   }
 }
