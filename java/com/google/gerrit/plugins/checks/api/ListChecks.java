@@ -58,6 +58,10 @@ public class ListChecks implements RestReadView<RevisionResource> {
   public ImmutableList<CheckInfo> apply(RevisionResource resource)
       throws AuthException, BadRequestException, ResourceConflictException, StorageException,
           IOException {
+    if (resource.getEdit().isPresent()) {
+      throw new ResourceConflictException("checks are not supported on a change edit");
+    }
+
     ImmutableList.Builder<CheckInfo> result = ImmutableList.builder();
 
     GetCheckOptions getCheckOptions = GetCheckOptions.withBackfilling();

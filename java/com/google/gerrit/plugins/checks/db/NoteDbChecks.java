@@ -103,6 +103,10 @@ class NoteDbChecks implements Checks {
     // TODO(gerrit-team): Instead of reading the complete notes map, read just one note.
     ChangeData changeData = changeDataFactory.create(repositoryName, psId.changeId());
     PatchSet patchSet = changeData.patchSet(psId);
+    if (patchSet == null) {
+      throw new StorageException("patch set not found: " + psId);
+    }
+
     CheckNotes checkNotes = checkNotesFactory.create(changeData.change());
     checkNotes.load();
 

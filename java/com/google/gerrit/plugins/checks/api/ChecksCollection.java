@@ -19,6 +19,7 @@ import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ChildCollection;
 import com.google.gerrit.extensions.restapi.IdString;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -57,6 +58,10 @@ public class ChecksCollection implements ChildCollection<RevisionResource, Check
   @Override
   public CheckResource parse(RevisionResource parent, IdString id)
       throws RestApiException, PermissionBackendException, IOException, StorageException {
+    if (parent.getEdit().isPresent()) {
+      throw new ResourceConflictException("checks are not supported on a change edit");
+    }
+
     CheckerUuid checkerUuid =
         CheckerUuid.tryParse(id.get())
             .orElseThrow(

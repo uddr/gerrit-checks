@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
+import com.google.gerrit.extensions.common.EditInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -325,6 +326,18 @@ public class ListChecksIT extends AbstractCheckersTest {
     requestScopeOperations.setApiUserAnonymous();
 
     assertThat(checksApiFactory.revision(patchSetId).list()).hasSize(1);
+  }
+
+  @Test
+  public void listAllOnChangeEditRejected() throws Exception {
+    gApi.changes().id(changeId).edit().modifyCommitMessage("new message");
+    Optional<EditInfo> editInfo = gApi.changes().id(changeId).edit().get();
+    assertThat(editInfo).isPresent();
+
+    RestResponse response =
+        adminRestSession.get("/changes/" + changeId + "/revisions/edit/checks?o=CHECKER");
+    response.assertConflict();
+    assertThat(response.getEntityContent()).isEqualTo("checks are not supported on a change edit");
   }
 
   private Timestamp getPatchSetCreated(Change.Id changeId) throws RestApiException {

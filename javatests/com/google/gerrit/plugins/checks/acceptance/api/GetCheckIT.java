@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -27,6 +28,7 @@ import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
 import com.google.gerrit.acceptance.rest.util.RestCall.Method;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
+import com.google.gerrit.extensions.common.EditInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -46,6 +48,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
@@ -515,6 +518,22 @@ public class GetCheckIT extends AbstractCheckersTest {
         .hasMessageThat()
         .ignoringCase()
         .contains(String.format("change %d", patchSetId.changeId().get()));
+  }
+
+  @Test
+  public void getCheckOnChangeEditRejected() throws Exception {
+    int changeId = patchSetId.changeId().get();
+    gApi.changes().id(changeId).edit().modifyCommitMessage("new message");
+    Optional<EditInfo> editInfo = gApi.changes().id(changeId).edit().get();
+    assertThat(editInfo).isPresent();
+
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    RestResponse response =
+        adminRestSession.get(
+            "/changes/" + changeId + "/revisions/edit/checks~checks/" + checkerUuid.get());
+
+    response.assertConflict();
+    assertThat(response.getEntityContent()).isEqualTo("checks are not supported on a change edit");
   }
 
   private CheckInfo getCheckInfo(
