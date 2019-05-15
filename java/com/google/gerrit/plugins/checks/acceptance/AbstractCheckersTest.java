@@ -19,12 +19,14 @@ import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.a
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.ProjectResetter;
 import com.google.gerrit.acceptance.TestPlugin;
+import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckOperations;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerOperations;
 import com.google.gerrit.plugins.checks.api.Checkers;
 import com.google.gerrit.plugins.checks.api.ChecksFactory;
 import com.google.gerrit.plugins.checks.api.PendingChecks;
+import com.google.inject.Inject;
 import org.junit.Before;
 
 // TODO(dborowitz): Improve the plugin test framework so we can avoid subclassing:
@@ -36,6 +38,8 @@ import org.junit.Before;
     sysModule = "com.google.gerrit.plugins.checks.acceptance.TestModule",
     httpModule = "com.google.gerrit.plugins.checks.HttpModule")
 public class AbstractCheckersTest extends LightweightPluginDaemonTest {
+  @Inject protected ProjectOperations projectOperations;
+
   protected CheckerOperations checkerOperations;
   protected CheckOperations checkOperations;
   protected Checkers checkersApi;
