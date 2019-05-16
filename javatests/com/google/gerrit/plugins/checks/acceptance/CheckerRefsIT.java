@@ -205,8 +205,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
             TestProjectUpdate.allowLabel("Code-Review")
                 .ref(CheckerRef.REFS_CHECKERS + "*")
                 .group(adminGroupUuid())
-                .range(-2, 2)
-                .exclusive(false))
+                .range(-2, 2))
         .update();
     approve(changeId);
 
@@ -242,8 +241,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
             TestProjectUpdate.allowLabel("Code-Review")
                 .ref(CheckerRef.REFS_CHECKERS + "*")
                 .group(adminGroupUuid())
-                .range(-2, 2)
-                .exclusive(false))
+                .range(-2, 2))
         .update();
     approve(changeId);
 
