@@ -163,14 +163,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String changeId = createChangeWithoutCommitValidation(allProjects, checkerRef);
 
     grantLabel(
-        "Code-Review",
-        -2,
-        2,
-        allProjects,
-        CheckerRef.REFS_CHECKERS + "*",
-        false,
-        adminGroupUuid(),
-        false);
+        "Code-Review", -2, 2, allProjects, CheckerRef.REFS_CHECKERS + "*", adminGroupUuid(), false);
     approve(changeId);
 
     grant(allProjects, CheckerRef.REFS_CHECKERS + "*", Permission.SUBMIT);
@@ -191,14 +184,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     String changeId = createChangeWithoutCommitValidation(project, checkerRef);
 
     grantLabel(
-        "Code-Review",
-        -2,
-        2,
-        project,
-        CheckerRef.REFS_CHECKERS + "*",
-        false,
-        adminGroupUuid(),
-        false);
+        "Code-Review", -2, 2, project, CheckerRef.REFS_CHECKERS + "*", adminGroupUuid(), false);
     approve(changeId);
 
     grant(project, CheckerRef.REFS_CHECKERS + "*", Permission.SUBMIT);
