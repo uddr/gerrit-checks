@@ -18,12 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.acceptance.GitUtil.deleteRef;
 import static com.google.gerrit.acceptance.GitUtil.fetch;
 import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.allow;
+import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.allowLabel;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
-import com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInput;
@@ -202,7 +202,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
         .project(allProjects)
         .forUpdate()
         .add(
-            TestProjectUpdate.allowLabel("Code-Review")
+            allowLabel("Code-Review")
                 .ref(CheckerRef.REFS_CHECKERS + "*")
                 .group(adminGroupUuid())
                 .range(-2, 2))
@@ -238,7 +238,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
         .project(project)
         .forUpdate()
         .add(
-            TestProjectUpdate.allowLabel("Code-Review")
+            allowLabel("Code-Review")
                 .ref(CheckerRef.REFS_CHECKERS + "*")
                 .group(adminGroupUuid())
                 .range(-2, 2))
