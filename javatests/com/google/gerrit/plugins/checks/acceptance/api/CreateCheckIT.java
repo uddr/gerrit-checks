@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
+import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -352,6 +353,23 @@ public class CreateCheckIT extends AbstractCheckersTest {
         assertThrows(
             AuthException.class, () -> checksApiFactory.revision(patchSetId).create(input));
     assertThat(thrown).hasMessageThat().contains("Authentication required");
+  }
+
+  @Test
+  public void createCheckOnChangeEditRejected() throws Exception {
+    int changeId = patchSetId.changeId().get();
+    gApi.changes().id(changeId).edit().modifyCommitMessage("new message");
+    assertThat(gApi.changes().id(changeId).edit().get()).isPresent();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.state = CheckState.RUNNING;
+    RestResponse response =
+        adminRestSession.post("/changes/" + changeId + "/revisions/edit/checks~checks", input);
+
+    response.assertConflict();
+    assertThat(response.getEntityContent()).isEqualTo("checks are not supported on a change edit");
   }
 
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave

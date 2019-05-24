@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.api;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
@@ -80,6 +81,10 @@ public class PostCheck
       throw new AuthException("Authentication required");
     }
     permissionBackend.currentUser().check(permission);
+
+    if (rsrc.getEdit().isPresent()) {
+      throw new ResourceConflictException("checks are not supported on a change edit");
+    }
 
     if (input == null) {
       input = new CheckInput();
