@@ -17,7 +17,6 @@ package com.google.gerrit.plugins.checks;
 import static com.google.common.truth.OptionalSubject.optionals;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.plugins.checks.CheckerUuid.MAX_SCHEME_LENGTH;
 import static java.util.stream.Collectors.joining;
 
