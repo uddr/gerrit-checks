@@ -16,7 +16,6 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.extensions.client.ListChangesOption.CURRENT_REVISION;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -510,15 +509,12 @@ public class GetCheckIT extends AbstractCheckersTest {
 
     gApi.changes().id(patchSetId.changeId().get()).delete();
 
-    try {
-      getCheckInfo(patchSetId, checkerUuid);
-      assert_().fail("expected ResourceNotFoundException");
-    } catch (ResourceNotFoundException e) {
-      assertThat(e)
-          .hasMessageThat()
-          .ignoringCase()
-          .contains(String.format("change %d", patchSetId.changeId().get()));
-    }
+    ResourceNotFoundException thrown =
+        assertThrows(ResourceNotFoundException.class, () -> getCheckInfo(patchSetId, checkerUuid));
+    assertThat(thrown)
+        .hasMessageThat()
+        .ignoringCase()
+        .contains(String.format("change %d", patchSetId.changeId().get()));
   }
 
   private CheckInfo getCheckInfo(
@@ -535,17 +531,14 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   private void assertCheckNotFound(PatchSet.Id patchSetId, CheckerUuid checkerUuid)
       throws Exception {
-    try {
-      getCheckInfo(patchSetId, checkerUuid);
-      assert_().fail("expected ResourceNotFoundException");
-    } catch (ResourceNotFoundException e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              String.format(
-                  "Patch set %s in repository %s doesn't have check for checker %s.",
-                  patchSetId, project, checkerUuid));
-    }
+    ResourceNotFoundException thrown =
+        assertThrows(ResourceNotFoundException.class, () -> getCheckInfo(patchSetId, checkerUuid));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            String.format(
+                "Patch set %s in repository %s doesn't have check for checker %s.",
+                patchSetId, project, checkerUuid));
   }
 
   private PatchSet.Id createPatchSet() throws Exception {

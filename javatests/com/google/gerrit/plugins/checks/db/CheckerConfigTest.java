@@ -16,7 +16,6 @@ package com.google.gerrit.plugins.checks.db;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.plugins.checks.testing.CheckerConfigSubject.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
@@ -462,12 +461,7 @@ public class CheckerConfigTest {
   @Test
   public void setQueryDoesNotValidateQuery() throws Exception {
     String query = "foo:bar";
-    try {
-      CheckerQuery.clean(query);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // Expected.
-    }
+    assertThrows(ConfigInvalidException.class, () -> CheckerQuery.clean(query));
 
     createArbitraryChecker(checkerUuid);
 

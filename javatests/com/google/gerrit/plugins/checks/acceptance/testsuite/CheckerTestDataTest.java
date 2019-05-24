@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.CheckerQuery;
@@ -33,12 +33,10 @@ public class CheckerTestDataTest extends AbstractCheckersTest {
 
   @Test
   public void verifyTestUrls() throws Exception {
-    try {
-      UrlValidator.clean(CheckerTestData.INVALID_URL);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertMessage(e, "only http/https URLs supported", CheckerTestData.INVALID_URL);
-    }
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> UrlValidator.clean(CheckerTestData.INVALID_URL));
+    assertMessage(thrown, "only http/https URLs supported", CheckerTestData.INVALID_URL);
   }
 
   @Test
@@ -58,12 +56,9 @@ public class CheckerTestDataTest extends AbstractCheckersTest {
   }
 
   private static void assertInvalidQuery(String query, String... expectedMessageParts) {
-    try {
-      CheckerQuery.clean(query);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      assertMessage(e, expectedMessageParts);
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> CheckerQuery.clean(query));
+    assertMessage(thrown, expectedMessageParts);
   }
 
   private static void assertMessage(Exception e, String... expectedMessageParts) {

@@ -15,7 +15,6 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.git.testing.CommitSubject.assertCommit;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
@@ -498,14 +497,11 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     CheckerInput input = new CheckerInput();
     input.query = CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR;
-    try {
-      checkersApi.id(checkerUuid).update(input);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo("Unsupported operator: " + CheckerTestData.UNSUPPORTED_OPERATOR);
-    }
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Unsupported operator: " + CheckerTestData.UNSUPPORTED_OPERATOR);
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
   }
@@ -517,12 +513,9 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
     CheckerInput input = new CheckerInput();
     input.query = CheckerTestData.INVALID_QUERY;
-    try {
-      checkersApi.id(checkerUuid).update(input);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertThat(e).hasMessageThat().contains("Invalid query: " + input.query);
-    }
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown).hasMessageThat().contains("Invalid query: " + input.query);
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
   }
@@ -535,19 +528,16 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
     CheckerInput input = new CheckerInput();
     input.query = CheckerTestData.longQueryWithSupportedOperators(MAX_INDEX_TERMS * 2);
     assertThat(CheckerQuery.clean(input.query)).isEqualTo(input.query);
-    try {
-      checkersApi.id(checkerUuid).update(input);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "change query of checker "
-                  + checkerUuid
-                  + " is invalid: "
-                  + input.query
-                  + " (too many terms in query)");
-    }
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.id(checkerUuid).update(input));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "change query of checker "
+                + checkerUuid
+                + " is invalid: "
+                + input.query
+                + " (too many terms in query)");
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
   }

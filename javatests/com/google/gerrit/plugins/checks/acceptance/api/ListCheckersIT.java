@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.ImmutableList;
@@ -63,12 +63,10 @@ public class ListCheckersIT extends AbstractCheckersTest {
 
     requestScopeOperations.setApiUser(user.id());
 
-    try {
-      checkersApi.all();
-      assert_().fail("expected AuthException");
-    } catch (AuthException e) {
-      assertThat(e.getMessage()).isEqualTo("administrateCheckers for plugin checks not permitted");
-    }
+    AuthException thrown = assertThrows(AuthException.class, () -> checkersApi.all());
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("administrateCheckers for plugin checks not permitted");
   }
 
   @Test
@@ -77,12 +75,8 @@ public class ListCheckersIT extends AbstractCheckersTest {
 
     requestScopeOperations.setApiUserAnonymous();
 
-    try {
-      checkersApi.all();
-      assert_().fail("expected AuthException");
-    } catch (AuthException e) {
-      assertThat(e.getMessage()).isEqualTo("Authentication required");
-    }
+    AuthException thrown = assertThrows(AuthException.class, () -> checkersApi.all());
+    assertThat(thrown).hasMessageThat().isEqualTo("Authentication required");
   }
 
   @Test

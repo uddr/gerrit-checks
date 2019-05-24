@@ -16,7 +16,6 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -539,12 +538,7 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forInvalidation().nonParseableConfig().invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-    }
+    assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
   }
 
   @Test
@@ -553,14 +547,10 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forInvalidation().invalidUuid().invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-      assertThat(e.getMessage()).contains("value of checker.uuid");
-      assertThat(e.getMessage()).contains("does not match expected checker UUID");
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("value of checker.uuid");
+    assertThat(thrown).hasMessageThat().contains("does not match expected checker UUID");
   }
 
   @Test
@@ -573,13 +563,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
         .invalidBlockingCondition()
         .invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-      assertThat(e.getMessage()).contains("Invalid value: checker.blocking");
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Invalid value: checker.blocking");
   }
 
   @Test
@@ -588,13 +574,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forInvalidation().invalidStatus().invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-      assertThat(e.getMessage()).contains("Invalid value: checker.status");
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("Invalid value: checker.status");
   }
 
   @Test
@@ -603,13 +585,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forInvalidation().unsetUuid().invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-      assertThat(e.getMessage()).contains("checker.uuid is not set in config file");
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("checker.uuid is not set in config file");
   }
 
   @Test
@@ -618,13 +596,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forInvalidation().unsetRepository().invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-      assertThat(e.getMessage()).contains("checker.repository is not set in config file");
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("checker.repository is not set in config file");
   }
 
   @Test
@@ -633,13 +607,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
 
     checkerOperations.checker(checkerUuid).forInvalidation().unsetStatus().invalidate();
 
-    try {
-      checkers.getChecker(checkerUuid);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      // expected
-      assertThat(e.getMessage()).contains("checker.status is not set in config file");
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> checkers.getChecker(checkerUuid));
+    assertThat(thrown).hasMessageThat().contains("checker.status is not set in config file");
   }
 
   @Test

@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
@@ -54,12 +54,7 @@ public class CheckerQueryTest {
   @Test
   public void disallowedUnknownOperator() throws Exception {
     String query = "fhqwhgads:bar";
-    try {
-      newChangeQueryBuilder().parse(query);
-      assert_().fail("expected QueryParseException");
-    } catch (QueryParseException e) {
-      // Expected.
-    }
+    assertThrows(QueryParseException.class, () -> newChangeQueryBuilder().parse(query));
     assertInvalidQuery(query, "Unsupported operator: fhqwhgads");
   }
 
@@ -104,12 +99,9 @@ public class CheckerQueryTest {
   }
 
   private static void assertInvalidQuery(String query, String expectedMessage) {
-    try {
-      CheckerQuery.clean(query);
-      assert_().fail("expected ConfigInvalidException");
-    } catch (ConfigInvalidException e) {
-      assertThat(e).hasMessageThat().isEqualTo(expectedMessage);
-    }
+    ConfigInvalidException thrown =
+        assertThrows(ConfigInvalidException.class, () -> CheckerQuery.clean(query));
+    assertThat(thrown).hasMessageThat().isEqualTo(expectedMessage);
   }
 
   private static void assertValidQuery(String query) {

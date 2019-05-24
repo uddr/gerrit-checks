@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import org.junit.Test;
@@ -59,11 +59,8 @@ public class UrlValidatorTest {
   }
 
   private static void assertInvalidUrl(String url, String expectedMessage) {
-    try {
-      UrlValidator.clean(url);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertThat(e).hasMessageThat().isEqualTo(expectedMessage);
-    }
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> UrlValidator.clean(url));
+    assertThat(thrown).hasMessageThat().isEqualTo(expectedMessage);
   }
 }

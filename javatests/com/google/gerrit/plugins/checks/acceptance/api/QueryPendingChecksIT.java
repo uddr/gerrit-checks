@@ -15,7 +15,6 @@
 package com.google.gerrit.plugins.checks.acceptance.api;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.gerrit.plugins.checks.testing.PendingChecksInfoSubject.assertThat;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
@@ -643,13 +642,10 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecksList).isNotEmpty();
   }
 
-  private void assertInvalidQuery(String query, String expectedMessage) throws RestApiException {
-    try {
-      pendingChecksApi.query(query).get();
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertThat(e).hasMessageThat().isEqualTo(expectedMessage);
-    }
+  private void assertInvalidQuery(String query, String expectedMessage) {
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> pendingChecksApi.query(query).get());
+    assertThat(thrown).hasMessageThat().isEqualTo(expectedMessage);
   }
 
   private List<PendingChecksInfo> queryPendingChecks(String queryString) throws RestApiException {

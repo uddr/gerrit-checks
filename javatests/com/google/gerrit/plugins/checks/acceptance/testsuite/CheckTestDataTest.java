@@ -15,7 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
+import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.UrlValidator;
@@ -25,12 +25,10 @@ import org.junit.Test;
 public class CheckTestDataTest extends AbstractCheckersTest {
   @Test
   public void verifyTestUrls() throws Exception {
-    try {
-      UrlValidator.clean(CheckTestData.INVALID_URL);
-      assert_().fail("expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertMessage(e, "only http/https URLs supported", CheckTestData.INVALID_URL);
-    }
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> UrlValidator.clean(CheckTestData.INVALID_URL));
+    assertMessage(thrown, "only http/https URLs supported", CheckTestData.INVALID_URL);
   }
 
   private static void assertMessage(Exception e, String... expectedMessageParts) {
