@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -100,7 +101,8 @@ public final class CheckOperationsImpl implements CheckOperations {
 
         for (Note note : notes) {
           raw.put(
-              note.copy(), new String(notes.getCachedBytes(note.toObjectId(), Integer.MAX_VALUE)));
+              note.copy(),
+              new String(notes.getCachedBytes(note.toObjectId(), Integer.MAX_VALUE), UTF_8));
         }
         return raw.build();
       }
