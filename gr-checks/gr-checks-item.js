@@ -38,6 +38,10 @@
         type: String,
         computed: '_computeDuration(check)',
       },
+      _requiredForMerge: {
+        type: String,
+        computed: '_computeRequiredForMerge(check)'
+      }
     },
 
     /**
@@ -45,6 +49,7 @@
      * @return {string}
      */
     _computeStartTime(check) {
+      if (!check.started) return "-";
       return moment(check.started).format('LTS');
     },
 
@@ -53,12 +58,22 @@
      * @return {string}
      */
     _computeDuration(check) {
+      if (!check.started || !check.finished) {
+        return "-";
+      }
       const startTime = moment(check.started);
       const finishTime = check.finished ? moment(check.finished) : moment();
       return generateDurationString(
           moment.duration(finishTime.diff(startTime)));
     },
 
+    /**
+     * @param {!Defs.Check} check
+     * @return {string}
+     */
+    _computeRequiredForMerge(check) {
+      return (check.blocking && check.blocking.length === 0) ? "Optional" : "Required";
+    },
     handleClick(event) {
       event.preventDefault();
       this.retryCheck(this.check.checker_uuid);
