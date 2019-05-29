@@ -23,6 +23,7 @@ import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerRef;
@@ -35,7 +36,6 @@ import com.google.gerrit.plugins.checks.api.CheckerInput;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.db.CheckerConfig;
 import com.google.gerrit.plugins.checks.db.CheckersByRepositoryNotes;
-import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Optional;

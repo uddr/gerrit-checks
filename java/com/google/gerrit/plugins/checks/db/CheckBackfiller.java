@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.Checker;
@@ -22,7 +23,6 @@ import com.google.gerrit.plugins.checks.CheckerQuery;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.inject.Inject;
 import com.google.inject.Provider;

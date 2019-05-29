@@ -19,9 +19,9 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.Project;
 import java.util.Optional;
 
 @AutoValue

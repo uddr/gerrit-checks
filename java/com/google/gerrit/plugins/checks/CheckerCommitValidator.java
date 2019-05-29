@@ -14,8 +14,8 @@
 
 package com.google.gerrit.plugins.checks;
 
+import com.google.gerrit.entities.RefNames;
 import com.google.gerrit.extensions.annotations.Listen;
-import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.events.CommitReceivedEvent;
 import com.google.gerrit.server.git.validators.CommitValidationException;

@@ -18,9 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.plugins.checks.api.BlockingCondition.STATE_NOT_PASSING;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.util.time.TimeUtil;
 import java.util.EnumSet;
 import org.eclipse.jgit.lib.ObjectId;

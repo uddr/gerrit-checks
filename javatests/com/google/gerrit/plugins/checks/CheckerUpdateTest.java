@@ -17,7 +17,7 @@ package com.google.gerrit.plugins.checks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
-import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.entities.Project;
 import org.junit.Test;
 
 public class CheckerUpdateTest {

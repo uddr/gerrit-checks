@@ -14,8 +14,8 @@
 
 package com.google.gerrit.plugins.checks;
 
-import com.google.gerrit.reviewdb.client.BranchNameKey;
-import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.gerrit.entities.BranchNameKey;
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.CodeReviewCommit;

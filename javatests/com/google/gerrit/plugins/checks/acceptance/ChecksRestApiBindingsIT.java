@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
 import com.google.gerrit.acceptance.rest.util.RestCall.Method;
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Test;
 
 public class ChecksRestApiBindingsIT extends AbstractCheckersTest {

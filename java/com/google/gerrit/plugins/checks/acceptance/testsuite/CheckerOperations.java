@@ -15,10 +15,10 @@
 package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckerInfo;
-import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;

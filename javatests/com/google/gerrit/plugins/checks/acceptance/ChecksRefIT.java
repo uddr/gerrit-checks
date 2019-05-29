@@ -17,11 +17,11 @@ package com.google.gerrit.plugins.checks.acceptance;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;

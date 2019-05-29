@@ -17,10 +17,10 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.acceptance.testsuite.ThrowingFunction;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.Project;
 import java.util.Optional;
 
 @AutoValue

@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.base.Throwables;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.exceptions.DuplicateKeyException;
 import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.git.RefUpdateUtil;
@@ -25,7 +26,6 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.plugins.checks.NoSuchCheckerException;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.GerritPersonIdent;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.AllProjectsName;

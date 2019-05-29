@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.acceptance.PushOneCommit;
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.SubmitRequirementInfo;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -25,7 +26,6 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation.Builder;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
 import org.junit.Test;
 

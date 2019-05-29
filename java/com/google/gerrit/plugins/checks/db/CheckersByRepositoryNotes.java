@@ -30,9 +30,9 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.hash.Hashing;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.git.meta.VersionedMetaData;
@@ -58,7 +58,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
  *
  * <p>This is a low-level API. Reading of the repository to checkers map should be done through
  * {@link
- * com.google.gerrit.plugins.checks.Checkers#checkersOf(com.google.gerrit.reviewdb.client.Project.NameKey)}.
+ * com.google.gerrit.plugins.checks.Checkers#checkersOf(com.google.gerrit.entities.Project.NameKey)}.
  * Updates to the repository to checkers map are done automatically when creating/updating checkers
  * through {@link com.google.gerrit.plugins.checks.CheckersUpdate}.
  *

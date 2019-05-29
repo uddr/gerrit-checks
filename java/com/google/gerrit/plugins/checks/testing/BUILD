@@ -9,8 +9,8 @@ java_library(
     name = "testing",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/gerrit/entities",
         "//java/com/google/gerrit/git/testing",
-        "//java/com/google/gerrit/reviewdb:server",
         "//java/com/google/gerrit/truth",
         "//lib:jgit",
         "//lib/truth",

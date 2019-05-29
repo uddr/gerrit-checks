@@ -5,7 +5,7 @@ junit_tests(
     size = "small",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/gerrit/reviewdb:server",
+        "//java/com/google/gerrit/entities",
         "//java/com/google/gerrit/server",
         "//java/com/google/gerrit/server/util/time",
         "//java/com/google/gerrit/testing:gerrit-test-util",

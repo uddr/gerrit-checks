@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.db;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checks;
@@ -24,7 +25,6 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.TestCheckerCreation;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import org.junit.Before;
 import org.junit.Test;
 

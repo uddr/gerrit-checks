@@ -15,8 +15,8 @@
 package com.google.gerrit.plugins.checks;
 
 import com.google.auto.value.AutoValue;
-import com.google.gerrit.reviewdb.client.PatchSet;
-import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.entities.PatchSet;
+import com.google.gerrit.entities.Project;
 
 /** Fields to identify a check. */
 @AutoValue

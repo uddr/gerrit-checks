@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.exceptions.DuplicateKeyException;
 import com.google.gerrit.extensions.api.changes.NotifyHandling;
 import com.google.gerrit.extensions.api.changes.NotifyInfo;
@@ -23,7 +24,6 @@ import com.google.gerrit.extensions.api.changes.RecipientType;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.plugins.checks.email.CombinedCheckStateUpdatedSender;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.ServerInitiated;

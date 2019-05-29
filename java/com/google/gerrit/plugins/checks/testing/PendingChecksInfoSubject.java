@@ -19,11 +19,11 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.MapSubject;
 import com.google.common.truth.Subject;
+import com.google.gerrit.entities.PatchSet;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.api.CheckablePatchSetInfo;
 import com.google.gerrit.plugins.checks.api.PendingCheckInfo;
 import com.google.gerrit.plugins.checks.api.PendingChecksInfo;
-import com.google.gerrit.reviewdb.client.PatchSet;
-import com.google.gerrit.reviewdb.client.Project;
 import java.util.Map;
 
 public class PendingChecksInfoSubject extends Subject {

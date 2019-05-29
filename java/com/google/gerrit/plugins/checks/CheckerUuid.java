@@ -20,7 +20,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Hashing;
 import com.google.gerrit.common.Nullable;
-import com.google.gerrit.reviewdb.client.RefNames;
+import com.google.gerrit.entities.RefNames;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

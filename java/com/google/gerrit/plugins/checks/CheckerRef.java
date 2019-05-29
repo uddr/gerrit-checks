@@ -14,10 +14,10 @@
 
 package com.google.gerrit.plugins.checks;
 
-import static com.google.gerrit.reviewdb.client.RefNames.REFS_CHANGES;
-import static com.google.gerrit.reviewdb.client.RefNames.shard;
+import static com.google.gerrit.entities.RefNames.REFS_CHANGES;
+import static com.google.gerrit.entities.RefNames.shard;
 
-import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.entities.Change;
 
 public class CheckerRef {
   /** Ref namespace for checkers. */

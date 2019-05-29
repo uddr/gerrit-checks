@@ -16,10 +16,10 @@ package com.google.gerrit.plugins.checks.acceptance;
 
 import static com.google.common.truth.Truth8.assertThat;
 
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
-import com.google.gerrit.reviewdb.client.Project;
 import java.util.stream.Stream;
 import org.junit.Test;
 
