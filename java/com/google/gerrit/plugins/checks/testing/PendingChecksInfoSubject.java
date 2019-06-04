@@ -26,7 +26,7 @@ import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import java.util.Map;
 
-public class PendingChecksInfoSubject extends Subject<PendingChecksInfoSubject, PendingChecksInfo> {
+public class PendingChecksInfoSubject extends Subject {
   public static PendingChecksInfoSubject assertThat(PendingChecksInfo pendingChecksInfo) {
     return assertAbout(PendingChecksInfoSubject::new).that(pendingChecksInfo);
   }

@@ -32,11 +32,10 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.db.CheckerConfig;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.truth.OptionalSubject;
-import java.sql.Timestamp;
 import java.util.Optional;
 import org.eclipse.jgit.lib.Config;
 
-public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerConfig> {
+public class CheckerConfigSubject extends Subject {
   public static CheckerConfigSubject assertThat(CheckerConfig checkerConfig) {
     return assertAbout(CheckerConfigSubject::new).that(checkerConfig);
   }
@@ -88,7 +87,7 @@ public class CheckerConfigSubject extends Subject<CheckerConfigSubject, CheckerC
     check("query()").about(optionals()).that(checker().getQuery()).isEmpty();
   }
 
-  public ComparableSubject<?, Timestamp> hasCreatedThat() {
+  public ComparableSubject hasCreatedThat() {
     return check("created()").that(checker().getCreated());
   }
 
