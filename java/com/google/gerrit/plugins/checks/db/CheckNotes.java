@@ -74,7 +74,7 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
 
     try (TraceTimer ignored =
         TraceContext.newTimer(
-            "Load check notes for change %s of project %s", getChangeId(), getProjectName())) {
+            "Load check notes", "changeId", getChangeId(), "projectName", getProjectName())) {
       RevCommit tipCommit = handle.walk().parseCommit(metaId);
       ObjectReader reader = handle.walk().getObjectReader();
       revisionNoteMap =
