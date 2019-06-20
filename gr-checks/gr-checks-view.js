@@ -2,6 +2,17 @@
   'use strict';
 
   const Defs = {};
+
+  const Statuses = window.Gerrit.Checks.Statuses;
+  const StatusPriorityOrder = [
+    Statuses.FAILED,
+    Statuses.SCHEDULED,
+    Statuses.RUNNING,
+    Statuses.SUCCESSFUL,
+    Statuses.NOT_STARTED,
+    Statuses.NOT_RELEVANT,
+  ];
+
   /**
    * @typedef {{
    *   _number: number,
@@ -46,6 +57,24 @@
       '_fetchChecks(change, revision, getChecks)',
     ],
 
+
+    _orderChecks(a, b) {
+      if (a.state != b.state) {
+        let indexA = StatusPriorityOrder.indexOf(a.state);
+        let indexB = StatusPriorityOrder.indexOf(b.state);
+        if (indexA != -1 && indexB != -1) {
+          return indexA - indexB;
+        }
+        return indexA == -1 ? 1 : -1;
+      }
+      if (a.state === Statuses.FAILED) {
+        if (a.blocking && b.blocking && a.blocking.length !== b.blocking.length) {
+          return a.blocking.length == 0 ? 1 : -1;
+        }
+      }
+      return a.checker_name.localeCompare(b.checker_name);
+    },
+
     /**
      * @param {!Defs.Change} change
      * @param {!Defs.Revision} revision
@@ -54,6 +83,7 @@
     _fetchChecks(change, revision, getChecks) {
       getChecks(change._number, revision._number).then(checks => {
         if (checks && checks.length) {
+          checks.sort(this._orderChecks);
           this.set('_checks', checks);
           this.set('_status', LoadingStatus.RESULTS);
         } else {
