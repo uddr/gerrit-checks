@@ -23,6 +23,14 @@
       return window.Gerrit.Checks.isInProgress(status);
     },
 
+    _isRunning(status) {
+      return window.Gerrit.Checks.isRunning(status);
+    },
+
+    _isScheduled(status) {
+      return window.Gerrit.Checks.isScheduled(status);
+    },
+
     _isSuccessful(status) {
       return window.Gerrit.Checks.isSuccessful(status);
     },

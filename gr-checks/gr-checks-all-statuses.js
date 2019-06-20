@@ -17,6 +17,8 @@
     SUCCESSFUL: 'SUCCESSFUL',
     FAILED: 'FAILED',
     NOT_RELEVANT: 'NOT_RELEVANT',
+
+    STATUS_UNKNOWN: 'UNKNOWN'
   };
 
   function isStatus(status, includedStatuses) {
@@ -25,6 +27,14 @@
 
   function isUnevaluated(status) {
     return isStatus(status, [Statuses.NOT_STARTED, Statuses.NOT_RELEVANT]);
+  }
+
+  function isScheduled(status) {
+    return isStatus(status, [Statuses.SCHEDULED]);
+  }
+
+  function isRunning(status) {
+    return isStatus(status, [Statuses.RUNNING]);
   }
 
   function isInProgress(status) {
@@ -57,6 +67,8 @@
 
   window.Gerrit.Checks.Statuses = Statuses;
   window.Gerrit.Checks.isUnevaluated = isUnevaluated;
+  window.Gerrit.Checks.isScheduled = isScheduled;
+  window.Gerrit.Checks.isRunning = isRunning;
   window.Gerrit.Checks.isInProgress = isInProgress;
   window.Gerrit.Checks.isSuccessful = isSuccessful;
   window.Gerrit.Checks.isFailed = isFailed;
