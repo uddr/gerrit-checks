@@ -16,9 +16,11 @@ package com.google.gerrit.plugins.checks.db;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.logging.Metadata;
 import com.google.gerrit.server.logging.TraceContext;
 import com.google.gerrit.server.logging.TraceContext.TraceTimer;
 import com.google.gerrit.server.notedb.AbstractChangeNotes;
@@ -37,6 +39,7 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
     CheckNotes create(Change change);
   }
 
+  private final String pluginName;
   private final Change change;
 
   private ImmutableMap<ObjectId, NoteDbCheckMap> entities;
@@ -44,8 +47,9 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
   private ObjectId metaId;
 
   @Inject
-  CheckNotes(Args args, @Assisted Change change) {
+  CheckNotes(Args args, @PluginName String pluginName, @Assisted Change change) {
     super(args, change.getId());
+    this.pluginName = pluginName;
     this.change = change;
   }
 
@@ -74,7 +78,12 @@ public class CheckNotes extends AbstractChangeNotes<CheckRevisionNote> {
 
     try (TraceTimer ignored =
         TraceContext.newTimer(
-            "Load check notes", "changeId", getChangeId(), "projectName", getProjectName())) {
+            "Load check notes",
+            Metadata.builder()
+                .pluginName(pluginName)
+                .projectName(getProjectName().get())
+                .changeId(getChangeId().get())
+                .build())) {
       RevCommit tipCommit = handle.walk().parseCommit(metaId);
       ObjectReader reader = handle.walk().getObjectReader();
       revisionNoteMap =
