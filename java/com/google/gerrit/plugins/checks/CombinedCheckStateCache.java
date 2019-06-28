@@ -87,8 +87,9 @@ public class CombinedCheckStateCache {
               new Description("Latency for reloading combined check state")
                   .setCumulative()
                   .setUnit(Units.MILLISECONDS),
-              Field.ofBoolean(
-                  "updated", "whether reloading resulted in updating the cached value"));
+              Field.ofBoolean("updated")
+                  .description("whether reloading resulted in updating the cached value")
+                  .build());
       reloadCount = AtomicLongMap.create();
     }
 
