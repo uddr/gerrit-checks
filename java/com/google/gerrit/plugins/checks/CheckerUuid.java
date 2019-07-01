@@ -147,12 +147,12 @@ public abstract class CheckerUuid implements Comparable<CheckerUuid> {
   }
 
   @Override
-  public String toString() {
+  public final String toString() {
     return get();
   }
 
   @Override
-  public int compareTo(CheckerUuid o) {
+  public final int compareTo(CheckerUuid o) {
     return get().compareTo(o.get());
   }
 }
