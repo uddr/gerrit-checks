@@ -68,6 +68,24 @@
       '_fetchChecks(change, revision, getChecks)',
     ],
 
+    listeners: {
+      'tap': 'showChecksTable'
+    },
+
+    showChecksTable() {
+      this.dispatchEvent(
+        new CustomEvent(
+          'show-checks-table',
+          {
+            bubbles: true,
+            composed: true,
+            detail: {
+              tab: 'change-view-tab-content-checks'
+            }
+          })
+        );
+    },
+
     /**
      * @param {!Defs.Change} change
      * @param {!Defs.Revision} revision
