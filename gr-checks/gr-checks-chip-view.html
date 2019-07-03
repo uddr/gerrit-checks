@@ -21,7 +21,7 @@
     <template is="dom-if" if="[[_hasChecks]]">
       Checks:
       <span class$="[[_chipClasses]]">
-        <gr-checks-status status="[[_status]]"></gr-checks-status>
+        <gr-checks-status status="[[_status]]" downgrade-failure-to-warning="[[_downgradeFailureToWarning]]"></gr-checks-status>
         [[_statusString]]
       </span>
     </template>

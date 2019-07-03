@@ -45,6 +45,22 @@
     }, {total: checks.length});
   }
 
+  function downgradeFailureToWarning(checks) {
+    const hasFailedCheck = checks.some(
+      (check) => {
+        return check.state == Statuses.FAILED;
+      }
+    )
+    if (!hasFailedCheck) return false;
+    const hasRequiredFailedCheck = checks.some(
+      (check) => {
+        return check.state == Statuses.FAILED && check.blocking && check.blocking.length > 0;
+      }
+    )
+    return !hasRequiredFailedCheck;
+  }
+
+
   Polymer({
     is: 'gr-checks-chip-view',
     _legacyUndefinedCheck: true,
@@ -62,6 +78,10 @@
         computed: '_computeStatusString(_status, _checkStatuses)',
       },
       _chipClasses: {type: String, computed: '_computeChipClass(_status)'},
+      _downgradeFailureToWarning: {
+        type: Boolean,
+        value: false
+      }
     },
 
     observers: [
@@ -97,6 +117,7 @@
         if (checks.length > 0) {
           this.set(
               '_checkStatuses', computeCheckStatuses(checks));
+          this.set('_downgradeFailureToWarning', downgradeFailureToWarning(checks));
         }
       });
     },
