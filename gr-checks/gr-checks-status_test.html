@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="imports.js"></script>
-<script src="webcomponentsjs/webcomponents-lite.js"></script>
-<link rel="import" href="polymer/polymer.html">
+<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+
+<link rel="import" href="/bower_components/polymer/polymer.html">
 
 <title>gr-checks-item</title>
-<link rel="import" href="webcomponent_lib/gr-checks-status.html">
+<link rel="import" href="gr-checks-status.html">
 
 <test-fixture id="basic">
   <template is="dom-template">
@@ -35,8 +36,8 @@
             });
 
             flush(() => {
-              const icon = element.$$(`span.${expectedStatusClass} i`);
-              assert.exists(icon);
+              const svg = element.$$(`span svg`);
+              assert.exists(svg);
               done();
             });
           });
@@ -47,7 +48,7 @@
             });
 
             flush(() => {
-              const text = element.$$(`span.${expectedStatusClass} span`);
+              const text = element.$$(`span span`);
               assert.equal(text.textContent.trim(), statusText);
               done();
             });
@@ -58,6 +59,7 @@
 
     testStatus('successful', 'Successful', ['SUCCESSFUL']);
     testStatus('failed', 'Failed', ['FAILED']);
-    testStatus('in-progress', 'In progress', ['NOT_STARTED', 'SCHEDULED', 'RUNNING']);
+    testStatus('running', 'In progress', ['RUNNING', 'SCHEDULED']);
+    testStatus('unevaluated', 'Unevaluated', ['NOT_STARTED']);
   });
 </script>

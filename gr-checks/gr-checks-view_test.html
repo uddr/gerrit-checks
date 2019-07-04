@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="imports.js"></script>
-<script src="webcomponentsjs/webcomponents-lite.js"></script>
-<link rel="import" href="polymer/polymer.html">
+<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+
+<link rel="import" href="/bower_components/polymer/polymer.html">
 
 <title>gr-checks-item</title>
-<link rel="import" href="webcomponent_lib/gr-checks-view.html">
+<link rel="import" href="gr-checks-view.html">
 
 <test-fixture id="basic">
   <template is="dom-template">
@@ -75,6 +76,7 @@ suite('gr-checks-view tests', () => {
       isConfigured: isConfiguredSpy,
       change: {
         'project': 'test-repository',
+        '_number': 2,
         'revisions': {
           'first-sha': "test-revision",
           'second-sha': REVISION,
@@ -93,7 +95,7 @@ suite('gr-checks-view tests', () => {
 
   test('queries the checks', () => {
     assert.isTrue(getChecksSpy.called);
-    assert.isTrue(getChecksSpy.calledWith('test-repository', 'second-sha'));
+    assert.isTrue(getChecksSpy.calledWith(2, 3));
   });
 
   suite('no checks returned', () => {
