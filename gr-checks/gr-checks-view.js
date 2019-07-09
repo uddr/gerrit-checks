@@ -13,6 +13,8 @@
     Statuses.NOT_RELEVANT,
   ];
 
+  const CHECKS_POLL_INTERVAL_MS = 60 * 1000;
+
   /**
    * @typedef {{
    *   _number: number,
@@ -51,10 +53,11 @@
         type: Object,
         value: LoadingStatus.LOADING,
       },
+      pollChecksInterval: Object
     },
 
     observers: [
-      '_fetchChecks(change, revision, getChecks)',
+      '_pollChecksRegularly(change, revision, getChecks)',
     ],
 
 
@@ -90,6 +93,15 @@
           this._checkConfigured();
         }
       });
+    },
+
+    _pollChecksRegularly(change, revision, getChecks) {
+      if (this.pollChecksInterval) {
+        clearInterval(this.pollChecksInterval);
+      }
+      const poll = () => this._fetchChecks(change, revision, getChecks);
+      poll();
+      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS)
     },
 
     _checkConfigured() {
