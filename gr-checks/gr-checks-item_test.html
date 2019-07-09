@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="imports.js"></script>
-<script src="webcomponentsjs/webcomponents-lite.js"></script>
-<link rel="import" href="polymer/polymer.html">
+<script src="../../../bower_components/webcomponentsjs/webcomponents.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<script src="../../../bower_components/moment/min/moment.min.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
 
 <title>gr-checks-item</title>
-<link rel="import" href="webcomponent_lib/gr-checks-item.html">
+<link rel="import" href="gr-checks-item.html">
 
 <test-fixture id="basic">
   <template is="dom-template">
@@ -31,9 +32,9 @@
         retryCheck: retryCheckSpy,
         check: {
           checkId: 'test-check-id',
-          logUrl: 'http://example.com/test-log-url',
-          startTime: "2019-02-06T22:25:19.269Z",
-          finishTime: "2019-02-06T22:25:44.574Z",
+          url: 'http://example.com/test-log-url',
+          started: "2019-02-06T22:25:19.269Z",
+          finished: "2019-02-06T22:25:44.574Z",
         },
       });
       flush(done);
@@ -46,14 +47,9 @@
       assert.exists(status);
     });
 
-    test('renders the checking system', () => {
-      const checkingSystem = element.$$('td:nth-child(4)');
-      assert.equal(checkingSystem .textContent.trim(), "Check System");
-    });
-
-    test('renders the run date', () => {
+    test('renders the run time', () => {
       const name = element.$$('td:nth-child(5)');
-      assert.equal(name .textContent.trim(), "2/6/2019");
+      assert.equal(name .textContent.trim(), "11:25:19 PM");
     });
 
     suite('duration', () => {
@@ -65,9 +61,9 @@
       test('renders 0 sec when the start and end time are the same', () => {
         element.check = {
           checkId: 'test-check-id',
-          logUrl: 'http://example.com/test-log-url',
-          startTime: "2019-02-06T22:25:19.269Z",
-          finishTime: "2019-02-06T22:25:19.269Z",
+          url: 'http://example.com/test-log-url',
+          started: "2019-02-06T22:25:19.269Z",
+          finished: "2019-02-06T22:25:19.269Z",
         };
         const name = element.$$('td:nth-child(6)');
         assert.equal(name .textContent.trim(), "0 sec");
@@ -80,22 +76,24 @@
       assert.equal(logLink.textContent.trim(), "View log");
     });
 
-    suite('retryCheck', () => {
-      let retryCheckLink;
+    // pausing this check until retry api is available from backend
+    // suite('retryCheck', () => {
+    //   let retryCheckLink;
 
-      setup(() => {
-        retryCheckLink = element.$$('td:nth-child(7) > gr-button');
-      });
+    //   setup(() => {
+    //     retryCheckLink = element.$$('td:nth-child(7) > gr-button');
+    //   });
 
-      test('shows a link to the log url', () => {
-        assert.equal(retryCheckLink.textContent.trim(), "Re-run");
-      });
+    //   test('shows a link to the retry button', () => {
+    //     assert.equal(retryCheckLink.textContent.trim(), "Re-run");
+    //   });
 
-      test('clicking on the link calls the retryCheck property', () => {
-        assert.isFalse(retryCheckSpy.called);
-        retryCheckLink.click();
-        assert.isTrue(retryCheckSpy.called);
-      });
-    });
+    //   test('clicking on the link calls the retryCheck property', () => {
+    //     assert.isFalse(retryCheckSpy.called);
+    //     retryCheckLink.click();
+    //     assert.isTrue(retryCheckSpy.called);
+    //   });
+    // });
+
   });
 </script>
