@@ -23,6 +23,8 @@
     FAILED: 'failed',
   };
 
+  const CHECKS_POLL_INTERVAL_MS = 60 * 1000;
+
   const Defs = {};
   /**
    * @typedef {{
@@ -81,11 +83,12 @@
       _downgradeFailureToWarning: {
         type: Boolean,
         value: false
-      }
+      },
+      pollChecksInterval: Object
     },
 
     observers: [
-      '_fetchChecks(change, revision, getChecks)',
+      '_pollChecksRegularly(change, revision, getChecks)',
     ],
 
     listeners: {
@@ -115,11 +118,19 @@
       getChecks(change._number, revision._number).then(checks => {
         this.set('_hasChecks', checks.length > 0);
         if (checks.length > 0) {
-          this.set(
-              '_checkStatuses', computeCheckStatuses(checks));
+          this.set('_checkStatuses', computeCheckStatuses(checks));
           this.set('_downgradeFailureToWarning', downgradeFailureToWarning(checks));
         }
       });
+    },
+
+    _pollChecksRegularly(change, revision, getChecks) {
+      if (this.pollChecksInterval) {
+        clearInterval(this.pollChecksInterval);
+      }
+      const poll = () => this._fetchChecks(change, revision, getChecks);
+      poll();
+      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS)
     },
 
     /**
