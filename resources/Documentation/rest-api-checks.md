@@ -156,6 +156,17 @@ If the [checker-id](./rest-api-checkers.md#checker-id) is provided as part of
 the URL, it must either match the value provided in the request body via
 [CheckInput](#check-input) or the value in the request body is omitted.
 
+### <a id="rerun-check"> Rerun Check
+
+_'POST /changes/1/revisions/1/checks/test:my-checker/rerun'_
+
+Reruns a check. As response the [CheckInfo](#check-info) entity is returned that
+describes the created check.
+
+
+This REST endpoint supports rerunning a check. It also resets all relevant check
+fields such as `message`, `url`, `started` and `finished`.
+
 ## <a id="json-entities"> JSON Entities
 
 ### <a id="check-info"> CheckInfo
