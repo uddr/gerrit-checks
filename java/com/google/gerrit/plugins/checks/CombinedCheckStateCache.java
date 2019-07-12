@@ -24,6 +24,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.util.concurrent.AtomicLongMap;
 import com.google.gerrit.exceptions.StorageException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.metrics.Description;
 import com.google.gerrit.metrics.Description.Units;
 import com.google.gerrit.metrics.Field;
@@ -37,6 +38,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.cache.CacheModule;
 import com.google.gerrit.server.cache.serialize.EnumCacheSerializer;
 import com.google.gerrit.server.cache.serialize.ProtobufSerializer;
+import com.google.gerrit.server.logging.PluginMetadata;
 import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
@@ -80,14 +82,20 @@ public class CombinedCheckStateCache {
     private final AtomicLongMap<Boolean> reloadCount;
 
     @Inject
-    Metrics(MetricMaker metricMaker) {
+    Metrics(@PluginName String pluginName, MetricMaker metricMaker) {
       reloadLatency =
           metricMaker.newTimer(
               "checks/reload_combined_check_state",
               new Description("Latency for reloading combined check state")
                   .setCumulative()
                   .setUnit(Units.MILLISECONDS),
-              Field.ofBoolean("updated")
+              Field.ofBoolean(
+                      "updated",
+                      (metadataBuilder, fieldValue) ->
+                          metadataBuilder
+                              .pluginName(pluginName)
+                              .addPluginMetadata(
+                                  PluginMetadata.create("updated", Boolean.toString(fieldValue))))
                   .description("whether reloading resulted in updating the cached value")
                   .build());
       reloadCount = AtomicLongMap.create();
