@@ -53,13 +53,21 @@
         type: Object,
         value: LoadingStatus.LOADING,
       },
-      pollChecksInterval: Object
+      pollChecksInterval: Object,
+      visibilityChangeListenerAdded: {
+        type: Boolean,
+        value: false
+      }
     },
 
     observers: [
       '_pollChecksRegularly(change, revision, getChecks)',
     ],
 
+    detached() {
+      clearInterval(this.pollChecksInterval);
+      this.unlisten(document, 'visibilitychange', '_onVisibililityChange');
+    },
 
     _orderChecks(a, b) {
       if (a.state != b.state) {
@@ -95,6 +103,14 @@
       });
     },
 
+    _onVisibililityChange() {
+      if (document.hidden) {
+        clearInterval(this.pollChecksInterval);
+        return;
+      }
+      this._pollChecksRegularly(this.change, this.revision, this.getChecks);
+    },
+
     _pollChecksRegularly(change, revision, getChecks) {
       if (this.pollChecksInterval) {
         clearInterval(this.pollChecksInterval);
@@ -102,6 +118,10 @@
       const poll = () => this._fetchChecks(change, revision, getChecks);
       poll();
       this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS)
+      if (!this.visibilityChangeListenerAdded) {
+        this.visibilityChangeListenerAdded = true;
+        this.listen(document, 'visibilitychange', '_onVisibililityChange');
+      }
     },
 
     _checkConfigured() {
