@@ -84,8 +84,7 @@
         type: Boolean,
         value: false
       },
-      pollChecksInterval: Object,
-      visibilityChangeListener: Object
+      pollChecksInterval: Object
     },
 
     observers: [
@@ -125,27 +124,13 @@
       });
     },
 
-    onVisibililityChange() {
-      if (document.hidden) {
-        clearInterval(this.pollChecksInterval);
-        return;
-      }
-      this._pollChecksRegularly(this.change, this.revision, this.getChecks);
-    },
-
     _pollChecksRegularly(change, revision, getChecks) {
       if (this.pollChecksInterval) {
         clearInterval(this.pollChecksInterval);
       }
       const poll = () => this._fetchChecks(change, revision, getChecks);
       poll();
-      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS);
-      if (!this.visibilityChangeListener) {
-        this.visibilityChangeListener = document.addEventListener(
-          'visibilitychange',
-          this.onVisibililityChange.bind(this)
-        );
-      }
+      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS)
     },
 
     /**
