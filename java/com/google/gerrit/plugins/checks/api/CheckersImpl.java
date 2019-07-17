@@ -64,7 +64,7 @@ public class CheckersImpl implements Checkers {
   @Override
   public List<CheckerInfo> all() throws RestApiException {
     try {
-      return listCheckers.apply(TopLevelResource.INSTANCE);
+      return listCheckers.apply(TopLevelResource.INSTANCE).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot list all checkers ", e);
     }

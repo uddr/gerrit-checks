@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.server.permissions.PermissionBackendException;
@@ -34,7 +35,7 @@ public class UpdateCheck implements RestModifyView<CheckResource, CheckInput> {
   }
 
   @Override
-  public CheckInfo apply(CheckResource checkResource, CheckInput input)
+  public Response<CheckInfo> apply(CheckResource checkResource, CheckInput input)
       throws RestApiException, IOException, StorageException, PermissionBackendException,
           ConfigInvalidException {
     if (input == null) {

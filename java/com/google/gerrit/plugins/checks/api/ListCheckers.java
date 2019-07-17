@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.api;
 import static java.util.stream.Collectors.toList;
 
 import com.google.gerrit.extensions.restapi.AuthException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
@@ -55,13 +56,13 @@ public class ListCheckers implements RestReadView<TopLevelResource> {
   }
 
   @Override
-  public List<CheckerInfo> apply(TopLevelResource resource)
+  public Response<List<CheckerInfo>> apply(TopLevelResource resource)
       throws RestApiException, PermissionBackendException, IOException {
     if (!self.get().isIdentifiedUser()) {
       throw new AuthException("Authentication required");
     }
     permissionBackend.currentUser().check(permission);
 
-    return checkers.listCheckers().stream().map(checkerJson::format).collect(toList());
+    return Response.ok(checkers.listCheckers().stream().map(checkerJson::format).collect(toList()));
   }
 }

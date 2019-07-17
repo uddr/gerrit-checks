@@ -65,7 +65,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
   @Override
   public CheckApi create(CheckInput input) throws RestApiException {
     try {
-      CheckInfo checkInfo = postCheck.apply(revisionResource, input);
+      CheckInfo checkInfo = postCheck.apply(revisionResource, input).value();
       return id(CheckerUuid.parse(checkInfo.checkerUuid));
     } catch (Exception e) {
       throw asRestApiException("Cannot create check", e);
@@ -76,7 +76,7 @@ class ChecksImpl implements com.google.gerrit.plugins.checks.api.Checks {
   public ImmutableList<CheckInfo> list(ListChecksOption... options) throws RestApiException {
     try {
       Arrays.stream(options).forEach(listChecks::addOption);
-      return listChecks.apply(revisionResource);
+      return listChecks.apply(revisionResource).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot list checks", e);
     }

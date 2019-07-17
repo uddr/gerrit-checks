@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.api;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
@@ -68,7 +69,7 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
   }
 
   @Override
-  public CheckerInfo apply(CheckerResource resource, CheckerInput input)
+  public Response<CheckerInfo> apply(CheckerResource resource, CheckerInput input)
       throws RestApiException, PermissionBackendException, NoSuchCheckerException, IOException,
           ConfigInvalidException, StorageException {
     permissionBackend.currentUser().check(permission);
@@ -120,7 +121,7 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
 
     Checker updatedChecker =
         checkersUpdate.get().updateChecker(checkerUuid, checkerUpdateBuilder.build());
-    return checkerJson.format(updatedChecker);
+    return Response.ok(checkerJson.format(updatedChecker));
   }
 
   private Project.NameKey resolveRepository(String repository)

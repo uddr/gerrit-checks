@@ -42,7 +42,7 @@ public class CheckApiImpl implements CheckApi {
   public CheckInfo get(ListChecksOption... options) throws RestApiException {
     try {
       Arrays.stream(options).forEach(getCheck::addOption);
-      return getCheck.apply(checkResource);
+      return getCheck.apply(checkResource).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot retrieve check", e);
     }
@@ -51,7 +51,7 @@ public class CheckApiImpl implements CheckApi {
   @Override
   public CheckInfo update(CheckInput input) throws RestApiException {
     try {
-      return updateCheck.apply(checkResource, input);
+      return updateCheck.apply(checkResource, input).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot update check", e);
     }

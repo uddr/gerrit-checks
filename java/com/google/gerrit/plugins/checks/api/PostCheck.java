@@ -18,6 +18,7 @@ import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionModifyView;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
@@ -74,7 +75,7 @@ public class PostCheck
   }
 
   @Override
-  public CheckInfo apply(RevisionResource rsrc, CheckInput input)
+  public Response<CheckInfo> apply(RevisionResource rsrc, CheckInput input)
       throws StorageException, IOException, RestApiException, PermissionBackendException,
           ConfigInvalidException {
     if (!self.get().isIdentifiedUser()) {
@@ -112,7 +113,7 @@ public class PostCheck
     } else {
       updatedCheck = checksUpdate.get().updateCheck(key, toCheckUpdate(input));
     }
-    return checkJsonFactory.noOptions().format(updatedCheck);
+    return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
   }
 
   private static CheckUpdate toCheckUpdate(CheckInput input) throws BadRequestException {
