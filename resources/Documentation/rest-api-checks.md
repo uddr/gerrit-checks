@@ -161,22 +161,23 @@ the URL, it must either match the value provided in the request body via
 ### <a id="check-info"> CheckInfo
 The `CheckInfo` entity describes a check.
 
-| Field Name        |          | Description |
-| ----------------- | -------- | ----------- |
-| `repository`      |          | The repository name that this check applies to.
-| `change_number`   |          | The change number that this check applies to.
-| `patch_set_id`    |          | The patch set that this check applies to.
-| `checker_uuid`    |          | The [UUID](./rest-api-checkers.md#checker-id) of the checker that reported this check.
-| `state`           |          | The state as string-serialized form of [CheckState](#check-state)
-| `message`         | optional | Short message explaining the check state.
-| `url`             | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
-| `started`         | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check started processing.
-| `finished`        | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.
-| `created`         |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check was created.
-| `updated`         |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check was last updated.
-| `checker_name`    | optional | The name of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
-| `checker_status`  | optional | The [status](rest-api-checkers.md#checker-info) of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
-| `blocking`        | optional | Set of [blocking conditions](rest-api-checkers.md#blocking-conditions) that apply to this checker.<br />Only set if [checker details](#option-checker) are requested.
+| Field Name            |          | Description |
+| --------------------- | -------- | ----------- |
+| `repository`          |          | The repository name that this check applies to.
+| `change_number`       |          | The change number that this check applies to.
+| `patch_set_id`        |          | The patch set that this check applies to.
+| `checker_uuid`        |          | The [UUID](./rest-api-checkers.md#checker-id) of the checker that reported this check.
+| `state`               |          | The state as string-serialized form of [CheckState](#check-state)
+| `message`             | optional | Short message explaining the check state.
+| `url`                 | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
+| `started`             | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check started processing.
+| `finished`            | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.
+| `created`             |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check was created.
+| `updated`             |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check was last updated.
+| `checker_name`        | optional | The name of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
+| `checker_status`      | optional | The [status](rest-api-checkers.md#checker-info) of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
+| `blocking`            | optional | Set of [blocking conditions](rest-api-checkers.md#blocking-conditions) that apply to this checker.<br />Only set if [checker details](#option-checker) are requested.
+| `checker_description` | optional | The description of the checker that reported this check.
 
 ### <a id="check-input"> CheckInput
 The `CheckInput` entity contains information for creating or updating a check.

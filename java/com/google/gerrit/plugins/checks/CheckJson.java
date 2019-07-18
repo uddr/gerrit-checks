@@ -89,6 +89,7 @@ public class CheckJson {
                 info.checkerName = checker.getName().orElse(null);
                 info.checkerStatus = checker.getStatus();
                 info.blocking = checker.getBlockingConditions();
+                info.checkerDescription = checker.getDescription().orElse(null);
               });
     } catch (ConfigInvalidException e) {
       logger.atWarning().withCause(e).log("skipping invalid checker %s", checkerUuid);

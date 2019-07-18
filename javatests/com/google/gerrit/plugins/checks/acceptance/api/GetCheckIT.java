@@ -89,7 +89,12 @@ public class GetCheckIT extends AbstractCheckersTest {
   @Test
   public void getCheckWithOptions() throws Exception {
     CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).name("My Checker").create();
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .name("My Checker")
+            .description("Description")
+            .create();
 
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).state(CheckState.RUNNING).upsert();
@@ -99,7 +104,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     expectedCheckInfo.checkerName = "My Checker";
     expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
     expectedCheckInfo.blocking = ImmutableSortedSet.of();
-
+    expectedCheckInfo.checkerDescription = "Description";
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER))
         .isEqualTo(expectedCheckInfo);
   }
