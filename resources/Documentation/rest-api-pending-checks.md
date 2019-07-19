@@ -128,3 +128,5 @@ The following query operators are supported in the input
   `RUNNING`).
 * <a id="state-operator"></a> `state:'STATE'`:
   Matches checks with the state 'STATE'.
+* <a id="scheme-operator"></a> `scheme:'SCHEME'`:
+  Matches checks with the scheme 'SCHEME'.

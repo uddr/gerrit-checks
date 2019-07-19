@@ -14,12 +14,12 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import static com.google.common.base.Preconditions.checkState;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -35,9 +35,11 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
+import com.google.gerrit.plugins.checks.index.CheckPredicate;
 import com.google.gerrit.plugins.checks.index.CheckQueryBuilder;
 import com.google.gerrit.plugins.checks.index.CheckStatePredicate;
 import com.google.gerrit.plugins.checks.index.CheckerPredicate;
+import com.google.gerrit.plugins.checks.index.CheckerSchemePredicate;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -55,7 +57,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
   private final Checkers checkers;
   private final Checks checks;
   private final Provider<CheckerQuery> checkerQueryProvider;
-
+  @VisibleForTesting public static final int MAX_ALLOWED_QUERIES = 10;
   private String queryString;
 
   @Option(
@@ -92,21 +94,59 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
       throw new BadRequestException("query is required");
     }
 
-    Predicate<Check> query = validateQuery(parseQuery(queryString));
-    if (!hasStatePredicate(query)) {
-      query = Predicate.and(new CheckStatePredicate(CheckState.NOT_STARTED), query);
+    Predicate<Check> predicate = validateQuery(parseQuery(queryString));
+    if (!hasStatePredicate(predicate)) {
+      predicate = Predicate.and(new CheckStatePredicate(CheckState.NOT_STARTED), predicate);
     }
+    // this variable is for the lambda expressions when using orElseThrow
+    final Predicate<Check> finalPredicate = predicate;
 
-    Optional<Checker> checker = checkers.getChecker(getCheckerUuidFromQuery(query));
-    if (!checker.isPresent() || checker.get().isDisabled()) {
-      return Response.ok(ImmutableList.of());
+    if (countPredicates(predicate, CheckerPredicate.class) == 1) {
+      // Checker query
+      Optional<Checker> checker =
+          checkers.getChecker(
+              getCheckerUuidFromQuery(predicate)
+                  .orElseThrow(
+                      () ->
+                          new IllegalStateException(
+                              String.format("no checker predicate found: %s", finalPredicate))));
+      if (!checker.isPresent() || checker.get().isDisabled()) {
+        return Response.ok(ImmutableList.of());
+      }
+      List<ChangeData> changes = checkerQueryProvider.get().queryMatchingChanges(checker.get());
+      return Response.ok(getPendingChecksOfChecker(checker.get(), predicate, changes));
     }
+    // Scheme query
+    String scheme =
+        getSchemeFromQuery(predicate)
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        String.format("no checker scheme predicate found: %s", finalPredicate)));
+    ImmutableList<Checker> checkersOfScheme = checkers.listCheckers(scheme);
+    if (checkersOfScheme.size() > MAX_ALLOWED_QUERIES) {
+      throw new ResourceConflictException(
+          String.format(
+              "Too many checkers exist with that scheme, allowed maximum is %s. Found %s checkers",
+              MAX_ALLOWED_QUERIES, checkersOfScheme.size()));
+    }
+    List<List<ChangeData>> changes =
+        checkerQueryProvider.get().queryMatchingChanges(checkersOfScheme);
+    List<PendingChecksInfo> pendingChecks = new ArrayList<>();
+    for (int i = 0; i < changes.size(); i++) {
+      pendingChecks.addAll(
+          getPendingChecksOfChecker(checkersOfScheme.get(i), predicate, changes.get(i)));
+    }
+    return Response.ok(pendingChecks);
+  }
+
+  private List<PendingChecksInfo> getPendingChecksOfChecker(
+      Checker checker, Predicate<Check> query, List<ChangeData> changes) throws IOException {
 
     // The query system can only match against the current patch set; ignore non-current patch sets
     // for now.
-    List<ChangeData> changes = checkerQueryProvider.get().queryMatchingChanges(checker.get());
-    CheckerUuid checkerUuid = checker.get().getUuid();
-    List<PendingChecksInfo> pendingChecks = new ArrayList<>(changes.size());
+    List<PendingChecksInfo> pendingChecks = new ArrayList<>();
+    CheckerUuid checkerUuid = checker.getUuid();
     for (ChangeData cd : changes) {
       PatchSet patchSet = cd.currentPatchSet();
       CheckKey checkKey = CheckKey.create(cd.project(), patchSet.id(), checkerUuid);
@@ -118,13 +158,13 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
       Check check =
           checks
               .getCheck(checkKey, GetCheckOptions.defaults())
-              .orElseGet(() -> Check.newBackfilledCheck(cd.project(), patchSet, checker.get()));
+              .orElseGet(() -> Check.newBackfilledCheck(cd.project(), patchSet, checker));
 
       if (query.asMatchable().match(check)) {
         pendingChecks.add(createPendingChecksInfo(cd.project(), patchSet, checkerUuid, check));
       }
     }
-    return Response.ok(pendingChecks);
+    return pendingChecks;
   }
 
   private Predicate<Check> parseQuery(String query) throws BadRequestException {
@@ -137,28 +177,36 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
 
   private static Predicate<Check> validateQuery(Predicate<Check> predicate)
       throws BadRequestException {
-    if (countCheckerPredicates(predicate) != 1)
+    int numCheckPredicates = countPredicates(predicate, CheckerPredicate.class);
+    int numSchemePredicates = countPredicates(predicate, CheckerSchemePredicate.class);
+    String exceptionMessage =
+        String.format(
+            "query must be '%s:<checker-uuid>' or '%s:<checker-uuid> AND <other-operators>' or '%s:<checker-scheme>' or '%s:<checker-scheme> AND <other-operators>'",
+            CheckQueryBuilder.FIELD_CHECKER,
+            CheckQueryBuilder.FIELD_CHECKER,
+            CheckQueryBuilder.FIELD_SCHEME,
+            CheckQueryBuilder.FIELD_SCHEME);
+    if (numCheckPredicates + numSchemePredicates != 1) {
       throw new BadRequestException(
           String.format(
-              "query must contain exactly 1 '%s' operator", CheckQueryBuilder.FIELD_CHECKER));
+              "query must contain exactly 1 '%s' operator or '%s' operator",
+              CheckQueryBuilder.FIELD_CHECKER, CheckQueryBuilder.FIELD_SCHEME));
+    }
 
     // the root predicate must either be an AndPredicate ....
     if (predicate instanceof AndPredicate) {
       // if the root predicate is an AndPredicate, any of its direct children must be a
-      // CheckerPredicate, the other child predicates can be anything (including any combination of
+      // CheckerPredicate or CheckerSchemePredicate, the other child predicates can be anything
+      // (including any combination of
       // AndPredicate, OrPredicate and NotPredicate).
-      if (predicate.getChildren().stream().noneMatch(CheckerPredicate.class::isInstance)) {
-        throw new BadRequestException(
-            String.format(
-                "query must be '%s:<checker-uuid>' or '%s:<checker-uuid> AND <other-operators>'",
-                CheckQueryBuilder.FIELD_CHECKER, CheckQueryBuilder.FIELD_CHECKER));
+      if (predicate.getChildren().stream().noneMatch(CheckerPredicate.class::isInstance)
+          && predicate.getChildren().stream().noneMatch(CheckerSchemePredicate.class::isInstance)) {
+        throw new BadRequestException(exceptionMessage);
       }
-      // ... or a CheckerPredicate
-    } else if (!(predicate instanceof CheckerPredicate)) {
-      throw new BadRequestException(
-          String.format(
-              "query must be '%s:<checker-uuid>' or '%s:<checker-uuid> AND <other-operators>'",
-              CheckQueryBuilder.FIELD_CHECKER, CheckQueryBuilder.FIELD_CHECKER));
+      // ... or a CheckerPredicate / CheckerSchemePredicate
+    } else if (!(predicate instanceof CheckerPredicate
+        || predicate instanceof CheckerSchemePredicate)) {
+      throw new BadRequestException(exceptionMessage);
     }
     return predicate;
   }
@@ -179,40 +227,54 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
    * <p>This method doesn't validate that the checker predicates appear in any particular location.
    *
    * @param predicate the predicate in which the checker predicates should be counted
+   * @param predicateClass the class of the predicate (schema or checker)
    * @return the number of checker predicates in the given predicate
    */
-  private static int countCheckerPredicates(Predicate<Check> predicate) {
-    if (predicate instanceof CheckerPredicate) {
+  private static int countPredicates(
+      Predicate<Check> predicate, Class<? extends CheckPredicate> predicateClass) {
+    if (predicateClass.isInstance(predicate)) {
       return 1;
     }
     if (predicate.getChildCount() == 0) {
       return 0;
     }
     return predicate.getChildren().stream()
-        .mapToInt(QueryPendingChecks::countCheckerPredicates)
+        .mapToInt(p -> QueryPendingChecks.countPredicates(p, predicateClass))
         .sum();
   }
 
-  private static CheckerUuid getCheckerUuidFromQuery(Predicate<Check> predicate) {
+  private static Optional<CheckerUuid> getCheckerUuidFromQuery(Predicate<Check> predicate) {
     // the query validation (see #validateQuery(Predicate<Check>)) ensures that there is exactly 1
-    // CheckerPredicate and that it is on the first or second level of the predicate tree.
+    // CheckerPredicate or CheckerSchemePredicate and that it is on the first or second level of the
+    // predicate tree.
 
     if (predicate instanceof CheckerPredicate) {
-      return ((CheckerPredicate) predicate).getCheckerUuid();
+      return Optional.of(((CheckerPredicate) predicate).getCheckerUuid());
     }
 
-    checkState(predicate.getChildCount() > 0, "no checker predicate found: %s", predicate);
     Optional<CheckerPredicate> checkerPredicate =
         predicate.getChildren().stream()
             .filter(CheckerPredicate.class::isInstance)
             .map(p -> (CheckerPredicate) p)
             .findAny();
-    return checkerPredicate
-        .map(CheckerPredicate::getCheckerUuid)
-        .orElseThrow(
-            () ->
-                new IllegalStateException(
-                    String.format("no checker predicate found: %s", predicate)));
+    return checkerPredicate.map(CheckerPredicate::getCheckerUuid);
+  }
+
+  private static Optional<String> getSchemeFromQuery(Predicate<Check> predicate) {
+    // the query validation (see #validateQuery(Predicate<Check>)) ensures that there is exactly 1
+    // CheckerPredicate or CheckerSchemePredicate and that it is on the first or second level of the
+    // predicate tree.
+
+    if (predicate instanceof CheckerSchemePredicate) {
+      return Optional.of(((CheckerSchemePredicate) predicate).getCheckerScheme());
+    }
+
+    Optional<CheckerSchemePredicate> checkerSchemePredicate =
+        predicate.getChildren().stream()
+            .filter(CheckerSchemePredicate.class::isInstance)
+            .map(p -> (CheckerSchemePredicate) p)
+            .findAny();
+    return checkerSchemePredicate.map(CheckerSchemePredicate::getCheckerScheme);
   }
 
   private static PendingChecksInfo createPendingChecksInfo(
