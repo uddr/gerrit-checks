@@ -183,7 +183,7 @@ The `CheckInput` entity contains information for creating or updating a check.
 
 | Field Name      |          | Description |
 | --------------- | -------- | ----------- |
-| `checker_uuid`  | optional | The name of the checker. Must be specified for checker creation. Optional only if updating a check and referencing the checker using the [UUID](./rest-api-checkers.md#checker-id) in the URL.
+| `checker_uuid`  | optional | The [UUID](#checker-id) of the checker. Must be specified for check creation. Optional only if updating a check and referencing the checker using the [UUID](./rest-api-checkers.md#checker-id) in the URL.
 | `state`         | optional | The state as string-serialized form of [CheckState](#check-state)
 | `message`       | optional | Short message explaining the check state.
 | `url`           | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
