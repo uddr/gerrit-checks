@@ -38,7 +38,7 @@ import org.junit.Before;
     sysModule = "com.google.gerrit.plugins.checks.acceptance.TestModule",
     httpModule = "com.google.gerrit.plugins.checks.HttpModule")
 public class AbstractCheckersTest extends LightweightPluginDaemonTest {
-  @Inject protected ProjectOperations projectOperations;
+  @Inject private ProjectOperations projectOperations;
 
   protected CheckerOperations checkerOperations;
   protected CheckOperations checkOperations;

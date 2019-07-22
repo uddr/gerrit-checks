@@ -24,6 +24,7 @@ import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
+import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInput;
@@ -51,6 +52,7 @@ import org.junit.Test;
 
 @SkipProjectClone
 public class CheckerRefsIT extends AbstractCheckersTest {
+  @Inject private ProjectOperations projectOperations;
   @Inject private Sequences seq;
   @Inject private ChangeInserter.Factory changeInserterFactory;
   @Inject private BatchUpdate.Factory updateFactory;
