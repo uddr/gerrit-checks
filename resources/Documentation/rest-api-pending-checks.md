@@ -44,7 +44,7 @@ This means pending checks for non-visible changes are filtered out.
 #### Request by checker
 
 ```
-  GET /plugins/@PLUGIN@/checks.pending/?query=checker=test:my-checker+(state:NOT_STARTED+OR+state:SCHEDULED) HTTP/1.0
+  GET /plugins/@PLUGIN@/checks.pending/?query=checker:test:my-checker+(state:NOT_STARTED+OR+state:SCHEDULED) HTTP/1.0
 ```
 
 As response a list of [PendingChecksInfo](#pending-checks-info)
