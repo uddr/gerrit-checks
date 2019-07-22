@@ -49,7 +49,7 @@ _'POST /plugins/@PLUGIN@/checkers/'_
 Creates a new checker.
 
 In the request body the data for the checker must be provided as a
-[CheckerInput](#checker-input) entity.
+[CheckerCreateInput](#checker-create-input) entity.
 
 Note that only users with the [Administrate
 Checkers](access-control.md#capability_administrateCheckers) global capability
@@ -94,12 +94,12 @@ _'POST /plugins/@PLUGIN@/checkers/[\{checker-id\}](#checker-id)'_
 Updates a checker.
 
 The new property values must be set in the request body in a
-[CheckerInput](#checker-input) entity.
+[CheckerUpdateInput](#checker-update-input) entity.
 
 This REST endpoint supports partial updates of the checker property set. Only
-properties that are set in the [CheckerInput](#checker-input) entity are
-updated. Properties that are not set in the input (or that have `null` as value)
-are not touched.
+properties that are set in the [CheckerUpdateInput](#checker-update-input)
+entity are updated. Properties that are not set in the input (or that have
+`null` as value) are not touched.
 
 Unsetting properties:
 
@@ -174,6 +174,20 @@ may be ambiguous.
 
 ## <a id="json-entities"> JSON Entities
 
+### <a id="checker-create-input"> CheckerCreateInput
+The `CheckerCreateInput` entity contains information for creating a checker.
+
+| Field Name      |          | Description |
+| --------------- | -------- | ----------- |
+| `uuid`          |          | The [UUID](#checker-id) of the checker.
+| `name`          |          | The name of the checker.
+| `description`   | optional | The description of the checker.
+| `url`           | optional | The URL of the checker.
+| `repository`    |          | The (exact) name of the repository for which the checker applies.
+| `status`        | optional | The status of the checker; one of `ENABLED` or `DISABLED`.
+| `blocking`      | optional | A list of [conditions](#blocking-conditions) that describe when the checker should block change submission.
+| `query`         | optional | A [query](#query) that limits changes for which the checker is relevant.
+
 ### <a id="checker-info"> CheckerInfo
 The `CheckerInfo` entity describes a checker.
 
@@ -190,12 +204,12 @@ The `CheckerInfo` entity describes a checker.
 | `created`       |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was created.
 | `updated`       |          | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the checker was last updated.
 
-### <a id="checker-input"> CheckerInput
-The `CheckerInput` entity contains information for creating a checker.
+### <a id="checker-update-input"> CheckerUpdateInput
+The `CheckerUpdateInput` entity contains information for updating a checker.
 
 | Field Name      |          | Description |
 | --------------- | -------- | ----------- |
-| `name`          | optional | The name of the checker. Must be specified for checker creation.
+| `name`          | optional | The name of the checker.
 | `description`   | optional | The description of the checker.
 | `url`           | optional | The URL of the checker.
 | `repository`    | optional | The (exact) name of the repository for which the checker applies.
