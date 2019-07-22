@@ -8,6 +8,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/com/google/gerrit/acceptance:lib",
+        "//java/com/google/gerrit/server/util/time",
         "//plugins/checks:checks__plugin",
     ],
 )

@@ -9,6 +9,7 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.util.time.TimeUtil;
 import java.sql.Timestamp;
 
 /** Representation of {@link Check} that can be serialized with GSON. */
@@ -74,11 +75,19 @@ class NoteDbCheck {
       modified = true;
     }
     if (update.started().isPresent() && !update.started().get().equals(started)) {
-      started = update.started().get();
+      if (update.started().get().equals(TimeUtil.never())) {
+        started = null;
+      } else {
+        started = update.started().get();
+      }
       modified = true;
     }
     if (update.finished().isPresent() && !update.finished().get().equals(finished)) {
-      finished = update.finished().get();
+      if (update.finished().get().equals(TimeUtil.never())) {
+        finished = null;
+      } else {
+        finished = update.finished().get();
+      }
       modified = true;
     }
     return modified;

@@ -476,6 +476,18 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   }
 
   @Test
+  public void startedCanBeCleared() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).started(TimeUtil.nowTs()).upsert();
+
+    checkOperations.check(checkKey).forUpdate().clearStarted().upsert();
+
+    Optional<Timestamp> currentStarted = checkOperations.check(checkKey).get().started();
+    assertThat(currentStarted).isEmpty();
+  }
+
+  @Test
   public void finishedCanBeUpdated() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
@@ -486,6 +498,18 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
 
     Optional<Timestamp> currentFinished = checkOperations.check(checkKey).get().finished();
     assertTimestamp(currentFinished, updatedFinished);
+  }
+
+  @Test
+  public void finishedCanBeCleared() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
+    checkOperations.newCheck(checkKey).finished(TimeUtil.nowTs()).upsert();
+
+    checkOperations.check(checkKey).forUpdate().clearFinished().upsert();
+
+    Optional<Timestamp> currentFinished = checkOperations.check(checkKey).get().finished();
+    assertThat(currentFinished).isEmpty();
   }
 
   @Test

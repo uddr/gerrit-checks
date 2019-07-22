@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks;
 
 import com.google.auto.value.AutoValue;
 import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.server.util.time.TimeUtil;
 import java.sql.Timestamp;
 import java.util.Optional;
 
@@ -48,6 +49,14 @@ public abstract class CheckUpdate {
     public abstract Builder setStarted(Timestamp started);
 
     public abstract Builder setFinished(Timestamp finished);
+
+    public Builder unsetStarted() {
+      return setStarted(TimeUtil.never());
+    }
+
+    public Builder unsetFinished() {
+      return setFinished(TimeUtil.never());
+    }
 
     public abstract CheckUpdate build();
   }
