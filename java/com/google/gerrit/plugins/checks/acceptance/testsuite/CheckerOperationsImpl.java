@@ -277,8 +277,9 @@ public class CheckerOperationsImpl implements CheckerOperations {
       }
 
       if (testCheckerInvalidation.nonParseableConfig()) {
-        try (Repository repo = repoManager.openRepository(allProjectsName)) {
-          new TestRepository<>(repo)
+        try (Repository repo = repoManager.openRepository(allProjectsName);
+            TestRepository<Repository> testRepo = new TestRepository<>(repo)) {
+          testRepo
               .branch(checkerUuid.toRefName())
               .commit()
               .add(CheckerConfig.CHECKER_CONFIG_FILE, "non-parseable-config")
@@ -287,9 +288,9 @@ public class CheckerOperationsImpl implements CheckerOperations {
       }
 
       if (testCheckerInvalidation.deleteRef()) {
-        try (Repository repo = repoManager.openRepository(allProjectsName)) {
-          RefUpdate ru =
-              new TestRepository<>(repo).getRepository().updateRef(checkerUuid.toRefName(), true);
+        try (Repository repo = repoManager.openRepository(allProjectsName);
+            TestRepository<Repository> testRepo = new TestRepository<>(repo)) {
+          RefUpdate ru = testRepo.getRepository().updateRef(checkerUuid.toRefName(), true);
           ru.setForceUpdate(true);
           ru.delete();
         }
