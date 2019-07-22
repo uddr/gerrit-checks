@@ -354,10 +354,11 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     try (Repository git = repoManager.openRepository(project);
         ObjectInserter oi = git.newObjectInserter();
         ObjectReader reader = oi.newReader();
-        RevWalk rw = new RevWalk(reader)) {
+        RevWalk rw = new RevWalk(reader);
+        TestRepository<Repository> testRepo = new TestRepository<>(git)) {
       RevCommit head = rw.parseCommit(git.exactRef(targetRef).getObjectId());
       RevCommit commit =
-          new TestRepository<>(git)
+          testRepo
               .commit()
               .author(admin.newIdent())
               .message("A change.")

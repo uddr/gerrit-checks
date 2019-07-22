@@ -682,8 +682,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid1 = CheckerUuid.parse("test:my-checker1");
     CheckerUuid checkerUuid2 = CheckerUuid.parse("test:my-checker2");
 
-    try (Repository repo = repoManager.openRepository(allProjects)) {
-      new TestRepository<>(repo)
+    try (Repository repo = repoManager.openRepository(allProjects);
+        TestRepository<Repository> testRepo = new TestRepository<>(repo)) {
+      testRepo
           .branch(CheckerRef.REFS_META_CHECKERS)
           .commit()
           .add(
@@ -710,8 +711,9 @@ public class CheckerOperationsImplTest extends AbstractCheckersTest {
     CheckerUuid checkerUuid1 = CheckerUuid.parse("test:my-checker1");
     CheckerUuid checkerUuid2 = CheckerUuid.parse("test:my-checker2");
 
-    try (Repository repo = repoManager.openRepository(allProjects)) {
-      new TestRepository<>(repo)
+    try (Repository repo = repoManager.openRepository(allProjects);
+        TestRepository<Repository> testRepo = new TestRepository<>(repo)) {
+      testRepo
           .branch(CheckerRef.REFS_META_CHECKERS)
           .commit()
           .add(
