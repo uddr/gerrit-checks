@@ -360,4 +360,56 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     assertThat(info.message).isEqualTo("some message");
     assertThat(info.url).isEqualTo("https://www.example.com");
   }
+
+  @Test
+  public void updateOfCheckChangesETagOfChange() throws Exception {
+    String oldETag = parseChangeResource(patchSetId.changeId().toString()).getETag();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.FAILED;
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    String newETag = parseChangeResource(patchSetId.changeId().toString()).getETag();
+    assertThat(newETag).isNotEqualTo(oldETag);
+  }
+
+  @Test
+  public void noOpUpdateOfCheckDoesNotChangeETagOfChange() throws Exception {
+    CheckInput input = new CheckInput();
+    input.state = CheckState.FAILED;
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    String oldETag = parseChangeResource(patchSetId.changeId().toString()).getETag();
+
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    String newETag = parseChangeResource(patchSetId.changeId().toString()).getETag();
+    assertThat(newETag).isEqualTo(oldETag);
+  }
+
+  @Test
+  public void updateOfCheckChangesETagOfRevisionActions() throws Exception {
+    String oldETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
+
+    CheckInput input = new CheckInput();
+    input.state = CheckState.FAILED;
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    String newETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
+    assertThat(newETag).isNotEqualTo(oldETag);
+  }
+
+  @Test
+  public void noOpUpdateOfCheckDoesNotChangeETagOfRevisionActions() throws Exception {
+    CheckInput input = new CheckInput();
+    input.state = CheckState.FAILED;
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    String oldETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
+
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
+
+    String newETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
+    assertThat(newETag).isEqualTo(oldETag);
+  }
 }

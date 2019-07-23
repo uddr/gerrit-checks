@@ -26,6 +26,7 @@ import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerQuery;
+import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.Checks;
@@ -33,8 +34,10 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState.CheckStateCount;
+import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -44,6 +47,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevWalk;
 
 /** Class to read checks from NoteDb. */
 @Singleton
@@ -53,6 +60,7 @@ class NoteDbChecks implements Checks {
   private final Checkers checkers;
   private final CheckBackfiller checkBackfiller;
   private final Provider<CheckerQuery> checkerQueryProvider;
+  private final GitRepositoryManager repoManager;
 
   @Inject
   NoteDbChecks(
@@ -60,12 +68,14 @@ class NoteDbChecks implements Checks {
       CheckNotes.Factory checkNotesFactory,
       Checkers checkers,
       CheckBackfiller checkBackfiller,
-      Provider<CheckerQuery> checkerQueryProvider) {
+      Provider<CheckerQuery> checkerQueryProvider,
+      GitRepositoryManager repoManager) {
     this.changeDataFactory = changeDataFactory;
     this.checkNotesFactory = checkNotesFactory;
     this.checkers = checkers;
     this.checkBackfiller = checkBackfiller;
     this.checkerQueryProvider = checkerQueryProvider;
+    this.repoManager = repoManager;
   }
 
   @Override
@@ -144,6 +154,15 @@ class NoteDbChecks implements Checks {
     CheckStateCount checkStateCount = CheckStateCount.create(statesAndRequired);
     return checkStateCount.failedRequiredCount() == 0
         && checkStateCount.inProgressRequiredCount() == 0;
+  }
+
+  @Override
+  public String getETag(Project.NameKey projectName, Change.Id changeId) throws IOException {
+    try (Repository repo = repoManager.openRepository(projectName);
+        RevWalk rw = new RevWalk(repo)) {
+      Ref checkRef = repo.getRefDatabase().exactRef(CheckerRef.checksRef(changeId));
+      return checkRef != null ? checkRef.getObjectId().getName() : ObjectId.zeroId().getName();
+    }
   }
 
   private ImmutableListMultimap<CheckState, Boolean> getStatesAndRequiredMap(
