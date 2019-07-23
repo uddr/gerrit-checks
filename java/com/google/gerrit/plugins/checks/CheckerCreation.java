@@ -26,6 +26,13 @@ public abstract class CheckerCreation {
    */
   public abstract CheckerUuid getCheckerUuid();
 
+  /**
+   * Defines the name the checker should have.
+   *
+   * <p>The same name may be used by multiple checkers.
+   */
+  public abstract String getName();
+
   /** Defines the repository for which the checker applies. */
   public abstract Project.NameKey getRepository();
 
@@ -36,6 +43,8 @@ public abstract class CheckerCreation {
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder setCheckerUuid(CheckerUuid checkerUuid);
+
+    public abstract Builder setName(String name);
 
     public abstract Builder setRepository(Project.NameKey repository);
 

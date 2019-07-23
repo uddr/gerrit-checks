@@ -86,7 +86,7 @@ public class CheckJson {
           .getChecker(checkerUuid)
           .ifPresent(
               checker -> {
-                info.checkerName = checker.getName().orElse(null);
+                info.checkerName = checker.getName();
                 info.checkerStatus = checker.getStatus();
                 info.blocking = checker.getBlockingConditions();
               });

@@ -91,16 +91,22 @@ enum CheckerConfigEntry {
    */
   NAME("name") {
     @Override
-    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config) {
+    void readFromConfig(CheckerUuid checkerUuid, Checker.Builder checker, Config config)
+        throws ConfigInvalidException {
       String name = config.getString(SECTION_NAME, null, super.keyName);
-      if (name != null) {
-        checker.setName(name);
+      if (name == null) {
+        throw new ConfigInvalidException(
+            String.format(
+                "%s.%s is not set in config file for checker %s",
+                SECTION_NAME, super.keyName, checkerUuid));
       }
+      checker.setName(name);
     }
 
     @Override
     void initNewConfig(Config config, CheckerCreation checkerCreation) {
-      // Do nothing. Name key will be set by updateConfigValue.
+      String checkerName = checkerCreation.getName();
+      config.setString(SECTION_NAME, null, super.keyName, checkerName);
     }
 
     @Override

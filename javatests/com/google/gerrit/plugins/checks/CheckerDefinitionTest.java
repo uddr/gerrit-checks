@@ -50,6 +50,7 @@ public class CheckerDefinitionTest {
 
   private Checker.Builder newChecker() {
     return Checker.builder()
+        .setName("My Checker")
         .setRepository(Project.nameKey("test-repo"))
         .setStatus(CheckerStatus.ENABLED)
         .setUuid(CheckerUuid.parse("schema:any-id"))

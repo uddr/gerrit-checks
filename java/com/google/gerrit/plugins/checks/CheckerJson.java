@@ -23,7 +23,7 @@ public class CheckerJson {
   public CheckerInfo format(Checker checker) {
     CheckerInfo info = new CheckerInfo();
     info.uuid = checker.getUuid().get();
-    info.name = checker.getName().orElse(null);
+    info.name = checker.getName();
     info.description = checker.getDescription().orElse(null);
     info.url = checker.getUrl().orElse(null);
     info.repository = checker.getRepository().get();

@@ -39,11 +39,11 @@ public abstract class Checker {
   /**
    * Returns the display name of the checker.
    *
-   * <p>Checkers may not have a name, in this case {@link Optional#empty()} is returned.
+   * <p>The same name may be used by multiple checkers.
    *
    * @return display name of the checker
    */
-  public abstract Optional<String> getName();
+  public abstract String getName();
 
   /**
    * Returns the description of the checker.
