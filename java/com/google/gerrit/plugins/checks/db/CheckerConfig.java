@@ -28,7 +28,6 @@ import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.Project.NameKey;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.git.meta.VersionedMetaData;
 import com.google.gerrit.server.util.time.TimeUtil;
@@ -152,7 +151,8 @@ public class CheckerConfig extends VersionedMetaData {
    * @throws IOException if the repository can't be accessed for some reason
    * @throws ConfigInvalidException if the checker exists but can't be read due to an invalid format
    */
-  public static CheckerConfig loadForChecker(NameKey projectName, Repository repository, Ref ref)
+  public static CheckerConfig loadForChecker(
+      Project.NameKey projectName, Repository repository, Ref ref)
       throws IOException, ConfigInvalidException {
     CheckerConfig checkerConfig = new CheckerConfig(ref.getName());
     checkerConfig.load(projectName, repository);

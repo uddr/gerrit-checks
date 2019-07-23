@@ -34,9 +34,7 @@ import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState.CheckStateCount;
 import com.google.gerrit.reviewdb.client.PatchSet;
-import com.google.gerrit.reviewdb.client.PatchSet.Id;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.Project.NameKey;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -131,15 +129,15 @@ class NoteDbChecks implements Checks {
   }
 
   @Override
-  public CombinedCheckState getCombinedCheckState(NameKey projectName, Id patchSetId)
-      throws IOException, StorageException {
+  public CombinedCheckState getCombinedCheckState(
+      Project.NameKey projectName, PatchSet.Id patchSetId) throws IOException, StorageException {
     ImmutableListMultimap<CheckState, Boolean> statesAndRequired =
         getStatesAndRequiredMap(projectName, patchSetId);
     return CombinedCheckState.combine(statesAndRequired);
   }
 
   @Override
-  public boolean areAllRequiredCheckersPassing(NameKey projectName, Id patchSetId)
+  public boolean areAllRequiredCheckersPassing(Project.NameKey projectName, PatchSet.Id patchSetId)
       throws IOException, StorageException {
     ImmutableListMultimap<CheckState, Boolean> statesAndRequired =
         getStatesAndRequiredMap(projectName, patchSetId);
@@ -149,7 +147,7 @@ class NoteDbChecks implements Checks {
   }
 
   private ImmutableListMultimap<CheckState, Boolean> getStatesAndRequiredMap(
-      NameKey projectName, Id patchSetId) throws IOException, StorageException {
+      Project.NameKey projectName, PatchSet.Id patchSetId) throws IOException, StorageException {
     ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId());
     ImmutableMap<String, Checker> allCheckersOfProject =
         checkers.checkersOf(projectName).stream()
