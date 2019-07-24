@@ -14,7 +14,10 @@
 
 package com.google.gerrit.plugins.checks;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gerrit.reviewdb.client.Project;
 
 @AutoValue
@@ -48,6 +51,20 @@ public abstract class CheckerCreation {
 
     public abstract Builder setRepository(Project.NameKey repository);
 
-    public abstract CheckerCreation build();
+    abstract CheckerCreation autoBuild();
+
+    public CheckerCreation build() {
+      CheckerCreation checkerCreation = autoBuild();
+      checkState(!checkerCreation.getName().trim().isEmpty(), "checker name cannot be empty");
+      checkState(
+          !checkerCreation.getRepository().get().trim().isEmpty(),
+          "repository name cannot be empty");
+      return checkerCreation;
+    }
+
+    @VisibleForTesting
+    public CheckerCreation buildWithoutValidationForTesting() {
+      return autoBuild();
+    }
   }
 }

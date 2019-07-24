@@ -109,7 +109,8 @@ public class CheckerConfigTest {
 
   @Test
   public void nameOfNewCheckerMustNotBeEmpty() throws Exception {
-    CheckerCreation checkerCreation = getPrefilledCheckerCreationBuilder().setName("").build();
+    CheckerCreation checkerCreation =
+        getPrefilledCheckerCreationBuilder().setName("").buildWithoutValidationForTesting();
     CheckerConfig checkerConfig =
         CheckerConfig.createForNewChecker(projectName, repository, checkerCreation);
 
@@ -232,7 +233,9 @@ public class CheckerConfigTest {
   @Test
   public void repositoryOfNewCheckerMustNotBeEmpty() throws Exception {
     CheckerCreation checkerCreation =
-        getPrefilledCheckerCreationBuilder().setRepository(Project.nameKey("")).build();
+        getPrefilledCheckerCreationBuilder()
+            .setRepository(Project.nameKey(""))
+            .buildWithoutValidationForTesting();
     CheckerConfig checkerConfig =
         CheckerConfig.createForNewChecker(projectName, repository, checkerCreation);
 
@@ -319,7 +322,8 @@ public class CheckerConfigTest {
   public void nameCannotBeRemoved() throws Exception {
     createArbitraryChecker(checkerUuid);
 
-    CheckerUpdate checkerUpdate = CheckerUpdate.builder().setName("").build();
+    CheckerUpdate checkerUpdate =
+        CheckerUpdate.builder().setName("").buildWithoutValidationForTesting();
 
     IOException thrown =
         assertThrows(IOException.class, () -> updateChecker(checkerUuid, checkerUpdate));
@@ -400,7 +404,9 @@ public class CheckerConfigTest {
     createArbitraryChecker(checkerUuid);
 
     CheckerUpdate checkerUpdate =
-        CheckerUpdate.builder().setRepository(Project.nameKey("")).build();
+        CheckerUpdate.builder()
+            .setRepository(Project.nameKey(""))
+            .buildWithoutValidationForTesting();
 
     IOException thrown =
         assertThrows(IOException.class, () -> updateChecker(checkerUuid, checkerUpdate));
