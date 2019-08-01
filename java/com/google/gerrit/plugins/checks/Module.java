@@ -28,6 +28,7 @@ import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
 import com.google.gerrit.plugins.checks.rules.ChecksSubmitRule;
 import com.google.gerrit.server.DynamicOptions;
 import com.google.gerrit.server.change.ChangeAttributeFactory;
+import com.google.gerrit.server.change.ChangeETagComputation;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.MergeValidationListener;
 import com.google.gerrit.server.git.validators.RefOperationValidationListener;
@@ -54,6 +55,10 @@ public class Module extends FactoryModule {
         .in(SINGLETON);
     DynamicSet.bind(binder(), RefOperationValidationListener.class)
         .to(CheckerRefOperationValidator.class)
+        .in(SINGLETON);
+
+    DynamicSet.bind(binder(), ChangeETagComputation.class)
+        .to(ChecksETagComputation.class)
         .in(SINGLETON);
 
     DynamicSet.bind(binder(), ChangeAttributeFactory.class).to(ChangeCheckAttributeFactory.class);

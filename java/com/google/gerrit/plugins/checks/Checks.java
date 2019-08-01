@@ -18,6 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
+import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
@@ -89,6 +90,16 @@ public interface Checks {
    */
   boolean areAllRequiredCheckersPassing(Project.NameKey projectName, PatchSet.Id patchSetId)
       throws IOException, StorageException;
+
+  /**
+   * Computes an ETag for the checks of the given change.
+   *
+   * @param projectName the name of the project that contains the change
+   * @param changeId ID of the change for which the ETag should be computed
+   * @return ETag for the checks of the given change
+   * @throws IOException if failed to access the checks data
+   */
+  String getETag(Project.NameKey projectName, Change.Id changeId) throws IOException;
 
   @AutoValue
   abstract class GetCheckOptions {
