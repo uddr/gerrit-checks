@@ -41,7 +41,7 @@ class CheckerApiImpl implements CheckerApi {
   @Override
   public CheckerInfo get() throws RestApiException {
     try {
-      return getChecker.apply(rsrc);
+      return getChecker.apply(rsrc).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot retrieve checker", e);
     }
@@ -50,7 +50,7 @@ class CheckerApiImpl implements CheckerApi {
   @Override
   public CheckerInfo update(CheckerInput input) throws RestApiException {
     try {
-      return updateChecker.apply(rsrc, input);
+      return updateChecker.apply(rsrc, input).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot update checker", e);
     }

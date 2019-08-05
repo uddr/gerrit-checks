@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
@@ -81,11 +82,11 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
 
   public List<PendingChecksInfo> apply()
       throws RestApiException, IOException, ConfigInvalidException, StorageException {
-    return apply(TopLevelResource.INSTANCE);
+    return apply(TopLevelResource.INSTANCE).value();
   }
 
   @Override
-  public List<PendingChecksInfo> apply(TopLevelResource resource)
+  public Response<List<PendingChecksInfo>> apply(TopLevelResource resource)
       throws RestApiException, IOException, ConfigInvalidException, StorageException {
     if (queryString == null) {
       throw new BadRequestException("query is required");
@@ -98,7 +99,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
 
     Optional<Checker> checker = checkers.getChecker(getCheckerUuidFromQuery(query));
     if (!checker.isPresent() || checker.get().isDisabled()) {
-      return ImmutableList.of();
+      return Response.ok(ImmutableList.of());
     }
 
     // The query system can only match against the current patch set; ignore non-current patch sets
@@ -123,7 +124,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
         pendingChecks.add(createPendingChecksInfo(cd.project(), patchSet, checkerUuid, check));
       }
     }
-    return pendingChecks;
+    return Response.ok(pendingChecks);
   }
 
   private Predicate<Check> parseQuery(String query) throws BadRequestException {

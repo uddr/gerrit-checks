@@ -20,6 +20,7 @@ import com.google.gerrit.extensions.client.ListOption;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckJson;
@@ -55,7 +56,7 @@ public class ListChecks implements RestReadView<RevisionResource> {
   }
 
   @Override
-  public ImmutableList<CheckInfo> apply(RevisionResource resource)
+  public Response<ImmutableList<CheckInfo>> apply(RevisionResource resource)
       throws AuthException, BadRequestException, ResourceConflictException, StorageException,
           IOException {
     if (resource.getEdit().isPresent()) {
@@ -72,6 +73,6 @@ public class ListChecks implements RestReadView<RevisionResource> {
     for (Check check : allChecks) {
       result.add(checkJson.format(check));
     }
-    return result.build();
+    return Response.ok(result.build());
   }
 }

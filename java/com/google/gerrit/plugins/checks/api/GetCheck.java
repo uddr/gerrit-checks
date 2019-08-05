@@ -18,6 +18,7 @@ import com.google.gerrit.extensions.client.ListOption;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.ListChecksOption;
@@ -47,8 +48,8 @@ public class GetCheck implements RestReadView<CheckResource> {
   }
 
   @Override
-  public CheckInfo apply(CheckResource resource)
+  public Response<CheckInfo> apply(CheckResource resource)
       throws AuthException, BadRequestException, ResourceConflictException, IOException {
-    return checkJsonFactory.create(options).format(resource.getCheck());
+    return Response.ok(checkJsonFactory.create(options).format(resource.getCheck()));
   }
 }

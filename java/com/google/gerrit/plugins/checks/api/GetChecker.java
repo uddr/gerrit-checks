@@ -14,6 +14,7 @@
 
 package com.google.gerrit.plugins.checks.api;
 
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.plugins.checks.CheckerJson;
 import com.google.inject.Inject;
@@ -29,7 +30,7 @@ public class GetChecker implements RestReadView<CheckerResource> {
   }
 
   @Override
-  public CheckerInfo apply(CheckerResource resource) {
-    return checkerJson.format(resource.getChecker());
+  public Response<CheckerInfo> apply(CheckerResource resource) {
+    return Response.ok(checkerJson.format(resource.getChecker()));
   }
 }
