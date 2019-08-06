@@ -310,7 +310,7 @@ public class GetCheckerIT extends AbstractCheckersTest {
 
   @Test
   public void administrateCheckersCapabilityIsAdvertised() throws Exception {
-    Map<String, CapabilityInfo> capabilities = listCapabilities.apply(new ConfigResource());
+    Map<String, CapabilityInfo> capabilities = listCapabilities.apply(new ConfigResource()).value();
     String capability = "checks-administrateCheckers";
     assertThat(capabilities).containsKey(capability);
     CapabilityInfo info = capabilities.get(capability);
