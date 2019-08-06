@@ -47,7 +47,8 @@ public class ChecksETagComputation implements ChangeETagComputation {
       throw new StorageException(
           String.format(
               "Failed to compute ETag for checks of change %s in project %s",
-              changeId, projectName));
+              changeId, projectName),
+          e);
     }
   }
 }
