@@ -26,7 +26,6 @@ import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.server.project.SubmitRuleOptions;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.SubmitRule;
 import com.google.inject.Inject;
@@ -61,7 +60,7 @@ public class ChecksSubmitRule implements SubmitRule {
   }
 
   @Override
-  public Collection<SubmitRecord> evaluate(ChangeData changeData, SubmitRuleOptions options) {
+  public Collection<SubmitRecord> evaluate(ChangeData changeData) {
     Project.NameKey project = changeData.project();
     Change.Id changeId = changeData.getId();
 

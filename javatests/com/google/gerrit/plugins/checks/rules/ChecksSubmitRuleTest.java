@@ -26,7 +26,6 @@ import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.server.project.SubmitRuleOptions;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.util.time.TimeUtil;
 import java.io.IOException;
@@ -47,8 +46,7 @@ public class ChecksSubmitRuleTest {
     expect(cd.currentPatchSet()).andThrow(new IllegalStateException("Fail for test"));
     replay(cd);
 
-    Collection<SubmitRecord> submitRecords =
-        checksSubmitRule.evaluate(cd, SubmitRuleOptions.defaults());
+    Collection<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
     assertErrorRecord(submitRecords, "failed to load the current patch set of change 1");
   }
 
@@ -75,8 +73,7 @@ public class ChecksSubmitRuleTest {
                 .build());
     replay(cd);
 
-    Collection<SubmitRecord> submitRecords =
-        checksSubmitRule.evaluate(cd, SubmitRuleOptions.defaults());
+    Collection<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
     assertErrorRecord(submitRecords, "failed to evaluate check states for change 1");
   }
 
