@@ -12,7 +12,7 @@
         reflectToAttribute: true,
       },
       status: String,
-      downgradeFailureToWarning: Boolean
+      downgradeFailureToWarning: String
     },
 
     _isUnevaluated(status) {
