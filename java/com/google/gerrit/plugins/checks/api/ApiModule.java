@@ -50,7 +50,7 @@ public class ApiModule extends AbstractModule {
             postOnCollection(CHECK_KIND).to(PostCheck.class);
             get(CHECK_KIND).to(GetCheck.class);
             post(CHECK_KIND).to(UpdateCheck.class);
-
+            post(CHECK_KIND, "rerun").to(RerunCheck.class);
             DynamicMap.mapOf(binder(), PENDING_CHECK_KIND);
           }
         });
