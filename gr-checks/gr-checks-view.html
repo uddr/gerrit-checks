@@ -61,6 +61,29 @@
         padding: 24px 0;
         text-align: center;
       }
+
+      /* Add max-width 1px to check-message make sure content doesn't
+         expand beyond the table width */
+      .check-message {
+        padding-left: 1rem;
+        background: var(--table-subheader-background-color);
+        max-width: 1px;
+      }
+
+      .message {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .message-heading {
+        font-weight: bold;
+        margin-top: 1em;
+      }
+
+      .check-message-heading {
+        padding-left: 1em;
+      }
+
     </style>
 
     <template is="dom-if" if="[[_isLoading(_status)]]">
@@ -91,6 +114,7 @@
       <table>
         <thead>
           <tr class="headerRow">
+            <th class="topHeader"></th>
             <th class="topHeader">Name</th>
             <th class="topHeader">For submit</th>
             <th class="topHeader">Status</th>
@@ -98,11 +122,30 @@
             <th class="topHeader">Started</th>
             <th class="topHeader">Duration</th>
             <th class="topHeader"><!-- actions --></th>
+            <th class="topHeader">Description</th>
           </tr>
         </thead>
         <tbody>
           <template is="dom-repeat" items="[[_checks]]" as="check">
-            <gr-checks-item check="[[check]]" retry-check="[[retryCheck]]"></gr-checks-item>
+            <tr>
+              <gr-checks-item on-toggle-check-message="_toggleCheckMessage"
+                check="[[check]]" retry-check="[[retryCheck]]">
+              </gr-checks-item>
+            </tr>
+            <template is="dom-if" if="[[check.showCheckMessage]]">
+              <tr>
+                <td colspan="9" class="check-message-heading">
+                  <span class="message-heading">
+                    Message
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="9" class="check-message">
+                  <span class="message"> [[check.message]] </span>
+                </td>
+              </tr>
+            </template>
           </template>
         </tbody>
       </table>

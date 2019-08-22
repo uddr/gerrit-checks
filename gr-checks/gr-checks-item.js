@@ -41,6 +41,10 @@
       _requiredForMerge: {
         type: String,
         computed: '_computeRequiredForMerge(check)'
+      },
+      showCheckMessage: {
+        type: Boolean,
+        value: false,
       }
     },
 
@@ -51,6 +55,15 @@
     _computeStartTime(check) {
       if (!check.started) return "-";
       return moment(check.started).format('LTS');
+    },
+
+    _toggleMessageShown() {
+      this.showCheckMessage = !this.showCheckMessage;
+      this.fire('toggle-check-message', {uuid: this.check.checker_uuid})
+    },
+
+    _computeExpandIcon(showCheckMessage) {
+      return showCheckMessage ? "gr-icons:expand-less": "gr-icons:expand-more";
     },
 
     /**

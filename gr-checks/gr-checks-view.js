@@ -95,7 +95,20 @@
       getChecks(change._number, revision._number).then(checks => {
         if (checks && checks.length) {
           checks.sort(this._orderChecks);
-          this.set('_checks', checks);
+          if (!this._checks) {
+            this._checks = checks;
+          } else {
+            // Merge checks & this_checks to keep showCheckMessage property
+            this._checks = checks.map(
+              (check) => {
+                const prevCheck = this._checks.find(
+                  (c) => { return c.checker_uuid === check.checker_uuid }
+                )
+                if (!prevCheck) return check;
+                return Object.assign({}, check, prevCheck)
+              }
+            )
+          }
           this.set('_status', LoadingStatus.RESULTS);
         } else {
           this._checkConfigured();
@@ -109,6 +122,22 @@
         return;
       }
       this._pollChecksRegularly(this.change, this.revision, this.getChecks);
+    },
+
+    _toggleCheckMessage(e) {
+      const uuid = e.detail.uuid;
+      if (!uuid) {
+        console.warn("uuid not found");
+        return;
+      }
+      const idx = this._checks.findIndex(check => check.checker_uuid === uuid);
+      if (idx == -1) {
+        console.warn("check not found");
+        return;
+      }
+      // Update subproperty of _checks[idx] so that it reflects to polymer
+      this.set(`_checks.${idx}.showCheckMessage`,
+        !this._checks[idx].showCheckMessage)
     },
 
     _pollChecksRegularly(change, revision, getChecks) {
