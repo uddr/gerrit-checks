@@ -17,9 +17,11 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
+import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -42,6 +44,7 @@ import org.junit.Test;
 
 public class UpdateCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
+  @Inject private ProjectOperations projectOperations;
 
   private PatchSet.Id patchSetId;
   private CheckKey checkKey;
@@ -227,8 +230,9 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void canUpdateCheckForCheckerThatDoesNotApplyToTheProject() throws Exception {
-    Project.NameKey otherProject = createProjectOverAPI("other", null, true, null);
+  public void canUpdateCheckForCheckerThatDoesNotApplyToTheProjectAndCheckExists()
+      throws Exception {
+    Project.NameKey otherProject = projectOperations.newProject().create();
     checkerOperations.checker(checkKey.checkerUuid()).forUpdate().repository(otherProject).update();
 
     CheckInput input = new CheckInput();
@@ -236,6 +240,22 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.state).isEqualTo(CheckState.SUCCESSFUL);
+  }
+
+  @Test
+  public void
+      throwExceptionForUpdateCheckForCheckerThatDoesNotApplyToTheProjectAndCheckDoesNotExist()
+          throws Exception {
+    Project.NameKey otherProject = projectOperations.newProject().create();
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(otherProject).create();
+    CheckKey checkKey = CheckKey.create(otherProject, patchSetId, checkerUuid);
+    assertThrows(
+        ResourceNotFoundException.class,
+        () ->
+            checksApiFactory
+                .revision(patchSetId)
+                .id(checkKey.checkerUuid())
+                .update(new CheckInput()));
   }
 
   @Test
