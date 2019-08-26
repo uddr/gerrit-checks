@@ -15,11 +15,11 @@
 package com.google.gerrit.plugins.checks.rules;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
-import com.google.common.collect.Iterables;
 import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.reviewdb.client.Account;
@@ -29,7 +29,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.util.time.TimeUtil;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.Optional;
 import org.easymock.EasyMock;
 import org.eclipse.jgit.lib.ObjectId;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class ChecksSubmitRuleTest {
     expect(cd.currentPatchSet()).andThrow(new IllegalStateException("Fail for test"));
     replay(cd);
 
-    Collection<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
+    Optional<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
     assertErrorRecord(submitRecords, "failed to load the current patch set of change 1");
   }
 
@@ -73,16 +73,15 @@ public class ChecksSubmitRuleTest {
                 .build());
     replay(cd);
 
-    Collection<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
+    Optional<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
     assertErrorRecord(submitRecords, "failed to evaluate check states for change 1");
   }
 
   private static void assertErrorRecord(
-      Collection<SubmitRecord> submitRecords, String expectedErrorMessage) {
-    assertThat(submitRecords).hasSize(1);
+      Optional<SubmitRecord> submitRecord, String expectedErrorMessage) {
+    assertThat(submitRecord).isPresent();
 
-    SubmitRecord submitRecord = Iterables.getOnlyElement(submitRecords);
-    assertThat(submitRecord.status).isEqualTo(SubmitRecord.Status.RULE_ERROR);
-    assertThat(submitRecord.errorMessage).isEqualTo(expectedErrorMessage);
+    assertThat(submitRecord.get().status).isEqualTo(SubmitRecord.Status.RULE_ERROR);
+    assertThat(submitRecord.get().errorMessage).isEqualTo(expectedErrorMessage);
   }
 }

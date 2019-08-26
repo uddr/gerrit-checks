@@ -15,7 +15,6 @@
 package com.google.gerrit.plugins.checks.rules;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.common.data.SubmitRecord.Status;
@@ -31,7 +30,7 @@ import com.google.gerrit.server.rules.SubmitRule;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.Optional;
 
 @Singleton
 public class ChecksSubmitRule implements SubmitRule {
@@ -60,7 +59,7 @@ public class ChecksSubmitRule implements SubmitRule {
   }
 
   @Override
-  public Collection<SubmitRecord> evaluate(ChangeData changeData) {
+  public Optional<SubmitRecord> evaluate(ChangeData changeData) {
     Project.NameKey project = changeData.project();
     Change.Id changeId = changeData.getId();
 
@@ -71,7 +70,7 @@ public class ChecksSubmitRule implements SubmitRule {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
-      return singletonRecordForRuleError(errorMessage);
+      return recordForRuleError(errorMessage);
     }
 
     boolean areAllRequiredCheckersPassing;
@@ -82,24 +81,24 @@ public class ChecksSubmitRule implements SubmitRule {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
       logger.atSevere().withCause(e).log(errorMessage);
-      return singletonRecordForRuleError(errorMessage);
+      return recordForRuleError(errorMessage);
     }
 
     SubmitRecord submitRecord = new SubmitRecord();
     if (areAllRequiredCheckersPassing) {
       submitRecord.status = Status.OK;
-      return ImmutableList.of(submitRecord);
+      return Optional.of(submitRecord);
     }
 
     submitRecord.status = Status.NOT_READY;
     submitRecord.requirements = ImmutableList.of(DEFAULT_SUBMIT_REQUIREMENT_FOR_CHECKS);
-    return ImmutableSet.of(submitRecord);
+    return Optional.of(submitRecord);
   }
 
-  private static Collection<SubmitRecord> singletonRecordForRuleError(String reason) {
+  private static Optional<SubmitRecord> recordForRuleError(String reason) {
     SubmitRecord submitRecord = new SubmitRecord();
     submitRecord.errorMessage = reason;
     submitRecord.status = SubmitRecord.Status.RULE_ERROR;
-    return ImmutableList.of(submitRecord);
+    return Optional.of(submitRecord);
   }
 }
