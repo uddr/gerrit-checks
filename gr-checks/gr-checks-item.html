@@ -18,8 +18,17 @@
         margin-right: 16px;
         display: inline-block;
       }
+      .nav-icon {
+        cursor: pointer;
+      }
     </style>
-
+    <td>
+      <template is="dom-if" if="[[check.message]]">
+          <iron-icon class="nav-icon" on-tap="_toggleMessageShown"
+            icon="[[_computeExpandIcon(showCheckMessage)]]">
+          </iron-icon>
+      </template>
+    </td>
     <td>[[check.checker_name]]</td>
     <td>[[_requiredForMerge]]</td>
     <td>
@@ -42,6 +51,7 @@
 <!--          Re-run-->
 <!--        </gr-button>-->
       </td>
+      <td>[[check.checker_description]]</td>
   </template>
   <script src="gr-checks-item.js"></script>
 </dom-module>
