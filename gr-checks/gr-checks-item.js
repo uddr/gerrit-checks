@@ -29,7 +29,6 @@
       /** @type {Defs.Check} */
       check: Object,
       /** @type {function(string): !Promise<!Object>} */
-      retryCheck: Function,
       _startTime: {
         type: String,
         computed: '_computeStartTime(check)',
@@ -47,6 +46,13 @@
         value: false,
       }
     },
+
+    /**
+     * Fired when the retry check button is pressed.
+     *
+     * @event retry-check
+     */
+
 
     /**
      * @param {!Defs.Check} check
@@ -87,9 +93,9 @@
     _computeRequiredForMerge(check) {
       return (check.blocking && check.blocking.length === 0) ? "Optional" : "Required";
     },
-    handleClick(event) {
-      event.preventDefault();
-      this.retryCheck(this.check.checker_uuid);
+    _handleReRunClicked(event) {
+      this.fire('retry-check',{uuid: this.check.checker_uuid},
+        {bubbles: false});
     },
   });
 
