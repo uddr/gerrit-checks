@@ -53,13 +53,14 @@
         return check.state == Statuses.FAILED;
       }
     )
-    if (!hasFailedCheck) return false;
+    if (!hasFailedCheck) return '';
     const hasRequiredFailedCheck = checks.some(
       (check) => {
-        return check.state == Statuses.FAILED && check.blocking && check.blocking.length > 0;
+        return check.state == Statuses.FAILED &&
+               check.blocking && check.blocking.length > 0;
       }
     )
-    return !hasRequiredFailedCheck;
+    return hasRequiredFailedCheck ? '' : 'set';
   }
 
 
@@ -74,15 +75,18 @@
       getChecks: Function,
       _checkStatuses: Object,
       _hasChecks: Boolean,
+      _failedRequiredChecksCount: Number,
       _status: {type: String, computed: '_computeStatus(_checkStatuses)'},
       _statusString: {
         type: String,
-        computed: '_computeStatusString(_status, _checkStatuses)',
+        computed: '_computeStatusString(_status, _checkStatuses, _failedRequiredChecksCount)',
       },
       _chipClasses: {type: String, computed: '_computeChipClass(_status)'},
+      // Type is set as string so that it reflects on changes
+      // Polymer does not support reflecting changes in Boolean property
       _downgradeFailureToWarning: {
-        type: Boolean,
-        value: false
+        type: String,
+        value: ''
       },
       pollChecksInterval: Object,
       visibilityChangeListenerAdded: {
@@ -127,8 +131,11 @@
       getChecks(change._number, revision._number).then(checks => {
         this.set('_hasChecks', checks.length > 0);
         if (checks.length > 0) {
-          this.set('_checkStatuses', computeCheckStatuses(checks));
-          this.set('_downgradeFailureToWarning', downgradeFailureToWarning(checks));
+          this._downgradeFailureToWarning =
+            downgradeFailureToWarning(checks);
+          this._failedRequiredChecksCount =
+            this.computeFailedRequiredChecksCount(checks);
+          this._checkStatuses = computeCheckStatuses(checks);
         }
       });
     },
@@ -164,15 +171,30 @@
           Statuses.STATUS_UNKNOWN;
     },
 
+    computeFailedRequiredChecksCount(checks) {
+      const failedRequiredChecks = checks.filter(
+        check => {
+          return check.state == Statuses.FAILED &&
+            check.blocking && check.blocking.length > 0;
+        }
+      );
+      return failedRequiredChecks.length;
+    },
+
     /**
      * @param {string} status The overall status of the checks.
      * @param {!Object} checkStatuses The number of checks in each status.
      * @return {string}
      */
-    _computeStatusString(status, checkStatuses) {
+    _computeStatusString(status, checkStatuses, failedRequiredChecksCount) {
+      if (!checkStatuses) return;
       if (checkStatuses.total === 0) return 'No checks';
-      return `${checkStatuses[status]} of ${
+      let statusString = `${checkStatuses[status]} of ${
           checkStatuses.total} checks ${HumanizedStatuses[status]}`;
+      if (status === Statuses.FAILED && failedRequiredChecksCount > 0) {
+        statusString += ` (${failedRequiredChecksCount} required)`;
+      }
+      return statusString;
     },
 
     /**
