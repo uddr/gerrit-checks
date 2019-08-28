@@ -8,6 +8,20 @@
 <title>gr-checks-item</title>
 <link rel="import" href="gr-checks-view.html">
 
+
+<!-- Gr-overlay does not exist in the test framework
+It is expected to be provided by Gerrit core -->
+<dom-module id="gr-overlay">
+  <template>
+  </template>
+  <script>
+    Polymer({
+      is: 'gr-overlay',
+      refit() {}
+    });
+  </script>
+</dom-module>
+
 <test-fixture id="basic">
   <template is="dom-template">
     <gr-checks-view
@@ -27,134 +41,276 @@
     logUrl: 'http://example.com/test-log-url',
     startTime: "2019-02-06T22:25:19.269Z",
     finishTime: "2019-02-06T22:25:44.574Z",
-    checker_name: "test checker"
+    checker_name: "test checker",
+    state: "RUNNING",
+    checker_status: "ENABLED",
+    blocking: [],
+    checker_description: "No-op jobs for testing purposes",
+    message: "added test file\n\nChange-Id: I8df212a28ae23cc239afd10ee4f506887e03ab70\n",
+    showCheckMessage: undefined,
+    checker_uuid: "gerritforge:codestyle-a6a0e4682515f3521897c5f950d1394f4619d928",
   };
-const REVISION = {
-  "kind": "REWORK",
-  "_number": 3,
-  "created": "2018-05-15 21:56:13.000000000",
-  "uploader": {
-    "_account_id": 1000000,
-  },
-  "ref": "refs/changes/00/1000/1",
-  "commit": {
-    "parents": [],
-    "subject": "added test file",
-    "message": "added test file\n\nChange-Id: I8df212a28ae23cc239afd10ee4f506887e03ab70\n",
-    "commit": "1c9a1dfd38ea51dc7880f3ddf669100710f0c91b"
-  },
-};
+  const CHECK2 = {
+    checkId: 'test-check-id2',
+    logUrl: 'http://example.com/test-log-url',
+    startTime: "2019-02-06T22:25:19.269Z",
+    finishTime: "2019-02-06T22:25:44.574Z",
+    checker_name: "test checker2",
+    state: "RUNNING",
+    checker_status: "ENABLED",
+    blocking: [],
+    checker_description: "No-op jobs for testing purposes 2",
+    message: "added test file\n\nChange-Id: I8df212a28ae23cc239afd10ee4f506887e03ab70\n",
+    showCheckMessage: undefined,
+    checker_uuid: "gerritforge:polygerrit-a6a0e4682515f3521897c5f950d1394f4619d928",
+  };
+  const REVISION = {
+    "kind": "REWORK",
+    "_number": 3,
+    "created": "2018-05-15 21:56:13.000000000",
+    "uploader": {
+      "_account_id": 1000000,
+    },
+    "ref": "refs/changes/00/1000/1",
+    "commit": {
+      "parents": [],
+      "subject": "added test file",
+      "message": "added test file\n\nChange-Id: I8df212a28ae23cc239afd10ee4f506887e03ab70\n",
+      "commit": "1c9a1dfd38ea51dc7880f3ddf669100710f0c91b"
+    },
+  };
 
-suite('gr-checks-view tests', () => {
-  let element;
-  let sandbox;
-  let getChecksSpy;
-  let getChecksResolve;
-  let retryCheckSpy;
-  let isConfiguredSpy;
-  let isConfiguredResolve;
-  let getAccountSpy, getAccountPromise, getAccountResolve;
-  let fetchJSONSpy, fetchJSONPromise, fetchJSONResolve;
-  let getAccountCapabilitiesSpy, getAccountCapabilitiesPromise,
-    getAccountCapabilitiesResolve;
+  suite('gr-checks-view tests', () => {
+    let element;
+    let sandbox;
+    let getChecksSpy;
+    let getChecksResolve;
+    let retryCheckSpy;
+    let isConfiguredSpy;
+    let isConfiguredResolve;
+    let getAccountSpy, getAccountPromise, getAccountResolve;
+    let fetchJSONSpy, fetchJSONPromise, fetchJSONResolve;
+    let getAccountCapabilitiesSpy, getAccountCapabilitiesPromise,
+      getAccountCapabilitiesResolve;
 
-  setup((done) => {
-    sandbox = sinon.sandbox.create();
-
-    getChecksSpy = sinon.stub();
-    const getChecksPromise = new Promise((resolve, reject) => {
-      getChecksResolve = resolve;
-    });
-    getChecksSpy.returns(getChecksPromise);
-
-    isConfiguredSpy = sinon.stub();
-    const isConfiguredPromise = new Promise((resolve, reject) => {
-      isConfiguredResolve = resolve;
-    });
-    isConfiguredSpy.returns(isConfiguredPromise);
-
-    retryCheckSpy = sinon.stub();
-    retryCheckSpy.returns(Promise.resolve());
-
-    const plugin = {};
-    getAccountSpy = sinon.stub();
-    const getAccountPromise = new Promise((resolve, reject) => {
-      getAccountResolve = resolve;
-    })
-    getAccountSpy.returns(getAccountPromise);
-
-    fetchJSONSpy = sinon.stub();
-    const fetchJSONPromise = new Promise((resolve, reject) => {
-      fetchJSONResolve = resolve;
-    })
-    fetchJSONSpy.returns(fetchJSONPromise)
-
-    getAccountCapabilitiesSpy = sinon.stub();
-    const getAccountCapabilitiesPromise = new Promise((resolve, reject) => {
-      getAccountCapabilitiesResolve = resolve;
-    })
-    getAccountCapabilitiesSpy.returns(getAccountCapabilitiesPromise);
-
-    plugin.restApi = () => ({
-      getAccount: getAccountSpy,
-      fetchJSON: fetchJSONSpy,
-      getAccountCapabilities: getAccountCapabilitiesSpy
-    });
-
-    element = fixture('basic', {
-      retryCheck: retryCheckSpy,
-      getChecks: getChecksSpy,
-      isConfigured: isConfiguredSpy,
-      change: {
-        'project': 'test-repository',
-        '_number': 2,
-        'revisions': {
-          'first-sha': "test-revision",
-          'second-sha': REVISION,
-        },
-      },
-      plugin: plugin,
-      revision: REVISION,
-    });
-    flush(done);
-  });
-
-  teardown(() => { sandbox.restore(); });
-
-  test('renders loading', () => {
-    // Element also contains the hidden gr-overlay hence use includes
-    assert(element.textContent.trim().includes('Loading...'));
-  });
-
-  test('queries the checks', () => {
-    assert.isTrue(getChecksSpy.called);
-    assert.isTrue(getChecksSpy.calledWith(2, 3));
-  });
-
-  suite('no checks returned', () => {
     setup((done) => {
-      getChecksResolve([]);
+      sandbox = sinon.sandbox.create();
+
+      getChecksSpy = sinon.stub();
+      const getChecksPromise = new Promise((resolve, reject) => {
+        getChecksResolve = resolve;
+      });
+      getChecksSpy.returns(getChecksPromise);
+
+      isConfiguredSpy = sinon.stub();
+      const isConfiguredPromise = new Promise((resolve, reject) => {
+        isConfiguredResolve = resolve;
+      });
+      isConfiguredSpy.returns(isConfiguredPromise);
+
+      retryCheckSpy = sinon.stub();
+      retryCheckSpy.returns(Promise.resolve());
+
+      const plugin = {};
+      getAccountSpy = sinon.stub();
+      const getAccountPromise = new Promise((resolve, reject) => {
+        getAccountResolve = resolve;
+      })
+      getAccountSpy.returns(getAccountPromise);
+
+      fetchJSONSpy = sinon.stub();
+      const fetchJSONPromise = new Promise((resolve, reject) => {
+        fetchJSONResolve = resolve;
+      })
+      fetchJSONSpy.returns(fetchJSONPromise)
+
+      getAccountCapabilitiesSpy = sinon.stub();
+      const getAccountCapabilitiesPromise = new Promise((resolve, reject) => {
+        getAccountCapabilitiesResolve = resolve;
+      })
+      getAccountCapabilitiesSpy.returns(getAccountCapabilitiesPromise);
+
+      plugin.restApi = () => ({
+        getAccount: getAccountSpy,
+        fetchJSON: fetchJSONSpy,
+        getAccountCapabilities: getAccountCapabilitiesSpy
+      });
+      element = fixture('basic', {
+        retryCheck: retryCheckSpy,
+        getChecks: getChecksSpy,
+        isConfigured: isConfiguredSpy,
+        change: {
+          'project': 'test-repository',
+          '_number': 2,
+          'revisions': {
+            'first-sha': "test-revision",
+            'second-sha': REVISION,
+          },
+        },
+        plugin: plugin,
+        revision: REVISION,
+      });
       flush(done);
     });
 
-    test('it calls to check if the checks are configured', () => {
-      assert.isTrue(isConfiguredSpy.called);
-      assert.isTrue(isConfiguredSpy.calledWith('test-repository'));
+    teardown(() => { sandbox.restore(); });
+
+    test('renders loading', () => {
+      // Element also contains the hidden gr-overlay hence use includes
+      assert(element.textContent.trim().includes('Loading...'));
     });
 
-    test('no configure button renders', () => {
-      assert(!element.$$('gr-button'));
-    })
+    test('queries the checks', () => {
+      assert.isTrue(getChecksSpy.called);
+      assert.isTrue(getChecksSpy.calledWith(2, 3));
+    });
 
-    suite('not configured', () => {
+    suite('no checks returned', () => {
       setup((done) => {
-        isConfiguredResolve(false);
+        getChecksResolve([]);
         flush(done);
       });
 
-      test('renders checks not configured', () => {
-        const header = element.$$('h2');
-        assert.equal(header.textContent.trim(), 'Code review checks not configured');
+      test('it calls to check if the checks are configured', () => {
+        assert.isTrue(isConfiguredSpy.called);
+        assert.isTrue(isConfiguredSpy.calledWith('test-repository'));
+      });
+
+      test('no configure button renders', () => {
+        assert(!element.$$('gr-button'));
+      });
+
+      suite('not configured', () => {
+        setup((done) => {
+          isConfiguredResolve(false);
+          flush(done);
+        });
+
+        test('renders checks not configured', () => {
+          const header = element.$$('h2');
+          assert.equal(header.textContent.trim(), 'Code review checks not configured');
+        });
+
+        suite('create checker capability false', () => {
+          setup((done) => {
+            getAccountResolve(true);
+            getAccountCapabilitiesResolve({'checks-administrateCheckers': false});
+            flush(done);
+          });
+          test('checker button does not render', () => {
+            assert(!element.$$('gr-button'));
+          });
+        });
+
+        suite('create checker capability true', () => {
+          setup((done) => {
+            getAccountResolve(true);
+            getAccountCapabilitiesResolve({'checks-administrateCheckers': true});
+            flush(done);
+          });
+          test('checker button renders', () => {
+            assert(element.$$('gr-button'));
+          });
+        });
+
+      });
+
+      suite('no checks ran', () => {
+        setup((done) => {
+          isConfiguredResolve(true);
+          flush(done);
+        });
+
+        test('renders checks not configured', () => {
+          const header = element.$$('h2');
+          assert.equal(header.textContent.trim(), 'No checks ran for this code review');
+        });
+      });
+    });
+
+    suite('checks updated properly', () => {
+      setup((done) => {
+        element._checks = [CHECK1, CHECK2];
+        flush(done);
+      });
+
+      test('message is updated', () => {
+        const NEW_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        NEW_CHECKS[0].message = "New message 1";
+        NEW_CHECKS[1].message = "New message 2";
+        const EXPECTED_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        EXPECTED_CHECKS[0].message = "New message 1";
+        EXPECTED_CHECKS[1].message = "New message 2";
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.equal(UPDATED_CHECKS[0].message, NEW_CHECKS[0].message);
+        assert.equal(UPDATED_CHECKS[1].message, NEW_CHECKS[1].message);
+      });
+
+      test('total checks updated if one is deleted', () => {
+        const NEW_CHECKS = [Object.assign({}, CHECK1)];
+        const EXPECTED_CHECKS = [Object.assign({}, CHECK1)];
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.equal(UPDATED_CHECKS.length, 1);
+        assert.deepEqual(UPDATED_CHECKS, EXPECTED_CHECKS);
+      });
+
+      test('status is updated', () => {
+        const NEW_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        NEW_CHECKS[0].state = "SUCCESSFUL";
+        NEW_CHECKS[1].state = "FAILED";
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.deepEqual(UPDATED_CHECKS, NEW_CHECKS);
+      });
+
+      test('showMessage property is retained', () => {
+
+        element._checks[0].showCheckMessage = true;
+        element._checks[1].showCheckMessage = false;
+
+        const NEW_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.equal(UPDATED_CHECKS[0].showCheckMessage,
+          CHECK1.showCheckMessage);
+        assert.equal(UPDATED_CHECKS[1].showCheckMessage,
+          CHECK2.showCheckMessage);
+
+        element._checks[0].showCheckMessage = undefined;
+        element._checks[1].showCheckMessage = undefined;
+
+      });
+
+      test('message is not shown if new check has no message', () => {
+        const NEW_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        NEW_CHECKS[0].message = '';
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.equal(UPDATED_CHECKS[0].message, NEW_CHECKS[0].message);
+      });
+
+    });
+
+    suite('with checks', () => {
+      setup(done => {
+        getChecksResolve([CHECK1, CHECK1, CHECK1]);
+        flush(done);
+      });
+
+      test('it calls to check if the checks are configured', () => {
+        assert.isFalse(isConfiguredSpy.called);
+      });
+
+      test('renders the header', () => {
+        const header = element.$$('header > h3');
+        assert.equal(header.textContent.trim(), 'Latest checks for Patchset 3');
+      });
+
+      test('renders a table of all the checks', () => {
+        const tbody = element.$$('table > tbody');
+        assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 3)
       });
 
       suite('create checker capability false', () => {
@@ -180,62 +336,6 @@ suite('gr-checks-view tests', () => {
       });
 
     });
-
-    suite('no checks ran', () => {
-      setup((done) => {
-        isConfiguredResolve(true);
-        flush(done);
-      });
-
-      test('renders checks not configured', () => {
-        const header = element.$$('h2');
-        assert.equal(header.textContent.trim(), 'No checks ran for this code review');
-      });
-    });
   });
 
-  suite('with checks', () => {
-    setup(done => {
-      getChecksResolve([CHECK1, CHECK1, CHECK1]);
-      flush(done);
-    });
-
-    test('it calls to check if the checks are configured', () => {
-      assert.isFalse(isConfiguredSpy.called);
-    });
-
-    test('renders the header', () => {
-      const header = element.$$('header > h3');
-      assert.equal(header.textContent.trim(), 'Latest checks for Patchset 3');
-    });
-
-    test('renders a table of all the checks', () => {
-      const tbody = element.$$('table > tbody');
-      assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 3)
-    });
-
-    suite('create checker capability false', () => {
-        setup((done) => {
-          getAccountResolve(true);
-          getAccountCapabilitiesResolve({'checks-administrateCheckers': false});
-          flush(done);
-        });
-        test('checker button does not render', () => {
-          assert(!element.$$('gr-button'));
-        });
-      });
-
-      suite('create checker capability true', () => {
-        setup((done) => {
-          getAccountResolve(true);
-          getAccountCapabilitiesResolve({'checks-administrateCheckers': true});
-          flush(done);
-        });
-        test('checker button renders', () => {
-          assert(element.$$('gr-button'));
-        });
-      });
-
-  });
-});
 </script>
