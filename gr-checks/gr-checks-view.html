@@ -1,4 +1,6 @@
 <link rel="import" href="gr-checks-status.html">
+<link rel="import" href="gr-checkers-list.html">
+
 <dom-module id="gr-checks-view">
   <template>
     <style>
@@ -84,7 +86,19 @@
         padding-left: 1em;
       }
 
+      .configure-button {
+        float:right;
+        margin-top: 10px;
+      }
+
+      #listOverlay {
+        width: 75%;
+      }
     </style>
+
+    <template is="dom-if" if="[[_createCheckerCapability]]">
+      <gr-button class="configure-button" on-tap="_handleConfigureClicked"> Configure </gr-button>
+    </template>
 
     <template is="dom-if" if="[[_isLoading(_status)]]">
       <div class="no-content">
@@ -150,7 +164,11 @@
         </tbody>
       </table>
     </template>
-  </template>
 
+    <gr-overlay id="listOverlay" with-backdrop>
+      <gr-checkers-list on-resize="_handleCheckersListResize" plugin-rest-api="[[pluginRestApi]]"></gr-checkers-list>
+    </gr-overlay>
+
+  </template>
   <script src="gr-checks-view.js"></script>
 </dom-module>

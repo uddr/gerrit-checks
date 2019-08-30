@@ -48,25 +48,58 @@
       isConfigured: Function,
       /** @type {function(string, string): !Promise<!Object>} */
       retryCheck: Function,
+      pluginRestApi: Object,
       _checks: Object,
       _status: {
         type: Object,
         value: LoadingStatus.LOADING,
       },
-      pollChecksInterval: Object,
+      pollChecksInterval: Number,
       visibilityChangeListenerAdded: {
         type: Boolean,
         value: false
-      }
+      },
+      _createCheckerCapability: {
+        type: Boolean,
+        value: false
+      },
     },
 
     observers: [
       '_pollChecksRegularly(change, revision, getChecks)',
     ],
 
+    attached() {
+      this.pluginRestApi = this.plugin.restApi();
+      this._initCreateCheckerCapability();
+    },
+
     detached() {
       clearInterval(this.pollChecksInterval);
       this.unlisten(document, 'visibilitychange', '_onVisibililityChange');
+    },
+
+    _handleCheckersListResize() {
+      // Force polymer to recalculate position of overlay when length of
+      // checkers changes
+      this.$.listOverlay.refit();
+    },
+
+    _initCreateCheckerCapability() {
+      return this.pluginRestApi.getAccount().then(account => {
+        if (!account) { return; }
+        return this.pluginRestApi
+          .getAccountCapabilities(['checks-administrateCheckers'])
+          .then(capabilities => {
+            if (capabilities['checks-administrateCheckers']) {
+              this._createCheckerCapability = true;
+            }
+          });
+      });
+    },
+
+    _handleConfigureClicked() {
+      this.$.listOverlay.open();
     },
 
     _orderChecks(a, b) {
