@@ -125,18 +125,6 @@ public class RerunCheckIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotUpdateCheckWithoutAdministrateCheckers() throws Exception {
-    requestScopeOperations.setApiUser(user.id());
-    checkOperations.newCheck(checkKey).state(CheckState.SUCCESSFUL).upsert();
-
-    AuthException thrown =
-        assertThrows(
-            AuthException.class,
-            () -> checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).rerun());
-    assertThat(thrown).hasMessageThat().contains("not permitted");
-  }
-
-  @Test
   public void cannotUpdateCheckAnonymously() throws Exception {
     requestScopeOperations.setApiUserAnonymous();
     checkOperations.newCheck(checkKey).state(CheckState.SUCCESSFUL).upsert();
@@ -146,5 +134,13 @@ public class RerunCheckIT extends AbstractCheckersTest {
             AuthException.class,
             () -> checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).rerun());
     assertThat(thrown).hasMessageThat().contains("Authentication required");
+  }
+
+  @Test
+  public void canRerunWithoutPermissions() throws Exception {
+    requestScopeOperations.setApiUser(user.id());
+    checkOperations.newCheck(checkKey).state(CheckState.SUCCESSFUL).upsert();
+    CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).rerun();
+    assertThat(info.state).isEqualTo(CheckState.NOT_STARTED);
   }
 }
