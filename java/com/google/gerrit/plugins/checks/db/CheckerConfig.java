@@ -311,6 +311,11 @@ public class CheckerConfig extends VersionedMetaData {
   }
 
   private void ensureThatMandatoryPropertiesAreSet() throws ConfigInvalidException {
+    if (getNewName().equals(Optional.of(""))) {
+      throw new ConfigInvalidException(
+          String.format("Name of the checker %s must be defined", describeForError()));
+    }
+
     if (getNewRepository().equals(Optional.of(""))) {
       throw new ConfigInvalidException(
           String.format("Repository of the checker %s must be defined", describeForError()));
@@ -319,6 +324,16 @@ public class CheckerConfig extends VersionedMetaData {
 
   private void checkLoaded() {
     checkState(isLoaded, "Checker %s not loaded yet", describeForError());
+  }
+
+  private Optional<String> getNewName() {
+    if (checkerUpdate.isPresent()) {
+      return checkerUpdate.get().getName().map(Strings::nullToEmpty).map(String::trim);
+    }
+    if (checkerCreation.isPresent()) {
+      return Optional.of(Strings.nullToEmpty(checkerCreation.get().getName()).trim());
+    }
+    return Optional.empty();
   }
 
   private Optional<String> getNewRepository() {

@@ -99,15 +99,20 @@ public class CreateChecker
         CheckerUuid.tryParse(input.uuid)
             .orElseThrow(() -> new BadRequestException("invalid uuid: " + uuidStr));
 
+    String name = CheckerName.clean(input.name);
+    if (name.isEmpty()) {
+      throw new BadRequestException("name is required");
+    }
+
     Project.NameKey repository = resolveRepository(input.repository);
 
     CheckerCreation.Builder checkerCreationBuilder =
-        CheckerCreation.builder().setCheckerUuid(checkerUuid).setRepository(repository);
+        CheckerCreation.builder()
+            .setCheckerUuid(checkerUuid)
+            .setName(name)
+            .setRepository(repository);
     CheckerUpdate.Builder checkerUpdateBuilder = CheckerUpdate.builder();
-    String name = CheckerName.clean(input.name);
-    if (!name.isEmpty()) {
-      checkerUpdateBuilder.setName(name);
-    }
+
     if (input.description != null && !input.description.trim().isEmpty()) {
       checkerUpdateBuilder.setDescription(input.description.trim());
     }

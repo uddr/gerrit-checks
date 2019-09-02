@@ -14,7 +14,10 @@
 
 package com.google.gerrit.plugins.checks;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
@@ -82,6 +85,27 @@ public abstract class CheckerUpdate {
 
     public abstract Builder setQuery(String query);
 
-    public abstract CheckerUpdate build();
+    abstract CheckerUpdate autoBuild();
+
+    public CheckerUpdate build() {
+      CheckerUpdate checkerUpdate = autoBuild();
+
+      if (checkerUpdate.getName().isPresent()) {
+        checkState(!checkerUpdate.getName().get().trim().isEmpty(), "checker name cannot be empty");
+      }
+
+      if (checkerUpdate.getRepository().isPresent()) {
+        checkState(
+            !checkerUpdate.getRepository().get().get().trim().isEmpty(),
+            "repository name cannot be empty");
+      }
+
+      return checkerUpdate;
+    }
+
+    @VisibleForTesting
+    public CheckerUpdate buildWithoutValidationForTesting() {
+      return autoBuild();
+    }
   }
 }

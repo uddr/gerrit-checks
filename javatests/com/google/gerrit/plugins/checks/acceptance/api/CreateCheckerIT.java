@@ -78,10 +78,11 @@ public class CreateCheckerIT extends AbstractCheckersTest {
     Timestamp expectedCreationTimestamp = TestTimeUtil.getCurrentTimestamp();
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = repositoryName.get();
     CheckerInfo info = checkersApi.create(input).get();
     assertThat(info.uuid).isEqualTo("test:my-checker");
-    assertThat(info.name).isNull();
+    assertThat(info.name).isEqualTo("My Checker");
     assertThat(info.description).isNull();
     assertThat(info.url).isNull();
     assertThat(info.repository).isEqualTo(input.repository);
@@ -104,6 +105,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithDescription() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.description = "some description";
     input.repository = allProjects.get();
     CheckerInfo info = checkersApi.create(input).get();
@@ -118,6 +120,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithUrl() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.url = "http://example.com/my-checker";
     input.repository = allProjects.get();
     CheckerInfo info = checkersApi.create(input).get();
@@ -129,27 +132,24 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void createCheckerWithName() throws Exception {
+  public void createCheckerWithoutNameFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
-    input.name = "my-checker";
     input.repository = allProjects.get();
-    CheckerInfo info = checkersApi.create(input).get();
-    assertThat(info.name).isEqualTo("my-checker");
 
-    PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
-    assertCommit(
-        perCheckerOps.commit(), "Create checker", info.created, perCheckerOps.get().getRefState());
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> checkersApi.create(input));
+    assertThat(thrown).hasMessageThat().contains("name is required");
   }
 
   @Test
   public void createCheckerNameIsTrimmed() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
-    input.name = " my-checker ";
+    input.name = " My Checker ";
     input.repository = allProjects.get();
     CheckerInfo info = checkersApi.create(input).get();
-    assertThat(info.name).isEqualTo("my-checker");
+    assertThat(info.name).isEqualTo("My Checker");
 
     PerCheckerOperations perCheckerOps = checkerOperations.checker(info.uuid);
     assertCommit(
@@ -160,6 +160,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerDescriptionIsTrimmed() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.description = " some description ";
     input.repository = allProjects.get();
     CheckerInfo info = checkersApi.create(input).get();
@@ -174,6 +175,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerUrlIsTrimmed() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.url = " http://example.com/my-checker ";
     input.repository = allProjects.get();
     CheckerInfo info = checkersApi.create(input).get();
@@ -188,6 +190,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerRepositoryIsTrimmed() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = " " + allProjects.get() + " ";
     CheckerInfo info = checkersApi.create(input).get();
     assertThat(info.repository).isEqualTo(allProjects.get());
@@ -212,7 +215,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckersWithSameName() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
-    input.name = "my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     CheckerInfo info1 = checkersApi.create(input).get();
     assertThat(info1.name).isEqualTo(input.name);
@@ -228,6 +231,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithExistingUuidFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     checkersApi.create(input).get();
 
@@ -239,6 +243,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   @Test
   public void createCheckerWithoutUuidFails() throws Exception {
     CheckerInput input = new CheckerInput();
+    input.name = "My Checker";
     input.repository = allProjects.get();
 
     BadRequestException thrown =
@@ -250,6 +255,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithEmptyUuidFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "";
+    input.name = "My Checker";
     input.repository = allProjects.get();
 
     BadRequestException thrown =
@@ -261,6 +267,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithEmptyUuidAfterTrimFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = " ";
+    input.name = "My Checker";
     input.repository = allProjects.get();
 
     BadRequestException thrown =
@@ -272,6 +279,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithInvalidUuidFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = CheckerTestData.INVALID_UUID;
+    input.name = "My Checker";
     input.repository = allProjects.get();
 
     BadRequestException thrown =
@@ -283,6 +291,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithoutRepositoryFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
 
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> checkersApi.create(input));
@@ -293,6 +302,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithEmptyRepositoryFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = "";
 
     BadRequestException thrown =
@@ -304,6 +314,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithEmptyRepositoryAfterTrimFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = " ";
 
     BadRequestException thrown =
@@ -315,6 +326,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithNonExistingRepositoryFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = "non-existing";
 
     UnprocessableEntityException thrown =
@@ -326,6 +338,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createDisabledChecker() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.status = CheckerStatus.DISABLED;
 
@@ -337,6 +350,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithBlockingConditions() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.blocking = ImmutableSet.of(BlockingCondition.STATE_NOT_PASSING);
 
@@ -348,6 +362,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithQuery() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.query = "f:foo";
 
@@ -359,6 +374,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithEmptyQuery() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.query = "";
 
@@ -370,6 +386,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithEmptyQueryAfterTrim() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.query = " ";
 
@@ -381,6 +398,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithUnsupportedOperatorInQueryFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.query = CheckerTestData.QUERY_WITH_UNSUPPORTED_OPERATOR;
 
@@ -395,6 +413,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithInvalidQueryFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.query = CheckerTestData.INVALID_QUERY;
 
@@ -407,6 +426,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
   public void createCheckerWithTooLongQueryFails() throws Exception {
     CheckerInput input = new CheckerInput();
     input.uuid = "test:my-checker";
+    input.name = "My Checker";
     input.repository = allProjects.get();
     input.query = CheckerTestData.longQueryWithSupportedOperators(MAX_INDEX_TERMS * 2);
     assertThat(CheckerQuery.clean(input.query)).isEqualTo(input.query);

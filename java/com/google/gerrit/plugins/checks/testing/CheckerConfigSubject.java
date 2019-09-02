@@ -52,10 +52,8 @@ public class CheckerConfigSubject extends Subject {
     check("uuid()").that(checker().getUuid()).isEqualTo(expectedUuid);
   }
 
-  public OptionalSubject<StringSubject, String> hasNameThat() {
-    return check("name()")
-        .about(optionals())
-        .that(checker().getName(), StandardSubjectBuilder::that);
+  public void hasName(String expectedName) {
+    check("name()").that(checker().getName()).isEqualTo(expectedName);
   }
 
   public OptionalSubject<StringSubject, String> hasDescriptionThat() {

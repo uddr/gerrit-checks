@@ -115,8 +115,13 @@ public class CheckerOperationsImpl implements CheckerOperations {
         checkerCreation
             .uuid()
             .orElseGet(() -> CheckerUuid.parse("test:checker-" + checkerCounter.incrementAndGet()));
+    String checkerName = checkerCreation.name().orElse("Test Checker");
     Project.NameKey repository = checkerCreation.repository().orElse(allProjectsName);
-    return CheckerCreation.builder().setCheckerUuid(checkerUuid).setRepository(repository).build();
+    return CheckerCreation.builder()
+        .setCheckerUuid(checkerUuid)
+        .setName(checkerName)
+        .setRepository(repository)
+        .build();
   }
 
   private static CheckerUpdate toCheckerUpdate(TestCheckerCreation checkerCreation) {
@@ -266,6 +271,10 @@ public class CheckerOperationsImpl implements CheckerOperations {
 
       if (testCheckerInvalidation.unsetUuid()) {
         unsetValueInCheckerConfig("uuid");
+      }
+
+      if (testCheckerInvalidation.unsetName()) {
+        unsetValueInCheckerConfig("name");
       }
 
       if (testCheckerInvalidation.unsetRepository()) {

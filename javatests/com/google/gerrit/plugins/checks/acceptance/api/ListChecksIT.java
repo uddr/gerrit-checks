@@ -77,7 +77,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     String checkerName1 = "Checker One";
     CheckerUuid checkerUuid1 =
         checkerOperations.newChecker().name(checkerName1).repository(project).create();
-    CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
+
+    String checkerName2 = "Checker Two";
+    CheckerUuid checkerUuid2 =
+        checkerOperations.newChecker().name(checkerName2).repository(project).create();
 
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
     checkOperations.newCheck(checkKey1).state(CheckState.RUNNING).upsert();
@@ -93,6 +96,7 @@ public class ListChecksIT extends AbstractCheckersTest {
 
     CheckInfo expectedCheckInfo2 = checkOperations.check(checkKey2).asInfo();
     expectedCheckInfo2.repository = project.get();
+    expectedCheckInfo2.checkerName = checkerName2;
     expectedCheckInfo2.blocking = ImmutableSet.of();
     expectedCheckInfo2.checkerStatus = CheckerStatus.ENABLED;
 
@@ -105,7 +109,10 @@ public class ListChecksIT extends AbstractCheckersTest {
     String checkerName1 = "Checker One";
     CheckerUuid checkerUuid1 =
         checkerOperations.newChecker().name(checkerName1).repository(project).create();
-    CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
+
+    String checkerName2 = "Checker Two";
+    CheckerUuid checkerUuid2 =
+        checkerOperations.newChecker().name(checkerName2).repository(project).create();
 
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
     checkOperations.newCheck(checkKey1).state(CheckState.RUNNING).upsert();
@@ -121,6 +128,7 @@ public class ListChecksIT extends AbstractCheckersTest {
 
     CheckInfo expectedCheckInfo2 = checkOperations.check(checkKey2).asInfo();
     expectedCheckInfo2.repository = project.get();
+    expectedCheckInfo2.checkerName = checkerName2;
     expectedCheckInfo2.blocking = ImmutableSet.of();
     expectedCheckInfo2.checkerStatus = CheckerStatus.ENABLED;
 

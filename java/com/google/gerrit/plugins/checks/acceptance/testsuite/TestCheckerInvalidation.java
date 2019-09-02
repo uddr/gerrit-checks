@@ -29,6 +29,8 @@ public abstract class TestCheckerInvalidation {
 
   public abstract boolean unsetUuid();
 
+  public abstract boolean unsetName();
+
   public abstract boolean unsetRepository();
 
   public abstract boolean unsetStatus();
@@ -45,6 +47,7 @@ public abstract class TestCheckerInvalidation {
         .invalidBlockingCondition(false)
         .invalidStatus(false)
         .unsetUuid(false)
+        .unsetName(false)
         .unsetRepository(false)
         .unsetStatus(false)
         .deleteRef(false);
@@ -80,7 +83,13 @@ public abstract class TestCheckerInvalidation {
       return unsetUuid(true);
     }
 
-    abstract Builder unsetUuid(boolean unsetUuid);
+    abstract Builder unsetUuid(boolean unsetName);
+
+    public Builder unsetName() {
+      return unsetName(true);
+    }
+
+    abstract Builder unsetName(boolean unsetName);
 
     public Builder unsetRepository() {
       return unsetRepository(true);
