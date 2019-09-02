@@ -47,7 +47,6 @@
       /** @type {function(string): !Promise<Boolean>} */
       isConfigured: Function,
       /** @type {function(string, string): !Promise<!Object>} */
-      retryCheck: Function,
       pluginRestApi: Object,
       _checks: Object,
       _status: {
@@ -117,6 +116,22 @@
         }
       }
       return a.checker_name.localeCompare(b.checker_name);
+    },
+
+    _handleRetryCheck(e) {
+      const uuid = e.detail.uuid;
+      const retryCheck = (change, revision, uuid) => {
+        return this.pluginRestApi.post(
+          '/changes/' + change + '/revisions/' + revision + '/checks/' + uuid + '/rerun'
+        )
+      }
+      retryCheck(this.change._number, this.revision._number, uuid).then(
+        res => {
+          this._fetchChecks(this.change, this.revision, this.getChecks);
+        }, e => {
+          console.error(e);
+        }
+      )
     },
 
     /**

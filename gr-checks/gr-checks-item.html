@@ -38,20 +38,21 @@
     <td>[[_startTime]]</td>
     <td>[[_duration]]</td>
     <td>
-        <a href$="[[check.url]]" target="_blank" class="log">
-          <gr-button link no-uppercase disabled="[[!check.url]]">
-            View log
-          </gr-button>
-        </a>
-<!--      disabling re-run button until the API for rerun is ready-->
-<!--        <gr-button-->
-<!--          link-->
-<!--          no-uppercase-->
-<!--          on-tap="handleClick">-->
-<!--          Re-run-->
-<!--        </gr-button>-->
-      </td>
-      <td>[[check.checker_description]]</td>
+      <a href$="[[check.url]]" target="_blank" class="log">
+        <gr-button link no-uppercase disabled="[[!check.url]]">
+          View log
+        </gr-button>
+      </a>
+    </td>
+    <td>
+      <gr-button
+        link
+        no-uppercase
+        on-tap="_handleReRunClicked">
+        Re-run
+      </gr-button>
+    </td>
+    <td>[[check.checker_description]]</td>
   </template>
   <script src="gr-checks-item.js"></script>
 </dom-module>
