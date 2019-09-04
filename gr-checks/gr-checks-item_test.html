@@ -43,18 +43,18 @@
     teardown(() => { sandbox.restore(); });
 
     test('renders the status', () => {
-      const status = element.$$('td:nth-child(3) > gr-checks-status');
+      const status = element.$$('td:nth-child(4) > gr-checks-status');
       assert.exists(status);
     });
 
     test('renders the run time', () => {
-      const name = element.$$('td:nth-child(5)');
+      const name = element.$$('td:nth-child(6)');
       assert.equal(name .textContent.trim(), "11:25:19 PM");
     });
 
     suite('duration', () => {
       test('renders the run duration', () => {
-        const name = element.$$('td:nth-child(6)');
+        const name = element.$$('td:nth-child(7)');
         assert.equal(name .textContent.trim(), "25 sec");
       });
 
@@ -65,13 +65,13 @@
           started: "2019-02-06T22:25:19.269Z",
           finished: "2019-02-06T22:25:19.269Z",
         };
-        const name = element.$$('td:nth-child(6)');
+        const name = element.$$('td:nth-child(7)');
         assert.equal(name .textContent.trim(), "0 sec");
       });
     });
 
     test('renders a link to the log', () => {
-      const logLink = element.$$('td:nth-child(7) > a');
+      const logLink = element.$$('td:nth-child(8) > a');
       assert.equal(logLink.getAttribute('href'), "http://example.com/test-log-url");
       assert.equal(logLink.textContent.trim(), "View log");
     });
