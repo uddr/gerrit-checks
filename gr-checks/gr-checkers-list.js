@@ -1,7 +1,7 @@
 (function() {
   'use strict';
   const CHECKERS_PER_PAGE = 15;
-  const GET_CHECKERS_URL = "/a/plugins/checks/checkers/";
+  const GET_CHECKERS_URL = "/plugins/checks/checkers/";
 
   /**
    * Show a list of all checkers along with creating/editing them
