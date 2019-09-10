@@ -27,6 +27,7 @@ import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -35,6 +36,7 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.PendingCheckInfo;
 import com.google.gerrit.plugins.checks.api.PendingChecksInfo;
+import com.google.gerrit.plugins.checks.api.QueryPendingChecks;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.gson.reflect.TypeToken;
@@ -85,8 +87,10 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void specifyingCheckerIsRequired() throws Exception {
-    assertInvalidQuery("state:NOT_STARTED", "query must contain exactly 1 'checker' operator");
+  public void specifyingCheckerOrSchemeIsRequired() throws Exception {
+    assertInvalidQuery(
+        "state:NOT_STARTED",
+        "query must contain exactly 1 'checker' operator or 'scheme' operator");
   }
 
   @Test
@@ -97,11 +101,11 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void cannotSpecifyingMultipleCheckers() throws Exception {
+  public void cannotSpecifyMultipleCheckers() throws Exception {
     CheckerUuid checkerUuid1 = checkerOperations.newChecker().repository(project).create();
     CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
 
-    String expectedMessage = "query must contain exactly 1 'checker' operator";
+    String expectedMessage = "query must contain exactly 1 'checker' operator or 'scheme' operator";
     assertInvalidQuery(
         String.format("checker:\"%s\" checker:\"%s\"", checkerUuid1, checkerUuid2),
         expectedMessage);
@@ -111,6 +115,26 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     assertInvalidQuery(
         String.format(
             "checker:\"%s\" (state:NOT_STARTED checker:\"%s\")", checkerUuid1, checkerUuid2),
+        expectedMessage);
+  }
+
+  @Test
+  public void cannotSpecifyMultipleSchemes() throws Exception {
+    CheckerUuid checkerUuid1 = checkerOperations.newChecker().repository(project).create();
+    CheckerUuid checkerUuid2 = checkerOperations.newChecker().repository(project).create();
+
+    String expectedMessage = "query must contain exactly 1 'checker' operator or 'scheme' operator";
+    assertInvalidQuery(
+        String.format("scheme:\"%s\" scheme:\"%s\"", checkerUuid1.scheme(), checkerUuid2.scheme()),
+        expectedMessage);
+    assertInvalidQuery(
+        String.format(
+            "scheme:\"%s\" OR scheme:\"%s\"", checkerUuid1.scheme(), checkerUuid2.scheme()),
+        expectedMessage);
+    assertInvalidQuery(
+        String.format(
+            "scheme:\"%s\" (state:NOT_STARTED scheme:\"%s\")",
+            checkerUuid1.scheme(), checkerUuid2.scheme()),
         expectedMessage);
   }
 
@@ -133,12 +157,27 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     String expectedMessage =
-        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>'";
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>' or 'scheme:<checker-scheme>' or 'scheme:<checker-scheme> AND <other-operators>'";
     assertInvalidQuery(
         String.format("state:NOT_STARTED AND (checker:\"%s\" OR state:NOT_STARTED)", checkerUuid),
         expectedMessage);
     assertInvalidQuery(
         String.format("state:NOT_STARTED AND NOT checker:\"%s\"", checkerUuid), expectedMessage);
+  }
+
+  @Test
+  public void cannotSpecifySchemeInAndConditionIfNotImmediateChild() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    String expectedMessage =
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>' or 'scheme:<checker-scheme>' or 'scheme:<checker-scheme> AND <other-operators>'";
+    assertInvalidQuery(
+        String.format(
+            "state:NOT_STARTED AND (scheme:\"%s\" OR state:NOT_STARTED)", checkerUuid.scheme()),
+        expectedMessage);
+    assertInvalidQuery(
+        String.format("state:NOT_STARTED AND NOT scheme:\"%s\"", checkerUuid.scheme()),
+        expectedMessage);
   }
 
   @Test
@@ -168,7 +207,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     String expectedMessage =
-        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>'";
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>' or 'scheme:<checker-scheme>' or 'scheme:<checker-scheme> AND <other-operators>'";
     assertInvalidQuery(
         String.format("checker:\"%s\" OR state:NOT_STARTED", checkerUuid), expectedMessage);
     assertInvalidQuery(
@@ -176,11 +215,31 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void cannotSpecifySchemeInOrCondition() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+
+    String expectedMessage =
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>' or 'scheme:<checker-scheme>' or 'scheme:<checker-scheme> AND <other-operators>'";
+    assertInvalidQuery(
+        String.format("scheme:\"%s\" OR state:NOT_STARTED", checkerUuid.scheme()), expectedMessage);
+    assertInvalidQuery(
+        String.format("state:NOT_STARTED OR scheme:\"%s\"", checkerUuid.scheme()), expectedMessage);
+  }
+
+  @Test
   public void cannotSpecifyCheckerInNotCondition() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     assertInvalidQuery(
         String.format("NOT checker:\"%s\"", checkerUuid),
-        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>'");
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>' or 'scheme:<checker-scheme>' or 'scheme:<checker-scheme> AND <other-operators>'");
+  }
+
+  @Test
+  public void cannotSpecifySchemeInNotCondition() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
+    assertInvalidQuery(
+        String.format("NOT scheme:\"%s\"", checkerUuid.scheme()),
+        "query must be 'checker:<checker-uuid>' or 'checker:<checker-uuid> AND <other-operators>' or 'scheme:<checker-scheme>' or 'scheme:<checker-scheme> AND <other-operators>'");
   }
 
   @Test
@@ -646,6 +705,128 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     assertThat(pendingChecksList).isNotEmpty();
   }
 
+  @Test
+  public void queryPendingChecksWithScheme() throws Exception {
+    // create a check with a scheme that we expect to never be returned.
+    CheckerUuid checkerUuidOtherScheme =
+        checkerOperations
+            .newChecker()
+            .uuid(CheckerUuid.parse("otherscheme:checker-1"))
+            .repository(project)
+            .create();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuidOtherScheme))
+        .state(CheckState.NOT_STARTED)
+        .upsert();
+
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .uuid(CheckerUuid.parse("test:checker-1"))
+            .repository(project)
+            .create();
+    // Create a check with state "NOT_STARTED" that we expect to be returned.
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .state(CheckState.NOT_STARTED)
+        .upsert();
+
+    // Create a check with state "SCHEDULED" that we expect to be returned.
+    PatchSet.Id patchSetId2 = createChange().getPatchSetId();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId2, checkerUuid))
+        .state(CheckState.SCHEDULED)
+        .upsert();
+
+    // Create a check with state "SUCCESSFUL" that we expect to be ignored.
+    PatchSet.Id patchSetId3 = createChange().getPatchSetId();
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId3, checkerUuid))
+        .state(CheckState.SUCCESSFUL)
+        .upsert();
+
+    // Create a check with state "SUCCESSFUL" that we expect to be ignored, for patchsetId.
+    // by default, patchSetId2 and patchSetId3 should be NOT_STARTED, and should be returned.
+    CheckerUuid checkerUuid2 =
+        checkerOperations
+            .newChecker()
+            .uuid(CheckerUuid.parse("test:checker-2"))
+            .repository(project)
+            .create();
+    assertThat(checkerUuid2.scheme()).isEqualTo("test");
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid2))
+        .state(CheckState.FAILED)
+        .upsert();
+
+    List<PendingChecksInfo> pendingChecksList =
+        queryPendingChecks("test", CheckState.NOT_STARTED, CheckState.SCHEDULED);
+    assertThat(pendingChecksList).hasSize(4);
+
+    // The sorting of the pendingChecksList matches the sorting in which the matching changes are
+    // returned from the change index, which is by last updated timestamp. Use this knowledge here
+    // to do the assertions although the REST endpoint doesn't document a guaranteed sort order.
+    PendingChecksInfo pendingChecksChange = pendingChecksList.get(0);
+    assertThat(pendingChecksChange).hasRepository(project);
+    assertThat(pendingChecksChange).hasPatchSet(patchSetId2);
+    assertThat(pendingChecksChange)
+        .hasPendingChecksMapThat()
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.SCHEDULED));
+
+    pendingChecksChange = pendingChecksList.get(1);
+    assertThat(pendingChecksChange).hasRepository(project);
+    assertThat(pendingChecksChange).hasPatchSet(patchSetId);
+    assertThat(pendingChecksChange)
+        .hasPendingChecksMapThat()
+        .containsExactly(checkerUuid.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
+
+    pendingChecksChange = pendingChecksList.get(2);
+    assertThat(pendingChecksChange).hasRepository(project);
+    assertThat(pendingChecksChange).hasPatchSet(patchSetId3);
+    assertThat(pendingChecksChange)
+        .hasPendingChecksMapThat()
+        .containsExactly(checkerUuid2.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
+
+    pendingChecksChange = pendingChecksList.get(3);
+    assertThat(pendingChecksChange).hasRepository(project);
+    assertThat(pendingChecksChange).hasPatchSet(patchSetId2);
+    assertThat(pendingChecksChange)
+        .hasPendingChecksMapThat()
+        .containsExactly(checkerUuid2.get(), new PendingCheckInfo(CheckState.NOT_STARTED));
+  }
+
+  @Test
+  public void queryPendingChecksWithSchemeTooManyChecksThrowsError() throws Exception {
+    for (int i = 0; i < QueryPendingChecks.MAX_ALLOWED_QUERIES + 1; i++) {
+      checkerOperations
+          .newChecker()
+          .repository(project)
+          .uuid(CheckerUuid.parse(String.format("test:checker-%d", i)))
+          .create();
+    }
+    assertThrows(
+        ResourceConflictException.class,
+        () -> queryPendingChecks("test", CheckState.NOT_STARTED, CheckState.SCHEDULED));
+  }
+
+  @Test
+  public void queryOnlyExactSchemas() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .uuid(CheckerUuid.parse("foobar:checker-1"))
+            .repository(project)
+            .create();
+    // Create a check with state "NOT_STARTED" that we expect to be returned.
+    checkOperations
+        .newCheck(CheckKey.create(project, patchSetId, checkerUuid))
+        .state(CheckState.NOT_STARTED)
+        .upsert();
+    assertThat(queryPendingChecks("foo", CheckState.NOT_STARTED, CheckState.SCHEDULED)).isEmpty();
+    assertThat(queryPendingChecks("bar", CheckState.NOT_STARTED, CheckState.RUNNING)).isEmpty();
+    assertThat(queryPendingChecks("foobar", CheckState.NOT_STARTED)).hasSize(1);
+  }
+
   private void assertInvalidQuery(String query, String expectedMessage) {
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> pendingChecksApi.query(query).get());
@@ -661,9 +842,25 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
     return pendingChecksApi.query(buildQueryString(checkerUuid, checkStates)).get();
   }
 
+  private List<PendingChecksInfo> queryPendingChecks(String scheme, CheckState... checkStates)
+      throws RestApiException {
+    return pendingChecksApi.query(buildQueryString(scheme, checkStates)).get();
+  }
+
   private String buildQueryString(CheckerUuid checkerUuid, CheckState... checkStates) {
     StringBuilder queryString = new StringBuilder();
     queryString.append(String.format("checker:%s", checkerUuid));
+
+    StringJoiner stateJoiner = new StringJoiner(" OR state:", " (state:", ")");
+    Stream.of(checkStates).map(CheckState::name).forEach(stateJoiner::add);
+    queryString.append(stateJoiner.toString());
+
+    return queryString.toString();
+  }
+
+  private String buildQueryString(String scheme, CheckState... checkStates) {
+    StringBuilder queryString = new StringBuilder();
+    queryString.append(String.format("scheme:%s", scheme));
 
     StringJoiner stateJoiner = new StringJoiner(" OR state:", " (state:", ")");
     Stream.of(checkStates).map(CheckState::name).forEach(stateJoiner::add);

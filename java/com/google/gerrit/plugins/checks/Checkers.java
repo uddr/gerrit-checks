@@ -73,6 +73,16 @@ public interface Checkers {
   ImmutableList<Checker> listCheckers() throws IOException;
 
   /**
+   * Returns a list with all checkers of the given scheme.
+   *
+   * <p>Checkers with invalid configuration are silently ignored.
+   *
+   * @param scheme the name of the scheme of the relevant checkers
+   * @return all checkers with that scheme, sorted by UUID
+   * @throws IOException if any checker couldn't be retrieved from the storage
+   */
+  ImmutableList<Checker> listCheckers(String scheme) throws IOException;
+  /**
    * Returns the checkers that apply to the given repository.
    *
    * <p>Never returns disabled checkers. Checkers with invalid configuration are silently ignored.

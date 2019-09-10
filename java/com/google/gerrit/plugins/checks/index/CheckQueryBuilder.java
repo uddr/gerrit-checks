@@ -27,6 +27,7 @@ import java.util.Arrays;
 public class CheckQueryBuilder extends QueryBuilder<Check, CheckQueryBuilder> {
   public static final String FIELD_CHECKER = "checker";
   public static final String FIELD_STATE = "state";
+  public static final String FIELD_SCHEME = "scheme";
 
   private static final QueryBuilder.Definition<Check, CheckQueryBuilder> mydef =
       new QueryBuilder.Definition<>(CheckQueryBuilder.class);
@@ -59,5 +60,10 @@ public class CheckQueryBuilder extends QueryBuilder<Check, CheckQueryBuilder> {
   @Operator
   public Predicate<Check> state(String state) throws QueryParseException {
     return CheckStatePredicate.parse(state);
+  }
+
+  @Operator
+  public Predicate<Check> scheme(String scheme) {
+    return new CheckerSchemePredicate(scheme);
   }
 }
