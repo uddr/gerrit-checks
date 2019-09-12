@@ -9,7 +9,7 @@ Please also take note of the general information on the
 ## <a id="check-endpoints"> Check Endpoints
 
 ### <a id="list-checks"> List Checks
-_'GET /changes/[\{change-id\}](../../../Documentation/rest-api-changes.html#change-id)/revisions/[\{revision-id\}](../../../Documentation/rest-api-changes.html#revision-id)/revisions/checks'_
+_'GET /changes/[\{change-id\}](../../../Documentation/rest-api-changes.html#change-id)/revisions/[\{revision-id\}](../../../Documentation/rest-api-changes.html#revision-id)/checks'_
 
 Retrieves all checks for a given revision and change.
 
@@ -56,7 +56,7 @@ checkers).
 ```
 
 ### <a id="get-check"> Get Check
-_'GET /changes/[\{change-id\}](../../../Documentation/rest-api-changes.html#change-id)/revisions/[\{revision-id\}](../../../Documentation/rest-api-changes.html#revision-id)/revisions/checks/[\{checker-id\}](./rest-api-checkers.md#checker-id)'_
+_'GET /changes/[\{change-id\}](../../../Documentation/rest-api-changes.html#change-id)/revisions/[\{revision-id\}](../../../Documentation/rest-api-changes.html#revision-id)/checks/[\{checker-id\}](./rest-api-checkers.md#checker-id)'_
 
 Retrieves a check.
 
