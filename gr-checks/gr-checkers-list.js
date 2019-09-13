@@ -123,10 +123,7 @@
 
     _getCheckers(pluginRestApi) {
       if (!pluginRestApi) return;
-      pluginRestApi.fetchJSON({
-        method: 'GET',
-        url: GET_CHECKERS_URL,
-      }).then(checkers => {
+      pluginRestApi.get(GET_CHECKERS_URL).then(checkers => {
         if (!checkers) { return; }
         this._checkers = checkers;
         this._startingIndex = 0;
