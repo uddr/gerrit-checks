@@ -57,7 +57,6 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
   private final Checkers checkers;
   private final Checks checks;
   private final Provider<CheckerQuery> checkerQueryProvider;
-  @VisibleForTesting public static final int MAX_ALLOWED_QUERIES = 10;
   private String queryString;
 
   @Option(
@@ -124,12 +123,6 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
                     new IllegalStateException(
                         String.format("no checker scheme predicate found: %s", finalPredicate)));
     ImmutableList<Checker> checkersOfScheme = checkers.listCheckers(scheme);
-    if (checkersOfScheme.size() > MAX_ALLOWED_QUERIES) {
-      throw new ResourceConflictException(
-          String.format(
-              "Too many checkers exist with that scheme, allowed maximum is %s. Found %s checkers",
-              MAX_ALLOWED_QUERIES, checkersOfScheme.size()));
-    }
     List<List<ChangeData>> changes =
         checkerQueryProvider.get().queryMatchingChanges(checkersOfScheme);
     List<PendingChecksInfo> pendingChecks = new ArrayList<>();
