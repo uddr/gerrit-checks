@@ -796,20 +796,6 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void queryPendingChecksWithSchemeTooManyChecksThrowsError() throws Exception {
-    for (int i = 0; i < QueryPendingChecks.MAX_ALLOWED_QUERIES + 1; i++) {
-      checkerOperations
-          .newChecker()
-          .repository(project)
-          .uuid(CheckerUuid.parse(String.format("test:checker-%d", i)))
-          .create();
-    }
-    assertThrows(
-        ResourceConflictException.class,
-        () -> queryPendingChecks("test", CheckState.NOT_STARTED, CheckState.SCHEDULED));
-  }
-
-  @Test
   public void queryOnlyExactSchemas() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations
