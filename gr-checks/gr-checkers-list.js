@@ -16,7 +16,6 @@
        */
       pluginRestApi: {
         type: Object,
-        observer: '_getCheckers'
       },
       // Checker that will be passed to the editOverlay modal
       checker: Object,
@@ -34,7 +33,6 @@
       _visibleCheckers: {
         type: Array,
         computed: '_computeVisibleCheckers(_startingIndex, _filteredCheckers)',
-        observer: '_visibleCheckersChanged'
       },
       _createNewCapability: {
         type: Boolean,
@@ -59,17 +57,40 @@
       '_showCheckers(_checkers, _filter)',
     ],
 
+    attached() {
+      /**
+       * Adding an observer to listBody element as gr-overlay does not
+       * automatically resize itself once the getCheckers response comes.
+       * Polymer 2 will deprecate use of obserNodes so replacing it
+       * with FlattenedNodesObserver
+       */
+      if (Polymer.FlattenedNodesObserver) {
+        this._checkersListObserver = new Polymer.FlattenedNodesObserver(
+          this.$.listBody, () => {
+            this.$.listOverlay.refit();
+          });
+      } else {
+        this._checkersListObserver = Polymer.dom(this.$.listBody).observeNodes(
+          () => {
+            this.$.listOverlay.refit();
+          });
+      }
+    },
+
+    detached() {
+      Polymer.dom(this.$.listBody).unobserveNodes(this._checkersListObserver);
+    },
+
     _contains(target, keyword) {
       return target.toLowerCase().includes(keyword.toLowerCase().trim());
     },
 
-    _visibleCheckersChanged(currentVisibleCheckers, previousVisibleCheckers) {
-      if (!currentVisibleCheckers || !previousVisibleCheckers) {
-        return;
-      }
-      if (currentVisibleCheckers.length !== previousVisibleCheckers.length) {
-        this.fire('resize', {bubbles: false});
-      }
+    _showConfigureOverlay() {
+      this.$.listOverlay.open().then(
+        () => {
+          this._getCheckers();
+        }
+      )
     },
 
     _showCheckers(_checkers, _filter) {
@@ -121,9 +142,9 @@
       }
     },
 
-    _getCheckers(pluginRestApi) {
-      if (!pluginRestApi) return;
-      pluginRestApi.get(GET_CHECKERS_URL).then(checkers => {
+    _getCheckers() {
+      if (!this.pluginRestApi) return;
+      this.pluginRestApi.get(GET_CHECKERS_URL).then(checkers => {
         if (!checkers) { return; }
         this._checkers = checkers;
         this._startingIndex = 0;
