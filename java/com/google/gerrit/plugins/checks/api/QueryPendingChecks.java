@@ -80,8 +80,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
     this.checkerQueryProvider = checkerQueryProvider;
   }
 
-  public List<PendingChecksInfo> apply()
-      throws RestApiException, IOException, ConfigInvalidException, StorageException {
+  public List<PendingChecksInfo> apply() throws Exception {
     return apply(TopLevelResource.INSTANCE).value();
   }
 
