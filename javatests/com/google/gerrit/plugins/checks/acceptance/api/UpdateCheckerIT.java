@@ -21,6 +21,7 @@ import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.SkipProjectClone;
+import com.google.gerrit.acceptance.UseClockStep;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
@@ -42,15 +43,12 @@ import com.google.gerrit.testing.ConfigSuite;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Config;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 @SkipProjectClone
+@UseClockStep(startAtEpoch = true)
 public class UpdateCheckerIT extends AbstractCheckersTest {
   private static final int MAX_INDEX_TERMS = 10;
 
@@ -63,17 +61,6 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
 
   @Inject private RequestScopeOperations requestScopeOperations;
   @Inject private ProjectOperations projectOperations;
-
-  @Before
-  public void setTimeForTesting() {
-    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
-    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
-  }
-
-  @After
-  public void resetTime() {
-    TestTimeUtil.useSystemTime();
-  }
 
   @Test
   public void updateMultipleCheckerPropertiesAtOnce() throws Exception {

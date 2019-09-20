@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gerrit.acceptance.UseClockStep;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -34,27 +35,13 @@ import com.google.gerrit.server.restapi.config.ListCapabilities.CapabilityInfo;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
+@UseClockStep(startAtEpoch = true)
 public class GetCheckerIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
   @Inject private ListCapabilities listCapabilities;
-
-  @Before
-  public void setUp() throws Exception {
-    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
-    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
-  }
-
-  @After
-  public void resetTime() {
-    TestTimeUtil.useSystemTime();
-  }
 
   @Test
   public void getCheckerReturnsUuid() throws Exception {

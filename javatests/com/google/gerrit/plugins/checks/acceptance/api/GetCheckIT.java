@@ -24,6 +24,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
+import com.google.gerrit.acceptance.UseClockStep;
 import com.google.gerrit.acceptance.rest.util.RestApiCallHelper;
 import com.google.gerrit.acceptance.rest.util.RestCall;
 import com.google.gerrit.acceptance.rest.util.RestCall.Method;
@@ -47,13 +48,11 @@ import com.google.gerrit.testing.TestTimeUtil;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@UseClockStep(startAtEpoch = true)
 public class GetCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
 
@@ -62,17 +61,9 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Before
   public void setUp() throws Exception {
-    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
-    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
-
     PushOneCommit.Result r = createChange();
     changeId = r.getChangeId();
     patchSetId = r.getPatchSetId();
-  }
-
-  @After
-  public void resetTime() {
-    TestTimeUtil.useSystemTime();
   }
 
   @Test

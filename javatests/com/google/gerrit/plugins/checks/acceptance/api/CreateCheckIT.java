@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.RestResponse;
+import com.google.gerrit.acceptance.UseClockStep;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -42,12 +43,11 @@ import com.google.inject.Inject;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.ObjectId;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@UseClockStep(startAtEpoch = true)
 public class CreateCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
 
@@ -56,18 +56,10 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   @Before
   public void setUp() throws Exception {
-    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
-    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
-
     patchSetId = createChange().getPatchSetId();
     commitId =
         ObjectId.fromString(
             gApi.changes().id(patchSetId.changeId().get()).current().commit(false).commit);
-  }
-
-  @After
-  public void resetTime() {
-    TestTimeUtil.useSystemTime();
   }
 
   @Test

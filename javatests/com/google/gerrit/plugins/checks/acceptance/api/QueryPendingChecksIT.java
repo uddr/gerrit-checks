@@ -23,11 +23,11 @@ import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.common.collect.Iterables;
 import com.google.gerrit.acceptance.RestResponse;
+import com.google.gerrit.acceptance.UseClockStep;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -36,22 +36,17 @@ import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.PendingCheckInfo;
 import com.google.gerrit.plugins.checks.api.PendingChecksInfo;
-import com.google.gerrit.plugins.checks.api.QueryPendingChecks;
 import com.google.gerrit.reviewdb.client.PatchSet;
-import com.google.gerrit.testing.TestTimeUtil;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@UseClockStep(startAtEpoch = true)
 public class QueryPendingChecksIT extends AbstractCheckersTest {
   @Inject private ProjectOperations projectOperations;
   @Inject private RequestScopeOperations requestScopeOperations;
@@ -60,15 +55,7 @@ public class QueryPendingChecksIT extends AbstractCheckersTest {
 
   @Before
   public void setUp() throws Exception {
-    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
-    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
-
     patchSetId = createChange().getPatchSetId();
-  }
-
-  @After
-  public void resetTime() {
-    TestTimeUtil.useSystemTime();
   }
 
   @Test

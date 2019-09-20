@@ -17,6 +17,7 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
+import com.google.gerrit.acceptance.UseClockStep;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.extensions.restapi.AuthException;
@@ -29,15 +30,12 @@ import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.util.time.TimeUtil;
-import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.concurrent.TimeUnit;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@UseClockStep(startAtEpoch = true)
 public class RerunCheckIT extends AbstractCheckersTest {
   @Inject private RequestScopeOperations requestScopeOperations;
   @Inject private ProjectOperations projectOperations;
@@ -47,18 +45,10 @@ public class RerunCheckIT extends AbstractCheckersTest {
 
   @Before
   public void setUp() throws Exception {
-    TestTimeUtil.resetWithClockStep(1, TimeUnit.SECONDS);
-    TestTimeUtil.setClock(Timestamp.from(Instant.EPOCH));
-
     patchSetId = createChange().getPatchSetId();
 
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     checkKey = CheckKey.create(project, patchSetId, checkerUuid);
-  }
-
-  @After
-  public void resetTime() {
-    TestTimeUtil.useSystemTime();
   }
 
   @Test
