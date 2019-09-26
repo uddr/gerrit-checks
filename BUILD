@@ -17,6 +17,7 @@ gerrit_plugin(
         "Gerrit-PluginName: checks",
         "Gerrit-Module: com.google.gerrit.plugins.checks.Module",
         "Gerrit-HttpModule: com.google.gerrit.plugins.checks.HttpModule",
+        "Gerrit-InitStep: com.google.gerrit.plugins.checks.Init",
     ],
     resource_jars = ["//plugins/checks/gr-checks:gr-checks-static"],
     resource_strip_prefix = "plugins/checks/resources",
