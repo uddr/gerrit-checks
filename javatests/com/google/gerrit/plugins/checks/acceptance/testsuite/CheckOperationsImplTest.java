@@ -41,7 +41,6 @@ import com.google.gerrit.server.util.time.TimeUtil;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Optional;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
@@ -91,22 +90,27 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
         CheckKey.create(
             Project.nameKey("non-existing"), createChange().getPatchSetId(), checkerUuid);
 
-    IllegalStateException thrown =
-        assertThrows(
-            IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
-    assertThat(thrown.getCause(), instanceOf(RepositoryNotFoundException.class));
+    assertThrows(IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
+  }
+
+  @Test
+  public void checkCannotBeCreatedForNonExistingChange() throws Exception {
+    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
+    CheckKey checkKey = CheckKey.create(project, PatchSet.id(Change.id(1), 1), checkerUuid);
+
+    assertThrows(IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
   }
 
   @Test
   public void checkCannotBeCreatedForNonExistingPatchSet() throws Exception {
+    Change.Id changeId = createChange().getChange().getId();
     CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    CheckKey checkKey = CheckKey.create(project, PatchSet.id(Change.id(1), 1), checkerUuid);
+    CheckKey checkKey = CheckKey.create(project, PatchSet.id(changeId, 99), checkerUuid);
 
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class, () -> checkOperations.newCheck(checkKey).upsert());
-    assertThat(thrown.getCause(), instanceOf(IOException.class));
-    assertThat(thrown).hasMessageThat().contains("patchset 1,1 not found");
+    assertThat(thrown).hasMessageThat().contains("patch set not found: " + changeId.get() + ",99");
   }
 
   @Test

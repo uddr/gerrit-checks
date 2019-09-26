@@ -29,7 +29,7 @@ import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.Checkers;
-import com.google.gerrit.plugins.checks.ChecksUpdate;
+import com.google.gerrit.plugins.checks.ChecksStorageUpdate;
 import com.google.gerrit.plugins.checks.CombinedCheckStateCache;
 import com.google.gerrit.server.GerritPersonIdent;
 import com.google.gerrit.server.IdentifiedUser;
@@ -56,7 +56,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.NoteMap;
 import org.eclipse.jgit.revwalk.RevWalk;
 
-public class NoteDbChecksUpdate implements ChecksUpdate {
+public class NoteDbChecksUpdate implements ChecksStorageUpdate {
   interface Factory {
     NoteDbChecksUpdate create(IdentifiedUser currentUser);
 

@@ -18,7 +18,7 @@ import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.plugins.checks.Checkers;
 import com.google.gerrit.plugins.checks.CheckersUpdate;
 import com.google.gerrit.plugins.checks.Checks;
-import com.google.gerrit.plugins.checks.ChecksUpdate;
+import com.google.gerrit.plugins.checks.ChecksStorageUpdate;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.UserInitiated;
@@ -51,13 +51,13 @@ public class NoteDbCheckersModule extends FactoryModule {
 
   @Provides
   @ServerInitiated
-  ChecksUpdate provideServerInitiatedChecksUpdate(NoteDbChecksUpdate.Factory factory) {
+  ChecksStorageUpdate provideServerInitiatedChecksUpdate(NoteDbChecksUpdate.Factory factory) {
     return factory.createWithServerIdent();
   }
 
   @Provides
   @UserInitiated
-  ChecksUpdate provideUserInitiatedChecksUpdate(
+  ChecksStorageUpdate provideUserInitiatedChecksUpdate(
       NoteDbChecksUpdate.Factory factory, IdentifiedUser currentUser) {
     return factory.create(currentUser);
   }
