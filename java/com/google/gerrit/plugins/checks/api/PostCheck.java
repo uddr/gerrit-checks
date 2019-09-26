@@ -109,9 +109,15 @@ public class PostCheck
               () ->
                   new UnprocessableEntityException(
                       String.format("checker %s not found", checkerUuid)));
-      updatedCheck = checksUpdate.get().createCheck(key, toCheckUpdate(input));
+      updatedCheck =
+          checksUpdate
+              .get()
+              .createCheck(key, toCheckUpdate(input), input.notify, input.notifyDetails);
     } else {
-      updatedCheck = checksUpdate.get().updateCheck(key, toCheckUpdate(input));
+      updatedCheck =
+          checksUpdate
+              .get()
+              .updateCheck(key, toCheckUpdate(input), input.notify, input.notifyDetails);
     }
     return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
   }

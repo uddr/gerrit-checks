@@ -20,10 +20,15 @@ import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.a
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.acceptance.TestAccount;
 import com.google.gerrit.acceptance.testsuite.group.GroupOperations;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
+import com.google.gerrit.extensions.api.changes.NotifyHandling;
+import com.google.gerrit.extensions.api.changes.NotifyInfo;
+import com.google.gerrit.extensions.api.changes.RecipientType;
 import com.google.gerrit.extensions.client.ProjectWatchInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.PluginDefinedInfo;
@@ -39,7 +44,9 @@ import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.testing.FakeEmailSender.Message;
 import com.google.inject.Inject;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -225,6 +232,72 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
     // Except that no email was sent because the combined check state was not updated.
     assertThat(sender.getMessages()).isEmpty();
+  }
+
+  @Test
+  public void postCheckRespectsNotifySettings() throws Exception {
+    testNotifySettingsForPostCheck(NotifyHandling.ALL, owner, reviewer, starrer, watcher);
+    testNotifySettingsForPostCheck(NotifyHandling.OWNER, owner);
+    testNotifySettingsForPostCheck(NotifyHandling.OWNER_REVIEWERS, owner, reviewer);
+    testNotifySettingsForPostCheck(NotifyHandling.NONE);
+
+    testNotifySettingsForPostCheck(
+        ImmutableSet.of(user), NotifyHandling.ALL, user, owner, reviewer, starrer, watcher);
+    testNotifySettingsForPostCheck(ImmutableSet.of(user), NotifyHandling.OWNER, user, owner);
+    testNotifySettingsForPostCheck(
+        ImmutableSet.of(user), NotifyHandling.OWNER_REVIEWERS, user, owner, reviewer);
+    testNotifySettingsForPostCheck(ImmutableSet.of(user), NotifyHandling.NONE, user);
+  }
+
+  private void testNotifySettingsForPostCheck(
+      NotifyHandling notify, TestAccount... expectedRecipients) throws RestApiException {
+    testNotifySettingsForPostCheck(ImmutableSet.of(), notify, expectedRecipients);
+  }
+
+  private void testNotifySettingsForPostCheck(
+      Set<TestAccount> accountsToNotify, NotifyHandling notify, TestAccount... expectedRecipients)
+      throws RestApiException {
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+
+    // Post a new check that changes the combined check state to FAILED.
+    requestScopeOperations.setApiUser(bot.id());
+    CheckInput input = new CheckInput();
+    if (!accountsToNotify.isEmpty()) {
+      input.notifyDetails =
+          ImmutableMap.of(
+              RecipientType.TO,
+              new NotifyInfo(
+                  accountsToNotify.stream().map(TestAccount::username).collect(toImmutableList())));
+    }
+    input.notify = notify;
+    input.checkerUuid = checkerUuid1.get();
+    input.state = CheckState.FAILED;
+    checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    if (expectedRecipients.length == 0) {
+      assertThat(messages).isEmpty();
+    } else {
+      assertThat(messages).hasSize(1);
+
+      Message message = messages.get(0);
+      assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
+      assertThat(message.body())
+          .contains("The combined check state has been updated to " + CombinedCheckState.FAILED);
+      assertThat(message.rcpt())
+          .containsExactlyElementsIn(
+              Arrays.stream(expectedRecipients)
+                  .map(TestAccount::getEmailAddress)
+                  .collect(toImmutableList()));
+    }
+
+    // reset combined check state
+    input.state = CheckState.SCHEDULED;
+    checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
   }
 
   private CombinedCheckState getCombinedCheckState() throws RestApiException {

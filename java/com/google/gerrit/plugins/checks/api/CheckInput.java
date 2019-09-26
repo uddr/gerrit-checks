@@ -16,7 +16,11 @@ package com.google.gerrit.plugins.checks.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.extensions.api.changes.NotifyHandling;
+import com.google.gerrit.extensions.api.changes.NotifyInfo;
+import com.google.gerrit.extensions.api.changes.RecipientType;
 import java.sql.Timestamp;
+import java.util.Map;
 import java.util.Objects;
 
 /** Input to create or update a {@link com.google.gerrit.plugins.checks.Check}. */
@@ -33,6 +37,13 @@ public class CheckInput {
   @Nullable public Timestamp started;
   /** Date/Time at which the checker finished processing this check. */
   @Nullable public Timestamp finished;
+  /**
+   * Whom to send email notifications to when the combined check state changes due to posting this
+   * check.
+   */
+  @Nullable public NotifyHandling notify;
+  /** Additional information about whom to notify regardless of the {@link #notify} setting. */
+  @Nullable public Map<RecipientType, NotifyInfo> notifyDetails;
 
   @Override
   public boolean equals(Object o) {
@@ -45,12 +56,14 @@ public class CheckInput {
         && Objects.equals(other.message, message)
         && Objects.equals(other.url, url)
         && Objects.equals(other.started, started)
-        && Objects.equals(other.finished, finished);
+        && Objects.equals(other.finished, finished)
+        && Objects.equals(other.notify, notify)
+        && Objects.equals(other.notifyDetails, notifyDetails);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(checkerUuid, state, message, url, started, finished);
+    return Objects.hash(checkerUuid, state, message, url, started, finished, notify, notifyDetails);
   }
 
   @Override
@@ -62,6 +75,8 @@ public class CheckInput {
         .add("url", url)
         .add("started", started)
         .add("finished", finished)
+        .add("notify", notify)
+        .add("notifyDetails", notifyDetails)
         .toString();
   }
 }

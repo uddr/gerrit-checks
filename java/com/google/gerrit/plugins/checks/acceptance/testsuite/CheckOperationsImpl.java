@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.extensions.api.changes.NotifyHandling;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckJson;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -66,7 +67,8 @@ public final class CheckOperationsImpl implements CheckOperations {
   @Override
   public TestCheckUpdate.Builder newCheck(CheckKey key) {
     return TestCheckUpdate.builder(key)
-        .checkUpdater(u -> checksUpdate.get().createCheck(key, toCheckUpdate(u)));
+        .checkUpdater(
+            u -> checksUpdate.get().createCheck(key, toCheckUpdate(u), NotifyHandling.NONE, null));
   }
 
   final class PerCheckOperationsImpl implements PerCheckOperations {
@@ -117,7 +119,10 @@ public final class CheckOperationsImpl implements CheckOperations {
     public TestCheckUpdate.Builder forUpdate() {
       return TestCheckUpdate.builder(key)
           .checkUpdater(
-              testUpdate -> checksUpdate.get().updateCheck(key, toCheckUpdate(testUpdate)));
+              testUpdate ->
+                  checksUpdate
+                      .get()
+                      .updateCheck(key, toCheckUpdate(testUpdate), NotifyHandling.NONE, null));
     }
   }
 
