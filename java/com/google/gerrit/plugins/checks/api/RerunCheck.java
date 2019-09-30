@@ -14,7 +14,6 @@
 
 package com.google.gerrit.plugins.checks.api;
 
-import com.google.gerrit.extensions.common.Input;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -42,7 +41,7 @@ import javax.inject.Provider;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
-public class RerunCheck implements RestModifyView<CheckResource, Input> {
+public class RerunCheck implements RestModifyView<CheckResource, RerunInput> {
   private final Provider<CurrentUser> self;
   private final Checks checks;
   private final Provider<ChecksUpdate> checksUpdate;
@@ -64,13 +63,16 @@ public class RerunCheck implements RestModifyView<CheckResource, Input> {
   }
 
   @Override
-  public Response<CheckInfo> apply(CheckResource checkResource, Input input)
+  public Response<CheckInfo> apply(CheckResource checkResource, RerunInput input)
       throws RestApiException, IOException, PermissionBackendException, ConfigInvalidException {
     if (!self.get().isIdentifiedUser()) {
       throw new AuthException("Authentication required");
     }
     if (checkResource.getRevisionResource().getEdit().isPresent()) {
       throw new ResourceConflictException("checks are not supported on a change edit");
+    }
+    if (input == null) {
+      input = new RerunInput();
     }
     CheckKey key =
         CheckKey.create(
@@ -103,7 +105,8 @@ public class RerunCheck implements RestModifyView<CheckResource, Input> {
           .unsetStarted()
           .setMessage("")
           .setUrl("");
-      updatedCheck = checksUpdate.get().updateCheck(key, builder.build(), null, null);
+      updatedCheck =
+          checksUpdate.get().updateCheck(key, builder.build(), input.notify, input.notifyDetails);
     }
     return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
   }

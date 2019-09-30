@@ -40,6 +40,7 @@ import com.google.gerrit.plugins.checks.api.ChangeCheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckInput;
 import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
+import com.google.gerrit.plugins.checks.api.RerunInput;
 import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.testing.FakeEmailSender.Message;
@@ -349,6 +350,69 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     input.state = CheckState.SCHEDULED;
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+  }
+
+  @Test
+  public void rerunCheckRespectsNotifySettings() throws Exception {
+    testNotifySettingsForRerunCheck(NotifyHandling.ALL, owner, reviewer, starrer, watcher);
+    testNotifySettingsForRerunCheck(NotifyHandling.OWNER, owner);
+    testNotifySettingsForRerunCheck(NotifyHandling.OWNER_REVIEWERS, owner, reviewer);
+    testNotifySettingsForRerunCheck(NotifyHandling.NONE);
+
+    testNotifySettingsForRerunCheck(
+        ImmutableSet.of(user), NotifyHandling.ALL, user, owner, reviewer, starrer, watcher);
+    testNotifySettingsForRerunCheck(ImmutableSet.of(user), NotifyHandling.OWNER, user, owner);
+    testNotifySettingsForRerunCheck(
+        ImmutableSet.of(user), NotifyHandling.OWNER_REVIEWERS, user, owner, reviewer);
+    testNotifySettingsForRerunCheck(ImmutableSet.of(user), NotifyHandling.NONE, user);
+  }
+
+  private void testNotifySettingsForRerunCheck(
+      NotifyHandling notify, TestAccount... expectedRecipients) throws RestApiException {
+    testNotifySettingsForPostCheck(ImmutableSet.of(), notify, expectedRecipients);
+  }
+
+  private void testNotifySettingsForRerunCheck(
+      Set<TestAccount> accountsToNotify, NotifyHandling notify, TestAccount... expectedRecipients)
+      throws RestApiException {
+    // Create a check that sets the combined check state to FAILED.
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid1);
+    checkOperations.check(checkKey).forUpdate().state(CheckState.FAILED).upsert();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    sender.clear();
+
+    // Post a new check that changes the combined check state to FAILED.
+    requestScopeOperations.setApiUser(bot.id());
+    RerunInput rerunInput = new RerunInput();
+    if (!accountsToNotify.isEmpty()) {
+      rerunInput.notifyDetails =
+          ImmutableMap.of(
+              RecipientType.TO,
+              new NotifyInfo(
+                  accountsToNotify.stream().map(TestAccount::username).collect(toImmutableList())));
+    }
+    rerunInput.notify = notify;
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).rerun(rerunInput);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    List<Message> messages = sender.getMessages();
+    if (expectedRecipients.length == 0) {
+      assertThat(messages).isEmpty();
+    } else {
+      assertThat(messages).hasSize(1);
+
+      Message message = messages.get(0);
+      assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
+      assertThat(message.body())
+          .contains(
+              "The combined check state has been updated to " + CombinedCheckState.IN_PROGRESS);
+      assertThat(message.rcpt())
+          .containsExactlyElementsIn(
+              Arrays.stream(expectedRecipients)
+                  .map(TestAccount::getEmailAddress)
+                  .collect(toImmutableList()));
+    }
   }
 
   private CombinedCheckState getCombinedCheckState() throws RestApiException {

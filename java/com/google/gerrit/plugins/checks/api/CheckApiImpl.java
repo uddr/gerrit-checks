@@ -64,9 +64,9 @@ public class CheckApiImpl implements CheckApi {
   }
 
   @Override
-  public CheckInfo rerun() throws RestApiException {
+  public CheckInfo rerun(RerunInput input) throws RestApiException {
     try {
-      return rerunCheck.apply(checkResource, null).value();
+      return rerunCheck.apply(checkResource, input).value();
     } catch (Exception e) {
       throw asRestApiException("Cannot rerun check", e);
     }
