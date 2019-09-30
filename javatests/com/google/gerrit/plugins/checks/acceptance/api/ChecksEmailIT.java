@@ -222,7 +222,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
     sender.clear();
 
-    // Update one of the checks in a way so that doesn't change the combined check state..
+    // Update one of the checks in a way so that doesn't change the combined check state.
     requestScopeOperations.setApiUser(bot.id());
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid2.get();
@@ -231,6 +231,57 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
     // Except that no email was sent because the combined check state was not updated.
+    assertThat(sender.getMessages()).isEmpty();
+  }
+
+  @Test
+  public void combinedCheckUpdatedEmailAfterCheckRerun() throws Exception {
+    // Create a check that sets the combined check state to FAILED.
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid1);
+    checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    sender.clear();
+
+    // Rerun the check so that the combined check state is changed to IN_PROGRESS.
+    requestScopeOperations.setApiUser(bot.id());
+    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).rerun();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    // Expect one email because the combined check state was updated.
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
+    assertThat(message.body())
+        .contains("The combined check state has been updated to " + CombinedCheckState.IN_PROGRESS);
+    assertThat(message.rcpt())
+        .containsExactly(
+            owner.getEmailAddress(),
+            reviewer.getEmailAddress(),
+            starrer.getEmailAddress(),
+            watcher.getEmailAddress());
+  }
+
+  @Test
+  public void noCombinedCheckUpdatedEmailOnCheckRerunIfCombinedCheckStateIsNotChanged()
+      throws Exception {
+    // Create 2 checks that set the combined check state to FAILED.
+    CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
+    checkOperations.newCheck(checkKey1).state(CheckState.FAILED).upsert();
+    CheckKey checkKey2 = CheckKey.create(project, patchSetId, checkerUuid2);
+    checkOperations.newCheck(checkKey2).state(CheckState.FAILED).upsert();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    sender.clear();
+
+    // Rerun only one check so that the combined check state stays FAILED.
+    requestScopeOperations.setApiUser(bot.id());
+    checksApiFactory.revision(patchSetId).id(checkKey1.checkerUuid()).rerun();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    // Expect that no email was sent because the combined check state was not updated.
     assertThat(sender.getMessages()).isEmpty();
   }
 
