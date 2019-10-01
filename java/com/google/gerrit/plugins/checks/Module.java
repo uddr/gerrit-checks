@@ -25,8 +25,12 @@ import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory;
 import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory.GetChangeOptions;
 import com.google.gerrit.plugins.checks.api.ChangeCheckAttributeFactory.QueryChangesOptions;
 import com.google.gerrit.plugins.checks.db.NoteDbCheckersModule;
+import com.google.gerrit.plugins.checks.email.ChecksEmailModule;
 import com.google.gerrit.plugins.checks.rules.ChecksSubmitRule;
 import com.google.gerrit.server.DynamicOptions;
+import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.ServerInitiated;
+import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.change.ChangeETagComputation;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
@@ -35,11 +39,13 @@ import com.google.gerrit.server.git.validators.RefOperationValidationListener;
 import com.google.gerrit.server.restapi.change.GetChange;
 import com.google.gerrit.server.restapi.change.QueryChanges;
 import com.google.gerrit.sshd.commands.Query;
+import com.google.inject.Provides;
 
 public class Module extends FactoryModule {
   @Override
   protected void configure() {
     factory(CheckJson.AssistedFactory.class);
+    factory(ChecksUpdate.Factory.class);
     install(new NoteDbCheckersModule());
     install(CombinedCheckStateCache.module());
 
@@ -74,5 +80,19 @@ public class Module extends FactoryModule {
 
     install(new ApiModule());
     install(new ChecksSubmitRule.Module());
+    install(new ChecksEmailModule());
+  }
+
+  @Provides
+  @ServerInitiated
+  ChecksUpdate provideServerInitiatedChecksUpdate(ChecksUpdate.Factory factory) {
+    return factory.createWithServerIdent();
+  }
+
+  @Provides
+  @UserInitiated
+  ChecksUpdate provideUserInitiatedChecksUpdate(
+      ChecksUpdate.Factory factory, IdentifiedUser currentUser) {
+    return factory.create(currentUser);
   }
 }

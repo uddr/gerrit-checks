@@ -186,14 +186,14 @@ public class ChangeCheckInfoIT extends AbstractCheckersTest {
     checksApiFactory.revision(psId).id(checkerUuid).update(checkInput);
 
     // Incurs reload after updating check state.
-    assertThat(cache.getStats()).since(start).hasHitCount(2);
+    assertThat(cache.getStats()).since(start).hasHitCount(4);
     assertThat(cache.getStats()).since(start).hasMissCount(0);
     assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
     assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
 
     assertThat(queryChangeCheckInfo(changeId))
         .hasValue(new ChangeCheckInfo("checks", CombinedCheckState.WARNING));
-    assertThat(cache.getStats()).since(start).hasHitCount(3);
+    assertThat(cache.getStats()).since(start).hasHitCount(5);
     assertThat(cache.getStats()).since(start).hasMissCount(0);
     assertThat(cache.getReloadCount(false) - startReloadsFalse).isEqualTo(0);
     assertThat(cache.getReloadCount(true) - startReloadsTrue).isEqualTo(1);
