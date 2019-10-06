@@ -5,6 +5,7 @@ load("//tools/bzl:junit.bzl", "junit_tests")
 junit_tests(
     name = "checks_tests",
     srcs = glob(["*.java"]),
+    runtime_deps = ["//java/com/google/gerrit/lucene"],
     deps = [
         "//java/com/google/gerrit/common:annotations",
         "//java/com/google/gerrit/extensions:api",

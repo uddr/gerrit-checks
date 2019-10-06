@@ -15,7 +15,6 @@ java_library(
         "//lib/jgit/org.eclipse.jgit:jgit",
         "//lib/truth",
         "//lib/truth:truth-java8-extension",
-        "//plugins:plugin-api",
         "//plugins/checks:checks__plugin",
     ],
 )

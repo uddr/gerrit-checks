@@ -5,7 +5,6 @@ junit_tests(
     size = "small",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/gerrit/testing:gerrit-test-util",
         "//lib:guava",
         "//lib/truth",
         "//plugins/checks:checks__plugin",
