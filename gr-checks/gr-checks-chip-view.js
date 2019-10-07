@@ -128,6 +128,8 @@
      * @param {function(number, number): !Promise<!Object>} getChecks
      */
     _fetchChecks(change, revision, getChecks) {
+      if (!getChecks || !change || !revision) return;
+
       getChecks(change._number, revision._number).then(checks => {
         this.set('_hasChecks', checks.length > 0);
         if (checks.length > 0) {

@@ -140,6 +140,8 @@
      * @param {function(number, number): !Promise<!Object>} getChecks
      */
     _fetchChecks(change, revision, getChecks) {
+      if (!getChecks || !change || !revision) return;
+
       getChecks(change._number, revision._number).then(checks => {
         if (checks && checks.length) {
           checks.sort(this._orderChecks);
