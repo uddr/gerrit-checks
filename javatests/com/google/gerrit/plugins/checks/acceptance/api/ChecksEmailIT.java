@@ -57,8 +57,6 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   @Inject private ProjectOperations projectOperations;
 
   private TestAccount bot;
-  private CheckerUuid checkerUuid1;
-  private CheckerUuid checkerUuid2;
   private TestAccount owner;
   private TestAccount reviewer;
   private TestAccount starrer;
@@ -77,10 +75,6 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         .forUpdate()
         .add(allowCapability("checks-administrateCheckers").group(botsAccountGroupUuid))
         .update();
-
-    // Create two required checkers.
-    checkerUuid1 = checkerOperations.newChecker().repository(project).required().create();
-    checkerUuid2 = checkerOperations.newChecker().repository(project).required().create();
 
     // Create a change.
     owner = admin;
@@ -128,6 +122,10 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   @Test
   public void combinedCheckUpdatedEmailAfterCheckCreation() throws Exception {
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
+
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
     sender.clear();
@@ -135,7 +133,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     // Post a new check that changes the combined check state to FAILED.
     requestScopeOperations.setApiUser(bot.id());
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid1.get();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.FAILED;
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
@@ -159,6 +157,12 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   @Test
   public void noCombinedCheckUpdatedEmailOnCheckCreationIfCombinedCheckStateIsNotChanged()
       throws Exception {
+    // Create two required checkers.
+    CheckerUuid checkerUuid1 =
+        checkerOperations.newChecker().repository(project).required().create();
+    CheckerUuid checkerUuid2 =
+        checkerOperations.newChecker().repository(project).required().create();
+
     // Create a check that sets the combined check state to FAILED.
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid1);
     checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
@@ -180,8 +184,12 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   @Test
   public void combinedCheckUpdatedEmailAfterCheckUpdate() throws Exception {
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
+
     // Create a check that sets the combined check state to FAILED.
-    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid1);
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
@@ -190,7 +198,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     // Update the new check so that the combined check state is changed to IN_PROGRESS.
     requestScopeOperations.setApiUser(bot.id());
     CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid1.get();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
@@ -214,6 +222,12 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   @Test
   public void noCombinedCheckUpdatedEmailOnCheckUpdateIfCombinedCheckStateIsNotChanged()
       throws Exception {
+    // Create two required checkers.
+    CheckerUuid checkerUuid1 =
+        checkerOperations.newChecker().repository(project).required().create();
+    CheckerUuid checkerUuid2 =
+        checkerOperations.newChecker().repository(project).required().create();
+
     // Create 2 checks that set the combined check state to FAILED.
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
     checkOperations.newCheck(checkKey1).state(CheckState.FAILED).upsert();
@@ -237,8 +251,12 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   @Test
   public void combinedCheckUpdatedEmailAfterCheckRerun() throws Exception {
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
+
     // Create a check that sets the combined check state to FAILED.
-    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid1);
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
@@ -268,6 +286,12 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   @Test
   public void noCombinedCheckUpdatedEmailOnCheckRerunIfCombinedCheckStateIsNotChanged()
       throws Exception {
+    // Create two required checkers.
+    CheckerUuid checkerUuid1 =
+        checkerOperations.newChecker().repository(project).required().create();
+    CheckerUuid checkerUuid2 =
+        checkerOperations.newChecker().repository(project).required().create();
+
     // Create 2 checks that set the combined check state to FAILED.
     CheckKey checkKey1 = CheckKey.create(project, patchSetId, checkerUuid1);
     checkOperations.newCheck(checkKey1).state(CheckState.FAILED).upsert();
@@ -288,26 +312,43 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   @Test
   public void postCheckRespectsNotifySettings() throws Exception {
-    testNotifySettingsForPostCheck(NotifyHandling.ALL, owner, reviewer, starrer, watcher);
-    testNotifySettingsForPostCheck(NotifyHandling.OWNER, owner);
-    testNotifySettingsForPostCheck(NotifyHandling.OWNER_REVIEWERS, owner, reviewer);
-    testNotifySettingsForPostCheck(NotifyHandling.NONE);
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
 
     testNotifySettingsForPostCheck(
-        ImmutableSet.of(user), NotifyHandling.ALL, user, owner, reviewer, starrer, watcher);
-    testNotifySettingsForPostCheck(ImmutableSet.of(user), NotifyHandling.OWNER, user, owner);
+        checkerUuid, NotifyHandling.ALL, owner, reviewer, starrer, watcher);
+    testNotifySettingsForPostCheck(checkerUuid, NotifyHandling.OWNER, owner);
+    testNotifySettingsForPostCheck(checkerUuid, NotifyHandling.OWNER_REVIEWERS, owner, reviewer);
+    testNotifySettingsForPostCheck(checkerUuid, NotifyHandling.NONE);
+
     testNotifySettingsForPostCheck(
-        ImmutableSet.of(user), NotifyHandling.OWNER_REVIEWERS, user, owner, reviewer);
-    testNotifySettingsForPostCheck(ImmutableSet.of(user), NotifyHandling.NONE, user);
+        checkerUuid,
+        ImmutableSet.of(user),
+        NotifyHandling.ALL,
+        user,
+        owner,
+        reviewer,
+        starrer,
+        watcher);
+    testNotifySettingsForPostCheck(
+        checkerUuid, ImmutableSet.of(user), NotifyHandling.OWNER, user, owner);
+    testNotifySettingsForPostCheck(
+        checkerUuid, ImmutableSet.of(user), NotifyHandling.OWNER_REVIEWERS, user, owner, reviewer);
+    testNotifySettingsForPostCheck(checkerUuid, ImmutableSet.of(user), NotifyHandling.NONE, user);
   }
 
   private void testNotifySettingsForPostCheck(
-      NotifyHandling notify, TestAccount... expectedRecipients) throws RestApiException {
-    testNotifySettingsForPostCheck(ImmutableSet.of(), notify, expectedRecipients);
+      CheckerUuid checkerUuid, NotifyHandling notify, TestAccount... expectedRecipients)
+      throws RestApiException {
+    testNotifySettingsForPostCheck(checkerUuid, ImmutableSet.of(), notify, expectedRecipients);
   }
 
   private void testNotifySettingsForPostCheck(
-      Set<TestAccount> accountsToNotify, NotifyHandling notify, TestAccount... expectedRecipients)
+      CheckerUuid checkerUuid,
+      Set<TestAccount> accountsToNotify,
+      NotifyHandling notify,
+      TestAccount... expectedRecipients)
       throws RestApiException {
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
@@ -324,7 +365,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                   accountsToNotify.stream().map(TestAccount::username).collect(toImmutableList())));
     }
     input.notify = notify;
-    input.checkerUuid = checkerUuid1.get();
+    input.checkerUuid = checkerUuid.get();
     input.state = CheckState.FAILED;
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
@@ -354,29 +395,46 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   @Test
   public void rerunCheckRespectsNotifySettings() throws Exception {
-    testNotifySettingsForRerunCheck(NotifyHandling.ALL, owner, reviewer, starrer, watcher);
-    testNotifySettingsForRerunCheck(NotifyHandling.OWNER, owner);
-    testNotifySettingsForRerunCheck(NotifyHandling.OWNER_REVIEWERS, owner, reviewer);
-    testNotifySettingsForRerunCheck(NotifyHandling.NONE);
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
 
     testNotifySettingsForRerunCheck(
-        ImmutableSet.of(user), NotifyHandling.ALL, user, owner, reviewer, starrer, watcher);
-    testNotifySettingsForRerunCheck(ImmutableSet.of(user), NotifyHandling.OWNER, user, owner);
+        checkerUuid, NotifyHandling.ALL, owner, reviewer, starrer, watcher);
+    testNotifySettingsForRerunCheck(checkerUuid, NotifyHandling.OWNER, owner);
+    testNotifySettingsForRerunCheck(checkerUuid, NotifyHandling.OWNER_REVIEWERS, owner, reviewer);
+    testNotifySettingsForRerunCheck(checkerUuid, NotifyHandling.NONE);
+
     testNotifySettingsForRerunCheck(
-        ImmutableSet.of(user), NotifyHandling.OWNER_REVIEWERS, user, owner, reviewer);
-    testNotifySettingsForRerunCheck(ImmutableSet.of(user), NotifyHandling.NONE, user);
+        checkerUuid,
+        ImmutableSet.of(user),
+        NotifyHandling.ALL,
+        user,
+        owner,
+        reviewer,
+        starrer,
+        watcher);
+    testNotifySettingsForRerunCheck(
+        checkerUuid, ImmutableSet.of(user), NotifyHandling.OWNER, user, owner);
+    testNotifySettingsForRerunCheck(
+        checkerUuid, ImmutableSet.of(user), NotifyHandling.OWNER_REVIEWERS, user, owner, reviewer);
+    testNotifySettingsForRerunCheck(checkerUuid, ImmutableSet.of(user), NotifyHandling.NONE, user);
   }
 
   private void testNotifySettingsForRerunCheck(
-      NotifyHandling notify, TestAccount... expectedRecipients) throws RestApiException {
-    testNotifySettingsForPostCheck(ImmutableSet.of(), notify, expectedRecipients);
+      CheckerUuid checkerUuid, NotifyHandling notify, TestAccount... expectedRecipients)
+      throws RestApiException {
+    testNotifySettingsForPostCheck(checkerUuid, ImmutableSet.of(), notify, expectedRecipients);
   }
 
   private void testNotifySettingsForRerunCheck(
-      Set<TestAccount> accountsToNotify, NotifyHandling notify, TestAccount... expectedRecipients)
+      CheckerUuid checkerUuid,
+      Set<TestAccount> accountsToNotify,
+      NotifyHandling notify,
+      TestAccount... expectedRecipients)
       throws RestApiException {
     // Create a check that sets the combined check state to FAILED.
-    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid1);
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.check(checkKey).forUpdate().state(CheckState.FAILED).upsert();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
