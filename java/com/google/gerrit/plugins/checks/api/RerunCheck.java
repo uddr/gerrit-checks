@@ -103,7 +103,7 @@ public class RerunCheck implements RestModifyView<CheckResource, Input> {
           .unsetStarted()
           .setMessage("")
           .setUrl("");
-      updatedCheck = checksUpdate.get().updateCheck(key, builder.build());
+      updatedCheck = checksUpdate.get().updateCheck(key, builder.build(), null, null);
     }
     return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
   }

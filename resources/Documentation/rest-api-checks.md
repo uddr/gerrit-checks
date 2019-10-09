@@ -202,6 +202,8 @@ The `CheckInput` entity contains information for creating or updating a check.
 | `url`           | optional | A fully-qualified URL pointing to the result of the check on the checker's infrastructure.
 | `started`       | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check started processing.
 | `finished`      | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.
+| `notify`        | optional | Notify handling that defines to whom email notifications should be sent when the combined check state changes due to posting this check. Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`. If not set, the default is `ALL`.
+| `notifyDetails`| optional | Additional information about whom to notify when the combined check state changes due to posting this check as a map of recipient type to [NotifyInfo](../../../Documentation/rest-api-changes.html#notify-info) entity.
 
 ### <a id="check-state"> CheckState (enum)
 The `CheckState` enum can have the following values: `NOT_STARTED`, `FAILED`,
