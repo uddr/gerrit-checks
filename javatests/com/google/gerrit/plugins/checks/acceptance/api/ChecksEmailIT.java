@@ -121,7 +121,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void combinedCheckUpdatedEmailAfterCheckCreation() throws Exception {
+  public void combinedCheckUpdatedEmailAfterCheckCreationToOwnerOnly() throws Exception {
     // Create a required checker.
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
@@ -138,7 +138,9 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
-    // Expect one email because the combined check state was updated.
+    // Expect email because the combined check state was updated.
+    // The email is only sent to the change owner because the new combined check state !=
+    // SUCCESSFUL.
     List<Message> messages = sender.getMessages();
     assertThat(messages).hasSize(1);
 
@@ -146,6 +148,37 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
     assertThat(message.body())
         .contains("The combined check state has been updated to " + CombinedCheckState.FAILED);
+    assertThat(message.rcpt()).containsExactly(owner.getEmailAddress());
+  }
+
+  @Test
+  public void combinedCheckUpdatedEmailAfterCheckCreationToAll() throws Exception {
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
+
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+
+    // Post a check that changes the combined check state to SUCCESSFUL.
+    requestScopeOperations.setApiUser(bot.id());
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.state = CheckState.SUCCESSFUL;
+    checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.SUCCESSFUL);
+
+    // Expect email because the combined check state was updated.
+    // The email is only sent to all users that are involved in the change because the new combined
+    // check state = SUCCESSFUL.
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
+    assertThat(message.body())
+        .contains("The combined check state has been updated to " + CombinedCheckState.SUCCESSFUL);
     assertThat(message.rcpt())
         .containsExactly(
             owner.getEmailAddress(),
@@ -183,7 +216,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void combinedCheckUpdatedEmailAfterCheckUpdate() throws Exception {
+  public void combinedCheckUpdatedEmailAfterCheckUpdateToOwnerOnly() throws Exception {
     // Create a required checker.
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
@@ -203,7 +236,9 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
-    // Expect one email because the combined check state was updated.
+    // Expect email because the combined check state was updated.
+    // The email is only sent to the change owner because the new combined check state !=
+    // SUCCESSFUL.
     List<Message> messages = sender.getMessages();
     assertThat(messages).hasSize(1);
 
@@ -211,6 +246,40 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
     assertThat(message.body())
         .contains("The combined check state has been updated to " + CombinedCheckState.IN_PROGRESS);
+    assertThat(message.rcpt()).containsExactly(owner.getEmailAddress());
+  }
+
+  @Test
+  public void combinedCheckUpdatedEmailAfterCheckUpdateToAll() throws Exception {
+    // Create a required checker.
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
+
+    // Create a check that sets the combined check state to FAILED.
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).state(CheckState.FAILED).upsert();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    sender.clear();
+
+    // Update the new check so that the combined check state is changed to IN_PROGRESS.
+    requestScopeOperations.setApiUser(bot.id());
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.state = CheckState.SUCCESSFUL;
+    checksApiFactory.revision(patchSetId).create(input).get();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.SUCCESSFUL);
+
+    // Expect email because the combined check state was updated.
+    // The email is only sent to all users that are involved in the change because the new combined
+    // check state = SUCCESSFUL.
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
+    assertThat(message.body())
+        .contains("The combined check state has been updated to " + CombinedCheckState.SUCCESSFUL);
     assertThat(message.rcpt())
         .containsExactly(
             owner.getEmailAddress(),
@@ -250,7 +319,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void combinedCheckUpdatedEmailAfterCheckRerun() throws Exception {
+  public void combinedCheckUpdatedEmailAfterCheckRerunToOwnerOnly() throws Exception {
     // Create a required checker.
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
@@ -267,7 +336,9 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).rerun();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
-    // Expect one email because the combined check state was updated.
+    // Expect email because the combined check state was updated.
+    // The email is only sent to the change owner because the new combined check state !=
+    // SUCCESSFUL.
     List<Message> messages = sender.getMessages();
     assertThat(messages).hasSize(1);
 
@@ -275,12 +346,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
     assertThat(message.body())
         .contains("The combined check state has been updated to " + CombinedCheckState.IN_PROGRESS);
-    assertThat(message.rcpt())
-        .containsExactly(
-            owner.getEmailAddress(),
-            reviewer.getEmailAddress(),
-            starrer.getEmailAddress(),
-            watcher.getEmailAddress());
+    assertThat(message.rcpt()).containsExactly(owner.getEmailAddress());
   }
 
   @Test

@@ -143,7 +143,13 @@ public class ChecksUpdate {
       CheckKey checkKey,
       CombinedCheckState combinedCheckState)
       throws BadRequestException, IOException, ConfigInvalidException {
-    notifyHandling = notifyHandling != null ? notifyHandling : NotifyHandling.ALL;
+    notifyHandling =
+        notifyHandling != null
+            ? notifyHandling
+            : combinedCheckState == CombinedCheckState.SUCCESSFUL
+                    || combinedCheckState == CombinedCheckState.NOT_RELEVANT
+                ? NotifyHandling.ALL
+                : NotifyHandling.OWNER;
     NotifyResolver.Result notify = notifyResolver.resolve(notifyHandling, notifyDetails);
 
     try {
