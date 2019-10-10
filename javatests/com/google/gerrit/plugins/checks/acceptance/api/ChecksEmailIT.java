@@ -138,7 +138,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
-    // Except one email because the combined check state was updated.
+    // Expect one email because the combined check state was updated.
     List<Message> messages = sender.getMessages();
     assertThat(messages).hasSize(1);
 
@@ -178,7 +178,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
-    // Except that no email was sent because the combined check state was not updated.
+    // Expect that no email was sent because the combined check state was not updated.
     assertThat(sender.getMessages()).isEmpty();
   }
 
@@ -203,7 +203,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
-    // Except one email because the combined check state was updated.
+    // Expect one email because the combined check state was updated.
     List<Message> messages = sender.getMessages();
     assertThat(messages).hasSize(1);
 
@@ -245,7 +245,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
-    // Except that no email was sent because the combined check state was not updated.
+    // Expect that no email was sent because the combined check state was not updated.
     assertThat(sender.getMessages()).isEmpty();
   }
 
