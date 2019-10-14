@@ -27,6 +27,7 @@ import com.google.gerrit.acceptance.TestAccount;
 import com.google.gerrit.acceptance.testsuite.group.GroupOperations;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.entities.AccountGroup;
 import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.PatchSet;
@@ -546,9 +547,35 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void verifyMessageBodiesForCombinedCheckStateUpdatedEmail() throws Exception {
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedDefaultEmail() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+    postCheck(checkerUuid, CheckState.SUCCESSFUL);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.SUCCESSFUL);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.SUCCESSFUL)
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.SUCCESSFUL)
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedToFailedEmail() throws Exception {
+    String checkerName = "My Checker";
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).name(checkerName).required().create();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
     sender.clear();
@@ -561,25 +588,236 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     Message message = messages.get(0);
     assertThat(message.body())
         .isEqualTo(
-            "The combined check state has been updated to "
-                + CombinedCheckState.FAILED
-                + " for patch set "
-                + patchSetId.get()
-                + " of this change ( "
-                + changeUrl(change)
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerName
+                + " updated the check state to "
+                + CheckState.FAILED
+                + ".\n"
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <strong>"
+                + checkerName
+                + "</strong> updated the check state to "
+                + CheckState.FAILED
+                + ".</p>"
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedToFailedEmailWithCheckerUrl()
+      throws Exception {
+    String checkerName = "My Checker";
+    String checkerUrl = "http://my-checker/";
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .name(checkerName)
+            .url(checkerUrl)
+            .required()
+            .create();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+    postCheck(checkerUuid, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerName
+                + " ( "
+                + checkerUrl
+                + " ) updated the check state to "
+                + CheckState.FAILED
+                + ".\n"
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <a href=\""
+                + checkerUrl
+                + "\">"
+                + checkerName
+                + "</a> updated the check state to "
+                + CheckState.FAILED
+                + ".</p>"
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedToFailedEmailWithCheckMessage()
+      throws Exception {
+    String checkerName = "My Checker";
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).name(checkerName).required().create();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+    String checkMessage = "foo bar baz";
+    postCheck(checkerUuid, CheckState.FAILED, checkMessage);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerName
+                + " updated the check state to "
+                + CheckState.FAILED
+                + ":\n"
+                + checkMessage
+                + "\n"
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <strong>"
+                + checkerName
+                + "</strong> updated the check state to "
+                + CheckState.FAILED
+                + ":<br>"
+                + checkMessage
+                + "</p>"
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedToFailedEmailWithCheckUrl()
+      throws Exception {
+    String checkerName = "My Checker";
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).name(checkerName).required().create();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+    String checkUrl = "http://my-checker/12345";
+    postCheck(checkerUuid, CheckState.FAILED, null, checkUrl);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerName
+                + " updated the check state to "
+                + CheckState.FAILED
+                + " ( "
+                + checkUrl
                 + " ).\n"
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
         .isEqualTo(
-            "<p>The combined check state has been updated to <strong>"
-                + CombinedCheckState.FAILED
-                + "</strong> for patch set "
-                + patchSetId.get()
-                + " of this <a href=\""
-                + changeUrl(change)
-                + "\">change</a>.</p>"
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <strong>"
+                + checkerName
+                + "</strong> updated the check state to <a href=\""
+                + checkUrl
+                + "\">"
+                + CheckState.FAILED
+                + "</a>.</p>"
                 + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedToWarningEmail() throws Exception {
+    String checkerName = "My Checker";
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).name(checkerName).create();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+    postCheck(checkerUuid, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.WARNING);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.WARNING)
+                + "\n"
+                + "Checker "
+                + checkerName
+                + " updated the check state to "
+                + CheckState.FAILED
+                + ".\n"
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.WARNING)
+                + "<p>Checker <strong>"
+                + checkerName
+                + "</strong> updated the check state to "
+                + CheckState.FAILED
+                + ".</p>"
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedToWarningFromFailedEmail()
+      throws Exception {
+    CheckerUuid checkerUuidRequired =
+        checkerOperations.newChecker().repository(project).required().create();
+    postCheck(checkerUuidRequired, CheckState.FAILED);
+
+    CheckerUuid checkerUuidOptional = checkerOperations.newChecker().repository(project).create();
+    postCheck(checkerUuidOptional, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    sender.clear();
+    postCheck(checkerUuidRequired, CheckState.SUCCESSFUL);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.WARNING);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.WARNING)
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.WARNING)
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  private String combinedCheckStateUpdatedText(CombinedCheckState combinedCheckState) {
+    return "The combined check state has been updated to "
+        + combinedCheckState
+        + " for patch set "
+        + patchSetId.get()
+        + " of this change ( "
+        + changeUrl(change)
+        + " ).\n";
   }
 
   private String textEmailFooterForCombinedCheckStateUpdate() {
@@ -627,6 +865,16 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         + reviewer.email()
         + ">\n"
         + "Gerrit-MessageType: combinedCheckStateUpdate\n";
+  }
+
+  private String combinedCheckStateUpdatedHtml(CombinedCheckState combinedCheckState) {
+    return "<p>The combined check state has been updated to <strong>"
+        + combinedCheckState
+        + "</strong> for patch set "
+        + patchSetId.get()
+        + " of this <a href=\""
+        + changeUrl(change)
+        + "\">change</a>.</p>";
   }
 
   private String htmlViewChangeButton() {
@@ -698,10 +946,26 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   private void postCheck(CheckerUuid checkerUuid, CheckState checkState) throws RestApiException {
+    postCheck(checkerUuid, checkState, null);
+  }
+
+  private void postCheck(CheckerUuid checkerUuid, CheckState checkState, @Nullable String message)
+      throws RestApiException {
+    postCheck(checkerUuid, checkState, message, null);
+  }
+
+  private void postCheck(
+      CheckerUuid checkerUuid,
+      CheckState checkState,
+      @Nullable String message,
+      @Nullable String url)
+      throws RestApiException {
     requestScopeOperations.setApiUser(bot.id());
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.get();
     input.state = checkState;
+    input.message = message;
+    input.url = url;
     checksApiFactory.revision(patchSetId).create(input).get();
   }
 }

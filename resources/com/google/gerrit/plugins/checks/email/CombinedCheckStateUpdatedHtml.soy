@@ -23,16 +23,42 @@
 {template .CombinedCheckStateUpdatedHtml}
   {@param email: ?}
   {@param patchSet: ?}
-  {@param combinedCheckState: ?}
+  {@param checker: ?}
+  {@param check: ?}
+  {@param oldCombinedCheckState: ?}
+  {@param newCombinedCheckState: ?}
   <p>
-    The combined check state has been updated to <strong>{$combinedCheckState}</strong> for patch
-    set {$patchSet.patchSetId} of this{sp}
+    The combined check state has been updated to <strong>{$newCombinedCheckState}</strong> for{sp}
+    patch set {$patchSet.patchSetId} of this{sp}
     {if $email.changeUrl}
       <a href="{$email.changeUrl}">change</a>
     {else}
       change
     {/if}.
   </p>
+    {if $check and $checker and $check.state == 'FAILED'
+    and ($newCombinedCheckState == 'FAILED'
+      or ($newCombinedCheckState == 'WARNING' and $oldCombinedCheckState != 'FAILED'))}
+    <p>
+      Checker{sp}
+      {if $checker.url}
+        <a href="{$checker.url}">{$checker.name}</a>
+      {else}
+        <strong>{$checker.name}</strong>
+      {/if}
+      {sp}updated the check state to{sp}
+      {if $check.url}
+        <a href="{$check.url}">{$check.state}</a>
+      {else}
+        {$check.state}
+      {/if}
+      {if $check.message}
+        :<br>{$check.message}
+      {else}
+        .
+      {/if}
+    </p>
+  {/if}
 
   {if $email.changeUrl}
     <p>

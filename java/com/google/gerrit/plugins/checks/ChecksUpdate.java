@@ -54,13 +54,14 @@ public class ChecksUpdate {
     ChecksUpdate createWithServerIdent();
   }
 
+  private final ChecksStorageUpdate checksStorageUpdate;
   private final CombinedCheckStateCache combinedCheckStateCache;
   private final CombinedCheckStateUpdatedSender.Factory combinedCheckStateUpdatedSenderFactory;
   private final ChangeNotes.Factory notesFactory;
   private final PatchSetUtil psUtil;
+  private final Checkers checkers;
   private final NotifyResolver notifyResolver;
   private final Optional<IdentifiedUser> currentUser;
-  private final ChecksStorageUpdate checksStorageUpdate;
 
   @AssistedInject
   ChecksUpdate(
@@ -69,15 +70,17 @@ public class ChecksUpdate {
       CombinedCheckStateUpdatedSender.Factory combinedCheckStateUpdatedSenderFactory,
       ChangeNotes.Factory notesFactory,
       PatchSetUtil psUtil,
+      Checkers checkers,
       NotifyResolver notifyResolver,
       @Assisted IdentifiedUser currentUser) {
+    this.checksStorageUpdate = checksStorageUpdate;
     this.combinedCheckStateCache = combinedCheckStateCache;
     this.combinedCheckStateUpdatedSenderFactory = combinedCheckStateUpdatedSenderFactory;
     this.notesFactory = notesFactory;
     this.psUtil = psUtil;
+    this.checkers = checkers;
     this.notifyResolver = notifyResolver;
     this.currentUser = Optional.of(currentUser);
-    this.checksStorageUpdate = checksStorageUpdate;
   }
 
   @AssistedInject
@@ -87,14 +90,16 @@ public class ChecksUpdate {
       CombinedCheckStateUpdatedSender.Factory combinedCheckStateUpdatedSenderFactory,
       ChangeNotes.Factory notesFactory,
       PatchSetUtil psUtil,
+      Checkers checkers,
       NotifyResolver notifyResolver) {
+    this.checksStorageUpdate = checksStorageUpdate;
     this.combinedCheckStateCache = combinedCheckStateCache;
     this.combinedCheckStateUpdatedSenderFactory = combinedCheckStateUpdatedSenderFactory;
     this.notesFactory = notesFactory;
     this.psUtil = psUtil;
+    this.checkers = checkers;
     this.notifyResolver = notifyResolver;
     this.currentUser = Optional.empty();
-    this.checksStorageUpdate = checksStorageUpdate;
   }
 
   public Check createCheck(
@@ -110,9 +115,8 @@ public class ChecksUpdate {
 
     CombinedCheckState newCombinedCheckState =
         combinedCheckStateCache.get(key.repository(), key.patchSet());
-    if (oldCombinedCheckState != newCombinedCheckState) {
-      sendEmail(notifyHandling, notifyDetails, key, newCombinedCheckState);
-    }
+    maybeSendEmail(
+        notifyHandling, notifyDetails, check, oldCombinedCheckState, newCombinedCheckState);
 
     return check;
   }
@@ -130,27 +134,34 @@ public class ChecksUpdate {
 
     CombinedCheckState newCombinedCheckState =
         combinedCheckStateCache.get(key.repository(), key.patchSet());
-    if (oldCombinedCheckState != newCombinedCheckState) {
-      sendEmail(notifyHandling, notifyDetails, key, newCombinedCheckState);
-    }
+    maybeSendEmail(
+        notifyHandling, notifyDetails, check, oldCombinedCheckState, newCombinedCheckState);
 
     return check;
   }
 
-  private void sendEmail(
+  private void maybeSendEmail(
       @Nullable NotifyHandling notifyHandling,
       @Nullable Map<RecipientType, NotifyInfo> notifyDetails,
-      CheckKey checkKey,
-      CombinedCheckState combinedCheckState)
+      Check updatedCheck,
+      CombinedCheckState oldCombinedCheckState,
+      CombinedCheckState newCombinedCheckState)
       throws BadRequestException, IOException, ConfigInvalidException {
+    if (oldCombinedCheckState == newCombinedCheckState) {
+      // do not send an email if the combined check state was not updated
+      return;
+    }
+
     notifyHandling =
         notifyHandling != null
             ? notifyHandling
-            : combinedCheckState == CombinedCheckState.SUCCESSFUL
-                    || combinedCheckState == CombinedCheckState.NOT_RELEVANT
+            : newCombinedCheckState == CombinedCheckState.SUCCESSFUL
+                    || newCombinedCheckState == CombinedCheckState.NOT_RELEVANT
                 ? NotifyHandling.ALL
                 : NotifyHandling.OWNER;
     NotifyResolver.Result notify = notifyResolver.resolve(notifyHandling, notifyDetails);
+
+    CheckKey checkKey = updatedCheck.key();
 
     try {
       CombinedCheckStateUpdatedSender sender =
@@ -165,8 +176,17 @@ public class ChecksUpdate {
           notesFactory.create(checkKey.repository(), checkKey.patchSet().changeId());
       PatchSet patchSet = psUtil.get(changeNotes, checkKey.patchSet());
       sender.setPatchSet(patchSet);
-
-      sender.setCombinedCheckState(combinedCheckState);
+      sender.setCombinedCheckState(oldCombinedCheckState, newCombinedCheckState);
+      sender.setCheck(
+          checkers
+              .getChecker(checkKey.checkerUuid())
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          String.format(
+                              "checker %s of check %s not found",
+                              checkKey.checkerUuid(), checkKey))),
+          updatedCheck);
       sender.setNotify(notify);
       sender.send();
     } catch (Exception e) {

@@ -24,11 +24,29 @@
   {@param email: ?}
   {@param change: ?}
   {@param patchSet: ?}
-  {@param combinedCheckState: ?}
-  The combined check state has been updated to {$combinedCheckState} for patch set{sp}
+  {@param checker: ?}
+  {@param check: ?}
+  {@param oldCombinedCheckState: ?}
+  {@param newCombinedCheckState: ?}
+  The combined check state has been updated to {$newCombinedCheckState} for patch set{sp}
   {$patchSet.patchSetId} of this change
-  {if $email.changeUrl} ( {$email.changeUrl} ){/if}
+  {if $email.changeUrl}{sp}( {$email.changeUrl} ){/if}
   .{\n}
+  {if $check and $checker and $check.state == 'FAILED'
+    and ($newCombinedCheckState == 'FAILED'
+      or ($newCombinedCheckState == 'WARNING' and $oldCombinedCheckState != 'FAILED'))}
+    {\n}
+    Checker {$checker.name}
+    {if $checker.url}{sp}( {$checker.url} ){/if}
+    {sp}updated the check state to {$check.state}
+    {if $check.url}{sp}( {$check.url} ){/if}
+    {if $check.message}
+      :{\n}
+      {$check.message}{\n}
+    {else}
+      .{\n}
+    {/if}
+  {/if}
   {\n}
   Change subject: {$change.subject}{\n}
   ......................................................................{\n}
