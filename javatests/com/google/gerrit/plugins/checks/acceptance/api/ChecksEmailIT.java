@@ -22,11 +22,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.TestAccount;
 import com.google.gerrit.acceptance.testsuite.group.GroupOperations;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.entities.AccountGroup;
+import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.extensions.api.changes.NotifyHandling;
 import com.google.gerrit.extensions.api.changes.NotifyInfo;
@@ -58,9 +60,11 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   private TestAccount bot;
   private TestAccount owner;
+  private TestAccount ignoringReviewer;
   private TestAccount reviewer;
   private TestAccount starrer;
   private TestAccount watcher;
+  private Change change;
   private PatchSet.Id patchSetId;
 
   @Before
@@ -78,7 +82,9 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
     // Create a change.
     owner = admin;
-    patchSetId = createChange().getPatchSetId();
+    PushOneCommit.Result result = createChange();
+    change = result.getChange().change();
+    patchSetId = result.getPatchSetId();
 
     // Add a reviewer.
     reviewer = accountCreator.create("reviewer", "reviewer@test.com", "Reviewer");
@@ -110,10 +116,10 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     gApi.accounts().self().setWatchedProjects(ImmutableList.of(projectWatchInfo));
 
     // Add a reviewer that ignores the change --> user doesn't get notified by checks plugin.
-    TestAccount ignorer = accountCreator.create("ignorer", "ignorer@test.com", "Ignorer");
+    ignoringReviewer = accountCreator.create("ignorer", "ignorer@test.com", "Ignorer");
     requestScopeOperations.setApiUser(admin.id());
-    gApi.changes().id(patchSetId.changeId().get()).addReviewer(ignorer.username());
-    requestScopeOperations.setApiUser(ignorer.id());
+    gApi.changes().id(patchSetId.changeId().get()).addReviewer(ignoringReviewer.username());
+    requestScopeOperations.setApiUser(ignoringReviewer.id());
     gApi.changes().id(patchSetId.changeId().get()).ignore(true);
 
     // Reset request scope to admin.
@@ -539,6 +545,83 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     }
   }
 
+  @Test
+  public void textEmailForCombinedCheckStateUpdated() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).required().create();
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
+
+    sender.clear();
+    postCheck(checkerUuid, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            "The combined check state has been updated to "
+                + CombinedCheckState.FAILED
+                + " for patch set "
+                + patchSetId.get()
+                + " of this change ( "
+                + changeUrl(change)
+                + " ).\n"
+                + emailFooterForCombinedCheckStateUpdate());
+  }
+
+  private String emailFooterForCombinedCheckStateUpdate() {
+    return "\n"
+        + "Change subject: "
+        + change.getSubject()
+        + "\n"
+        + "......................................................................\n"
+        + "-- \n"
+        + "To view, visit "
+        + changeUrl(change)
+        + "\n"
+        + "To unsubscribe, or for help writing mail filters, visit "
+        + canonicalWebUrl.get()
+        + "settings\n"
+        + "\n"
+        + "Gerrit-Project: "
+        + project.get()
+        + "\n"
+        + "Gerrit-Branch: "
+        + change.getDest().shortName()
+        + "\n"
+        + "Gerrit-Change-Id: "
+        + change.getKey().get()
+        + "\n"
+        + "Gerrit-Change-Number: "
+        + change.getChangeId()
+        + "\n"
+        + "Gerrit-PatchSet: "
+        + patchSetId.get()
+        + "\n"
+        + "Gerrit-Owner: "
+        + owner.fullName()
+        + " <"
+        + owner.email()
+        + ">\n"
+        + "Gerrit-Reviewer: "
+        + ignoringReviewer.fullName()
+        + " <"
+        + ignoringReviewer.email()
+        + ">\n"
+        + "Gerrit-Reviewer: "
+        + reviewer.fullName()
+        + " <"
+        + reviewer.email()
+        + ">\n"
+        + "Gerrit-MessageType: combinedCheckStateUpdate\n";
+  }
+
+  private String changeUrl(Change change) {
+    return canonicalWebUrl.get() + "c/" + change.getProject().get() + "/+/" + change.getChangeId();
+  }
+
   private CombinedCheckState getCombinedCheckState() throws RestApiException {
     ChangeInfo changeInfo =
         gApi.changes()
@@ -549,5 +632,13 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(infos).hasSize(1);
     assertThat(infos.get(0)).isInstanceOf(ChangeCheckInfo.class);
     return ((ChangeCheckInfo) infos.get(0)).combinedState;
+  }
+
+  private void postCheck(CheckerUuid checkerUuid, CheckState checkState) throws RestApiException {
+    requestScopeOperations.setApiUser(bot.id());
+    CheckInput input = new CheckInput();
+    input.checkerUuid = checkerUuid.get();
+    input.state = checkState;
+    checksApiFactory.revision(patchSetId).create(input).get();
   }
 }

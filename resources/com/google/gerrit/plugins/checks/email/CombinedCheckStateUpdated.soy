@@ -21,21 +21,15 @@
  * change for which the combined check state was updated.
  */
 {template .CombinedCheckStateUpdated kind="text"}
-  {@param change: ?}
-  {@param combinedCheckState: ?}
-  {@param coverLetter: ?}
   {@param email: ?}
+  {@param change: ?}
   {@param patchSet: ?}
-  The combined check state has been updated to {$combinedCheckState} for patch set
-  {$patchSet.patchSetId} of this change.
-  {if $email.changeUrl} ( {$email.changeUrl} ){/if}{\n}
+  {@param combinedCheckState: ?}
+  The combined check state has been updated to {$combinedCheckState} for patch set{sp}
+  {$patchSet.patchSetId} of this change
+  {if $email.changeUrl} ( {$email.changeUrl} ){/if}
+  .{\n}
   {\n}
   Change subject: {$change.subject}{\n}
   ......................................................................{\n}
-  {if $coverLetter}
-    {\n}
-    {\n}
-    {$coverLetter}
-    {\n}
-  {/if}
 {/template}
