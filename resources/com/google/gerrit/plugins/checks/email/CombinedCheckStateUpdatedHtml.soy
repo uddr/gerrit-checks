@@ -24,7 +24,6 @@
   {@param email: ?}
   {@param patchSet: ?}
   {@param checker: ?}
-  {@param check: ?}
   {@param oldCombinedCheckState: ?}
   {@param newCombinedCheckState: ?}
   <p>
@@ -36,7 +35,7 @@
       change
     {/if}.
   </p>
-    {if $check and $checker and $check.state == 'FAILED'
+    {if $checker and $checker.check.state == 'FAILED'
     and ($newCombinedCheckState == 'FAILED'
       or ($newCombinedCheckState == 'WARNING' and $oldCombinedCheckState != 'FAILED'))}
     <p>
@@ -47,13 +46,13 @@
         <strong>{$checker.name}</strong>
       {/if}
       {sp}updated the check state to{sp}
-      {if $check.url}
-        <a href="{$check.url}">{$check.state}</a>
+      {if $checker.check.url}
+        <a href="{$checker.check.url}">{$checker.check.state}</a>
       {else}
-        {$check.state}
+        {$checker.check.state}
       {/if}
-      {if $check.message}
-        :<br>{$check.message}
+      {if $checker.check.message}
+        :<br>{$checker.check.message}
       {else}
         .
       {/if}

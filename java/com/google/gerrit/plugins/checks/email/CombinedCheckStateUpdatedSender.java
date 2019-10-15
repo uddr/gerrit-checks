@@ -91,29 +91,41 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
       soyContext.put("newCombinedCheckState", newCombinedCheckState.name());
     }
 
-    if (checker != null) {
-      Map<String, String> checkerData = new HashMap<>();
-      checkerData.put("uuid", checker.getUuid().get());
-      checkerData.put("name", checker.getName());
-      checkerData.put("repository", checker.getRepository().get());
-      checker
-          .getDescription()
-          .ifPresent(description -> checkerData.put("description", description));
-      checker.getUrl().ifPresent(url -> checkerData.put("url", url));
-      soyContext.put("checker", checkerData);
+    if (checker != null && check != null) {
+      soyContext.put("checker", getCheckerData(checker, check));
     }
+  }
 
-    if (check != null) {
-      Map<String, Object> checkData = new HashMap<>();
-      checkData.put("checkerUuid", check.key().checkerUuid().get());
-      checkData.put("change", check.key().patchSet().changeId().get());
-      checkData.put("patchSet", check.key().patchSet().get());
-      checkData.put("repository", check.key().repository().get());
-      checkData.put("state", check.state().name());
-      check.message().ifPresent(message -> checkData.put("message", message));
-      check.url().ifPresent(url -> checkData.put("url", url));
-      soyContext.put("check", checkData);
-    }
+  /**
+   * Creates a map with the checker data that can be fed into the soy template.
+   *
+   * <p>The map keys are the names of the checker properties and the map values are the checker
+   * property values as types that are compatible with soy templates. The value of the {@code check}
+   * field is a map with the check data. The map with the check data maps the names of the check
+   * properties to the check property values as types that are compatible with soy.
+   *
+   * @param checker the checker
+   * @param check the check
+   * @return the checker data as a map that can be fed into a soy template
+   */
+  private static Map<String, Object> getCheckerData(Checker checker, Check check) {
+    Map<String, Object> checkData = new HashMap<>();
+    checkData.put("change", check.key().patchSet().changeId().get());
+    checkData.put("patchSet", check.key().patchSet().get());
+    checkData.put("repository", check.key().repository().get());
+    checkData.put("state", check.state().name());
+    check.message().ifPresent(message -> checkData.put("message", message));
+    check.url().ifPresent(url -> checkData.put("url", url));
+
+    Map<String, Object> checkerData = new HashMap<>();
+    checkerData.put("check", checkData);
+    checkerData.put("uuid", checker.getUuid().get());
+    checkerData.put("name", checker.getName());
+    checkerData.put("repository", checker.getRepository().get());
+    checker.getDescription().ifPresent(description -> checkerData.put("description", description));
+    checker.getUrl().ifPresent(url -> checkerData.put("url", url));
+
+    return checkerData;
   }
 
   @Override

@@ -25,24 +25,23 @@
   {@param change: ?}
   {@param patchSet: ?}
   {@param checker: ?}
-  {@param check: ?}
   {@param oldCombinedCheckState: ?}
   {@param newCombinedCheckState: ?}
   The combined check state has been updated to {$newCombinedCheckState} for patch set{sp}
   {$patchSet.patchSetId} of this change
   {if $email.changeUrl}{sp}( {$email.changeUrl} ){/if}
   .{\n}
-  {if $check and $checker and $check.state == 'FAILED'
+  {if $checker and $checker.check.state == 'FAILED'
     and ($newCombinedCheckState == 'FAILED'
       or ($newCombinedCheckState == 'WARNING' and $oldCombinedCheckState != 'FAILED'))}
     {\n}
     Checker {$checker.name}
     {if $checker.url}{sp}( {$checker.url} ){/if}
-    {sp}updated the check state to {$check.state}
-    {if $check.url}{sp}( {$check.url} ){/if}
-    {if $check.message}
+    {sp}updated the check state to {$checker.check.state}
+    {if $checker.check.url}{sp}( {$checker.check.url} ){/if}
+    {if $checker.check.message}
       :{\n}
-      {$check.message}{\n}
+      {$checker.check.message}{\n}
     {else}
       .{\n}
     {/if}
