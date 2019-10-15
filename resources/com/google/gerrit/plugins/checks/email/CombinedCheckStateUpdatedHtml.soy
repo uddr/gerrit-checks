@@ -21,22 +21,22 @@
  * a change for which the combined check state was updated.
  */
 {template .CombinedCheckStateUpdatedHtml}
-  {@param combinedCheckState: ?}
-  {@param coverLetter: ?}
   {@param email: ?}
   {@param patchSet: ?}
+  {@param combinedCheckState: ?}
   <p>
     The combined check state has been updated to <strong>{$combinedCheckState}</strong> for patch
-    set {$patchSet.patchSetId} of this change.
+    set {$patchSet.patchSetId} of this{sp}
+    {if $email.changeUrl}
+      <a href="{$email.changeUrl}">change</a>
+    {else}
+      change
+    {/if}.
   </p>
 
   {if $email.changeUrl}
     <p>
       {call .ViewChangeButton data="all" /}
     </p>
-  {/if}
-
-  {if $coverLetter}
-    <div style="white-space:pre-wrap">{$coverLetter}</div>
   {/if}
 {/template}

@@ -546,7 +546,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void textEmailForCombinedCheckStateUpdated() throws Exception {
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedEmail() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
@@ -568,10 +568,21 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + " of this change ( "
                 + changeUrl(change)
                 + " ).\n"
-                + emailFooterForCombinedCheckStateUpdate());
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            "<p>The combined check state has been updated to <strong>"
+                + CombinedCheckState.FAILED
+                + "</strong> for patch set "
+                + patchSetId.get()
+                + " of this <a href=\""
+                + changeUrl(change)
+                + "\">change</a>.</p>"
+                + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
-  private String emailFooterForCombinedCheckStateUpdate() {
+  private String textEmailFooterForCombinedCheckStateUpdate() {
     return "\n"
         + "Change subject: "
         + change.getSubject()
@@ -616,6 +627,58 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         + reviewer.email()
         + ">\n"
         + "Gerrit-MessageType: combinedCheckStateUpdate\n";
+  }
+
+  private String htmlViewChangeButton() {
+    return "<p><a href=\"" + changeUrl(change) + "\">View Change</a></p>";
+  }
+
+  private String htmlEmailFooterForCombinedCheckStateUpdate() {
+    return htmlViewChangeButton()
+        + "<p>To view, visit <a href=\""
+        + changeUrl(change)
+        + "\">change "
+        + change.getChangeId()
+        + "</a>."
+        + " To unsubscribe, or for help writing mail filters, visit <a href=\""
+        + canonicalWebUrl.get()
+        + "settings\">settings</a>.</p>"
+        + "<div itemscope itemtype=\"http://schema.org/EmailMessage\">"
+        + "<div itemscope itemprop=\"action\" itemtype=\"http://schema.org/ViewAction\">"
+        + "<link itemprop=\"url\" href=\""
+        + changeUrl(change)
+        + "\"/>"
+        + "<meta itemprop=\"name\" content=\"View Change\"/>"
+        + "</div>"
+        + "</div>\n\n"
+        + "<div style=\"display:none\"> Gerrit-Project: "
+        + project.get()
+        + " </div>\n"
+        + "<div style=\"display:none\"> Gerrit-Branch: "
+        + change.getDest().shortName()
+        + " </div>\n"
+        + "<div style=\"display:none\"> Gerrit-Change-Id: "
+        + change.getKey().get()
+        + " </div>\n"
+        + "<div style=\"display:none\"> Gerrit-Change-Number: "
+        + change.getChangeId()
+        + " </div>\n"
+        + "<div style=\"display:none\"> Gerrit-PatchSet: "
+        + patchSetId.get()
+        + " </div>\n"
+        + "<div style=\"display:none\"> Gerrit-Owner: Administrator &lt;admin@example.com&gt; </div>\n"
+        + "<div style=\"display:none\"> Gerrit-Reviewer: "
+        + ignoringReviewer.fullName()
+        + " &lt;"
+        + ignoringReviewer.email()
+        + "&gt; </div>\n"
+        + "<div style=\"display:none\"> Gerrit-Reviewer: "
+        + reviewer.fullName()
+        + " &lt;"
+        + reviewer.email()
+        + "&gt; </div>\n"
+        + "<div style=\"display:none\"> Gerrit-MessageType: combinedCheckStateUpdate </div>\n"
+        + "\n";
   }
 
   private String changeUrl(Change change) {
