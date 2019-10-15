@@ -10,7 +10,7 @@ junit_tests(
         "//java/com/google/gerrit/server",
         "//java/com/google/gerrit/server/util/time",
         "//lib:guava",
-        "//lib/jgit/org.eclipse.jgit:jgit",
+        "//lib:jgit",
         "//lib/mockito",
         "//lib/truth",
         "//lib/truth:truth-java8-extension",
