@@ -26,6 +26,7 @@
   {@param checker: ?}
   {@param oldCombinedCheckState: ?}
   {@param newCombinedCheckState: ?}
+  {@param allCheckers: ?}
   <p>
     The combined check state has been updated to <strong>{$newCombinedCheckState}</strong> for{sp}
     patch set {$patchSet.patchSetId} of this{sp}
@@ -59,9 +60,55 @@
     </p>
   {/if}
 
+  {if $allCheckers}
+    <p><u><strong>All checks:</strong></u><br>
+    {call .PrintCheckers}
+      {param state: 'Successful' /}
+      {param checkers: $allCheckers.successful /}
+    {/call}
+    {call .PrintCheckers}
+      {param state: 'Not Relevant' /}
+      {param checkers: $allCheckers.notRelevant /}
+    {/call}
+    {call .PrintCheckers}
+      {param state: 'Failed' /}
+      {param checkers: $allCheckers.failed /}
+    {/call}
+    {call .PrintCheckers}
+      {param state: 'Running' /}
+      {param checkers: $allCheckers.running /}
+    {/call}
+    {call .PrintCheckers}
+      {param state: 'Scheduled' /}
+      {param checkers: $allCheckers.scheduled /}
+    {/call}
+    {call .PrintCheckers}
+      {param state: 'Not Started' /}
+      {param checkers: $allCheckers.notStarted /}
+    {/call}
+    </p>
+  {/if}
+
   {if $email.changeUrl}
     <p>
       {call .ViewChangeButton data="all" /}
     </p>
+  {/if}
+{/template}
+
+{template .PrintCheckers}
+  {@param state: ?}
+  {@param checkers: ?}
+  {if length($checkers) > 0}
+    <strong>{$state}:</strong>{sp}
+    {for $checker in $checkers}
+      {if $checker.check.url}
+        <a href="{$checker.check.url}">{$checker.name}</a>
+      {else}
+        {$checker.name}
+      {/if}
+      {if not isLast($checker)},{sp}{/if}
+    {/for}
+    <br>
   {/if}
 {/template}

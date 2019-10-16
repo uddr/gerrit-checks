@@ -14,6 +14,7 @@
 
 package com.google.gerrit.plugins.checks;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.entities.PatchSet;
@@ -22,6 +23,7 @@ import com.google.gerrit.extensions.api.changes.NotifyHandling;
 import com.google.gerrit.extensions.api.changes.NotifyInfo;
 import com.google.gerrit.extensions.api.changes.RecipientType;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.plugins.checks.email.CombinedCheckStateUpdatedSender;
 import com.google.gerrit.server.IdentifiedUser;
@@ -59,6 +61,7 @@ public class ChecksUpdate {
   private final CombinedCheckStateUpdatedSender.Factory combinedCheckStateUpdatedSenderFactory;
   private final ChangeNotes.Factory notesFactory;
   private final PatchSetUtil psUtil;
+  private final Checks checks;
   private final Checkers checkers;
   private final NotifyResolver notifyResolver;
   private final Optional<IdentifiedUser> currentUser;
@@ -70,6 +73,7 @@ public class ChecksUpdate {
       CombinedCheckStateUpdatedSender.Factory combinedCheckStateUpdatedSenderFactory,
       ChangeNotes.Factory notesFactory,
       PatchSetUtil psUtil,
+      Checks checks,
       Checkers checkers,
       NotifyResolver notifyResolver,
       @Assisted IdentifiedUser currentUser) {
@@ -78,6 +82,7 @@ public class ChecksUpdate {
     this.combinedCheckStateUpdatedSenderFactory = combinedCheckStateUpdatedSenderFactory;
     this.notesFactory = notesFactory;
     this.psUtil = psUtil;
+    this.checks = checks;
     this.checkers = checkers;
     this.notifyResolver = notifyResolver;
     this.currentUser = Optional.of(currentUser);
@@ -90,6 +95,7 @@ public class ChecksUpdate {
       CombinedCheckStateUpdatedSender.Factory combinedCheckStateUpdatedSenderFactory,
       ChangeNotes.Factory notesFactory,
       PatchSetUtil psUtil,
+      Checks checks,
       Checkers checkers,
       NotifyResolver notifyResolver) {
     this.checksStorageUpdate = checksStorageUpdate;
@@ -97,6 +103,7 @@ public class ChecksUpdate {
     this.combinedCheckStateUpdatedSenderFactory = combinedCheckStateUpdatedSenderFactory;
     this.notesFactory = notesFactory;
     this.psUtil = psUtil;
+    this.checks = checks;
     this.checkers = checkers;
     this.notifyResolver = notifyResolver;
     this.currentUser = Optional.empty();
@@ -188,10 +195,31 @@ public class ChecksUpdate {
                               checkKey.checkerUuid(), checkKey))),
           updatedCheck);
       sender.setNotify(notify);
+      sender.setChecksByChecker(getAllChecksByChecker(checkKey));
       sender.send();
     } catch (Exception e) {
       logger.atSevere().withCause(e).log(
           "Cannot email update for change %s", checkKey.patchSet().changeId());
     }
+  }
+
+  private ImmutableMap<Checker, Check> getAllChecksByChecker(CheckKey checkKey)
+      throws IllegalStateException, IOException, ConfigInvalidException {
+    ImmutableMap.Builder<Checker, Check> checksByChecker = ImmutableMap.builder();
+    for (Check check :
+        checks.getChecks(
+            checkKey.repository(), checkKey.patchSet(), GetCheckOptions.withBackfilling())) {
+      Checker checker =
+          checkers
+              .getChecker(check.key().checkerUuid())
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          String.format(
+                              "checker %s of check %s not found",
+                              checkKey.checkerUuid(), check.key())));
+      checksByChecker.put(checker, check);
+    }
+    return checksByChecker.build();
   }
 }

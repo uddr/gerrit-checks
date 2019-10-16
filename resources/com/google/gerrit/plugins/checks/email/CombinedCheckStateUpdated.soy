@@ -27,6 +27,7 @@
   {@param checker: ?}
   {@param oldCombinedCheckState: ?}
   {@param newCombinedCheckState: ?}
+  {@param allCheckers: ?}
   The combined check state has been updated to {$newCombinedCheckState} for patch set{sp}
   {$patchSet.patchSetId} of this change
   {if $email.changeUrl}{sp}( {$email.changeUrl} ){/if}
@@ -47,6 +48,46 @@
     {/if}
   {/if}
   {\n}
+  {if $allCheckers}
+    All checks:{\n}
+    {call .PrintCheckers_Text}
+      {param state: 'Successful' /}
+      {param checkers: $allCheckers.successful /}
+    {/call}
+    {call .PrintCheckers_Text}
+      {param state: 'Not Relevant' /}
+      {param checkers: $allCheckers.notRelevant /}
+    {/call}
+    {call .PrintCheckers_Text}
+      {param state: 'Failed' /}
+      {param checkers: $allCheckers.failed /}
+    {/call}
+    {call .PrintCheckers_Text}
+      {param state: 'Running' /}
+      {param checkers: $allCheckers.running /}
+    {/call}
+    {call .PrintCheckers_Text}
+      {param state: 'Scheduled' /}
+      {param checkers: $allCheckers.scheduled /}
+    {/call}
+    {call .PrintCheckers_Text}
+      {param state: 'Not Started' /}
+      {param checkers: $allCheckers.notStarted /}
+    {/call}
+  {/if}
+  {\n}
   Change subject: {$change.subject}{\n}
   ......................................................................{\n}
+{/template}
+
+{template .PrintCheckers_Text kind="text"}
+  {@param state: ?}
+  {@param checkers: ?}
+  {if length($checkers) > 0}
+    {$state}:{sp}
+    {for $checker in $checkers}
+      {$checker.name}{if not isLast($checker)},{sp}{/if}
+    {/for}
+    {\n}
+  {/if}
 {/template}

@@ -17,7 +17,10 @@ package com.google.gerrit.plugins.checks.acceptance.api;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.allowCapability;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -49,7 +52,9 @@ import com.google.gerrit.plugins.checks.api.RerunInput;
 import com.google.gerrit.testing.FakeEmailSender.Message;
 import com.google.inject.Inject;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -548,8 +553,9 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   @Test
   public void verifyMessageBodiesForCombinedCheckStateUpdatedDefaultEmail() throws Exception {
+    String checkerName = "My Checker";
     CheckerUuid checkerUuid =
-        checkerOperations.newChecker().repository(project).required().create();
+        checkerOperations.newChecker().name(checkerName).repository(project).required().create();
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.IN_PROGRESS);
 
     sender.clear();
@@ -563,11 +569,15 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.body())
         .isEqualTo(
             combinedCheckStateUpdatedText(CombinedCheckState.SUCCESSFUL)
+                + allChecksOverviewText(
+                    ImmutableMap.of(CheckState.SUCCESSFUL, ImmutableList.of(checkerName)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
         .isEqualTo(
             combinedCheckStateUpdatedHtml(CombinedCheckState.SUCCESSFUL)
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(CheckState.SUCCESSFUL, ImmutableList.of(checkerName)))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
@@ -595,6 +605,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + " updated the check state to "
                 + CheckState.FAILED
                 + ".\n"
+                + allChecksOverviewText(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
@@ -605,6 +617,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + "</strong> updated the check state to "
                 + CheckState.FAILED
                 + ".</p>"
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
@@ -642,6 +656,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + " ) updated the check state to "
                 + CheckState.FAILED
                 + ".\n"
+                + allChecksOverviewText(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
@@ -654,6 +670,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + "</a> updated the check state to "
                 + CheckState.FAILED
                 + ".</p>"
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
@@ -685,6 +703,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + ":\n"
                 + checkMessage
                 + "\n"
+                + allChecksOverviewText(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
@@ -697,6 +717,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + ":<br>"
                 + checkMessage
                 + "</p>"
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
@@ -728,6 +750,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + " ( "
                 + checkUrl
                 + " ).\n"
+                + allChecksOverviewText(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
@@ -740,6 +764,9 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + "\">"
                 + CheckState.FAILED
                 + "</a>.</p>"
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)),
+                    ImmutableMap.of(checkerName, checkUrl))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
@@ -767,6 +794,8 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + " updated the check state to "
                 + CheckState.FAILED
                 + ".\n"
+                + allChecksOverviewText(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
@@ -777,17 +806,27 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + "</strong> updated the check state to "
                 + CheckState.FAILED
                 + ".</p>"
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(CheckState.FAILED, ImmutableList.of(checkerName)))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
   @Test
   public void verifyMessageBodiesForCombinedCheckStateUpdatedToWarningFromFailedEmail()
       throws Exception {
+    String checkerNameRequired = "My Required Checker";
     CheckerUuid checkerUuidRequired =
-        checkerOperations.newChecker().repository(project).required().create();
+        checkerOperations
+            .newChecker()
+            .name(checkerNameRequired)
+            .repository(project)
+            .required()
+            .create();
     postCheck(checkerUuidRequired, CheckState.FAILED);
 
-    CheckerUuid checkerUuidOptional = checkerOperations.newChecker().repository(project).create();
+    String checkerNameOptional = "My Optional Checker";
+    CheckerUuid checkerUuidOptional =
+        checkerOperations.newChecker().name(checkerNameOptional).repository(project).create();
     postCheck(checkerUuidOptional, CheckState.FAILED);
     assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
 
@@ -802,11 +841,227 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.body())
         .isEqualTo(
             combinedCheckStateUpdatedText(CombinedCheckState.WARNING)
+                + allChecksOverviewText(
+                    ImmutableMap.of(
+                        CheckState.SUCCESSFUL,
+                        ImmutableList.of(checkerNameRequired),
+                        CheckState.FAILED,
+                        ImmutableList.of(checkerNameOptional)))
                 + textEmailFooterForCombinedCheckStateUpdate());
 
     assertThat(message.htmlBody())
         .isEqualTo(
             combinedCheckStateUpdatedHtml(CombinedCheckState.WARNING)
+                + allChecksOverviewHtml(
+                    ImmutableMap.of(
+                        CheckState.SUCCESSFUL,
+                        ImmutableList.of(checkerNameRequired),
+                        CheckState.FAILED,
+                        ImmutableList.of(checkerNameOptional)))
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedEmailWithBackfilledCheck()
+      throws Exception {
+    String checkerNameNotStartedBackfilled = "My Backfilled Checker";
+    checkerOperations
+        .newChecker()
+        .name(checkerNameNotStartedBackfilled)
+        .repository(project)
+        .create();
+
+    String checkerNameFailed = "My Failed Checker";
+    CheckerUuid checkerUuidFailed =
+        checkerOperations
+            .newChecker()
+            .name(checkerNameFailed)
+            .repository(project)
+            .required()
+            .create();
+
+    sender.clear();
+    postCheck(checkerUuidFailed, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Map<CheckState, List<String>> expectedCheckersByState = new HashMap<>();
+    expectedCheckersByState.put(
+        CheckState.NOT_STARTED, ImmutableList.of(checkerNameNotStartedBackfilled));
+    expectedCheckersByState.put(CheckState.FAILED, ImmutableList.of(checkerNameFailed));
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerNameFailed
+                + " updated the check state to "
+                + CheckState.FAILED
+                + ".\n"
+                + allChecksOverviewText(expectedCheckersByState)
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <strong>"
+                + checkerNameFailed
+                + "</strong> updated the check state to "
+                + CheckState.FAILED
+                + ".</p>"
+                + allChecksOverviewHtml(expectedCheckersByState)
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedEmailWithChecksOfDifferentStates()
+      throws Exception {
+    String checkerNameNotStarted = "My Not Started Checker";
+    CheckerUuid checkerUuidNotStarted =
+        checkerOperations.newChecker().name(checkerNameNotStarted).repository(project).create();
+    postCheck(checkerUuidNotStarted, CheckState.NOT_STARTED);
+
+    String checkerNameScheduled = "My Scheduled Checker";
+    CheckerUuid checkerUuidScheduled =
+        checkerOperations.newChecker().name(checkerNameScheduled).repository(project).create();
+    postCheck(checkerUuidScheduled, CheckState.SCHEDULED);
+
+    String checkerNameRunning = "My Running Checker";
+    CheckerUuid checkerUuidRunning =
+        checkerOperations.newChecker().name(checkerNameRunning).repository(project).create();
+    postCheck(checkerUuidRunning, CheckState.RUNNING);
+
+    String checkerNameNotRelevant = "My Not Relevant Checker";
+    CheckerUuid checkerUuidNotRelevant =
+        checkerOperations.newChecker().name(checkerNameNotRelevant).repository(project).create();
+    postCheck(checkerUuidNotRelevant, CheckState.NOT_RELEVANT);
+
+    String checkerNameSuccesful = "My Successful Checker";
+    CheckerUuid checkerUuidSuccessful =
+        checkerOperations.newChecker().name(checkerNameSuccesful).repository(project).create();
+    postCheck(checkerUuidSuccessful, CheckState.SUCCESSFUL);
+
+    String checkerNameFailed = "My Failed Checker";
+    CheckerUuid checkerUuidFailed =
+        checkerOperations
+            .newChecker()
+            .name(checkerNameFailed)
+            .repository(project)
+            .required()
+            .create();
+
+    sender.clear();
+    postCheck(checkerUuidFailed, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Map<CheckState, List<String>> expectedCheckersByState = new HashMap<>();
+    expectedCheckersByState.put(CheckState.NOT_STARTED, ImmutableList.of(checkerNameNotStarted));
+    expectedCheckersByState.put(CheckState.SCHEDULED, ImmutableList.of(checkerNameScheduled));
+    expectedCheckersByState.put(CheckState.RUNNING, ImmutableList.of(checkerNameRunning));
+    expectedCheckersByState.put(CheckState.NOT_RELEVANT, ImmutableList.of(checkerNameNotRelevant));
+    expectedCheckersByState.put(CheckState.SUCCESSFUL, ImmutableList.of(checkerNameSuccesful));
+    expectedCheckersByState.put(CheckState.FAILED, ImmutableList.of(checkerNameFailed));
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerNameFailed
+                + " updated the check state to "
+                + CheckState.FAILED
+                + ".\n"
+                + allChecksOverviewText(expectedCheckersByState)
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <strong>"
+                + checkerNameFailed
+                + "</strong> updated the check state to "
+                + CheckState.FAILED
+                + ".</p>"
+                + allChecksOverviewHtml(expectedCheckersByState)
+                + htmlEmailFooterForCombinedCheckStateUpdate());
+  }
+
+  @Test
+  public void verifyMessageBodiesForCombinedCheckStateUpdatedEmailWithMultipleChecksOfSameState()
+      throws Exception {
+    String checkerNameRunningFoo = "Foo Checker";
+    CheckerUuid checkerUuidRunningFoo =
+        checkerOperations.newChecker().name(checkerNameRunningFoo).repository(project).create();
+    String checkUrlFoo = "http://foo-checker/12345";
+    postCheck(checkerUuidRunningFoo, CheckState.RUNNING, null, checkUrlFoo);
+
+    String checkerNameRunningBar = "Bar Checker";
+    CheckerUuid checkerUuidRunningBar =
+        checkerOperations.newChecker().name(checkerNameRunningBar).repository(project).create();
+    String checkUrlBar = "http://bar-checker/67890";
+    postCheck(checkerUuidRunningBar, CheckState.RUNNING, null, checkUrlBar);
+
+    String checkerNameRunningBaz = "Baz Checker";
+    CheckerUuid checkerUuidRunningBaz =
+        checkerOperations.newChecker().name(checkerNameRunningBaz).repository(project).create();
+    // This check doesn't have an URL, so that we test a mix of checks with and without URL.
+    postCheck(checkerUuidRunningBaz, CheckState.RUNNING);
+
+    String checkerNameFailed = "My Failed Checker";
+    CheckerUuid checkerUuidFailed =
+        checkerOperations
+            .newChecker()
+            .name(checkerNameFailed)
+            .repository(project)
+            .required()
+            .create();
+
+    sender.clear();
+    postCheck(checkerUuidFailed, CheckState.FAILED);
+    assertThat(getCombinedCheckState()).isEqualTo(CombinedCheckState.FAILED);
+
+    List<Message> messages = sender.getMessages();
+    assertThat(messages).hasSize(1);
+
+    Map<CheckState, List<String>> expectedCheckersByState = new HashMap<>();
+    expectedCheckersByState.put(
+        CheckState.RUNNING,
+        ImmutableList.of(checkerNameRunningBar, checkerNameRunningBaz, checkerNameRunningFoo));
+    expectedCheckersByState.put(CheckState.FAILED, ImmutableList.of(checkerNameFailed));
+
+    Message message = messages.get(0);
+    assertThat(message.body())
+        .isEqualTo(
+            combinedCheckStateUpdatedText(CombinedCheckState.FAILED)
+                + "\n"
+                + "Checker "
+                + checkerNameFailed
+                + " updated the check state to "
+                + CheckState.FAILED
+                + ".\n"
+                + allChecksOverviewText(expectedCheckersByState)
+                + textEmailFooterForCombinedCheckStateUpdate());
+
+    assertThat(message.htmlBody())
+        .isEqualTo(
+            combinedCheckStateUpdatedHtml(CombinedCheckState.FAILED)
+                + "<p>Checker <strong>"
+                + checkerNameFailed
+                + "</strong> updated the check state to "
+                + CheckState.FAILED
+                + ".</p>"
+                + allChecksOverviewHtml(
+                    expectedCheckersByState,
+                    ImmutableMap.of(
+                        checkerNameRunningFoo, checkUrlFoo, checkerNameRunningBar, checkUrlBar))
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
@@ -818,6 +1073,42 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         + " of this change ( "
         + changeUrl(change)
         + " ).\n";
+  }
+
+  private String allChecksOverviewText(Map<CheckState, List<String>> checkersByState) {
+    StringBuilder b = new StringBuilder();
+    b.append("\nAll checks:\n");
+    if (checkersByState.containsKey(CheckState.SUCCESSFUL)) {
+      b.append("Successful: ")
+          .append(Joiner.on(", ").join(checkersByState.get(CheckState.SUCCESSFUL)))
+          .append("\n");
+    }
+    if (checkersByState.containsKey(CheckState.NOT_RELEVANT)) {
+      b.append("Not Relevant: ")
+          .append(Joiner.on(", ").join(checkersByState.get(CheckState.NOT_RELEVANT)))
+          .append("\n");
+    }
+    if (checkersByState.containsKey(CheckState.FAILED)) {
+      b.append("Failed: ")
+          .append(Joiner.on(", ").join(checkersByState.get(CheckState.FAILED)))
+          .append("\n");
+    }
+    if (checkersByState.containsKey(CheckState.RUNNING)) {
+      b.append("Running: ")
+          .append(Joiner.on(", ").join(checkersByState.get(CheckState.RUNNING)))
+          .append("\n");
+    }
+    if (checkersByState.containsKey(CheckState.SCHEDULED)) {
+      b.append("Scheduled: ")
+          .append(Joiner.on(", ").join(checkersByState.get(CheckState.SCHEDULED)))
+          .append("\n");
+    }
+    if (checkersByState.containsKey(CheckState.NOT_STARTED)) {
+      b.append("Not Started: ")
+          .append(Joiner.on(", ").join(checkersByState.get(CheckState.NOT_STARTED)))
+          .append("\n");
+    }
+    return b.toString();
   }
 
   private String textEmailFooterForCombinedCheckStateUpdate() {
@@ -875,6 +1166,62 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         + " of this <a href=\""
         + changeUrl(change)
         + "\">change</a>.</p>";
+  }
+
+  private String allChecksOverviewHtml(Map<CheckState, List<String>> checkersByState) {
+    return allChecksOverviewHtml(checkersByState, ImmutableMap.of());
+  }
+
+  private String allChecksOverviewHtml(
+      Map<CheckState, List<String>> checkersByState, Map<String, String> urlsByChecker) {
+    Map<CheckState, List<String>> checkersByStateFormatted =
+        checkersByState.entrySet().stream()
+            .collect(
+                toMap(
+                    e -> e.getKey(),
+                    e ->
+                        e.getValue().stream()
+                            .map(
+                                c ->
+                                    urlsByChecker.containsKey(c)
+                                        ? "<a href=\"" + urlsByChecker.get(c) + "\">" + c + "</a>"
+                                        : c)
+                            .collect(toList())));
+
+    StringBuilder b = new StringBuilder();
+    b.append("<p><u><strong>All checks:</strong></u><br>");
+    if (checkersByState.containsKey(CheckState.SUCCESSFUL)) {
+      b.append("<strong>Successful:</strong> ")
+          .append(Joiner.on(", ").join(checkersByStateFormatted.get(CheckState.SUCCESSFUL)))
+          .append("<br>");
+    }
+    if (checkersByState.containsKey(CheckState.NOT_RELEVANT)) {
+      b.append("<strong>Not Relevant:</strong> ")
+          .append(Joiner.on(", ").join(checkersByStateFormatted.get(CheckState.NOT_RELEVANT)))
+          .append("<br>");
+    }
+    if (checkersByState.containsKey(CheckState.FAILED)) {
+      b.append("<strong>Failed:</strong> ")
+          .append(Joiner.on(", ").join(checkersByStateFormatted.get(CheckState.FAILED)))
+          .append("<br>");
+    }
+    if (checkersByState.containsKey(CheckState.RUNNING)) {
+      b.append("<strong>Running:</strong> ")
+          .append(Joiner.on(", ").join(checkersByStateFormatted.get(CheckState.RUNNING)))
+          .append("<br>");
+    }
+    if (checkersByState.containsKey(CheckState.SCHEDULED)) {
+      b.append("<strong>Scheduled:</strong> ")
+          .append(Joiner.on(", ").join(checkersByStateFormatted.get(CheckState.SCHEDULED)))
+          .append("<br>");
+    }
+    if (checkersByState.containsKey(CheckState.NOT_STARTED)) {
+      b.append("<strong>Not Started:</strong> ")
+          .append(Joiner.on(", ").join(checkersByStateFormatted.get(CheckState.NOT_STARTED)))
+          .append("<br>");
+    }
+    b.append("</p>");
+    return b.toString();
   }
 
   private String htmlViewChangeButton() {

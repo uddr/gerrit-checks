@@ -15,13 +15,19 @@
 package com.google.gerrit.plugins.checks.email;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.exceptions.EmailException;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.Checker;
+import com.google.gerrit.plugins.checks.api.CheckState;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.server.account.ProjectWatches.NotifyType;
 import com.google.gerrit.server.mail.send.ChangeEmail;
@@ -43,6 +49,7 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
   private CombinedCheckState newCombinedCheckState;
   private Checker checker;
   private Check check;
+  private ImmutableMap<Checker, Check> checksByChecker;
 
   @Inject
   public CombinedCheckStateUpdatedSender(
@@ -79,6 +86,10 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
     this.check = check;
   }
 
+  public void setChecksByChecker(Map<Checker, Check> checksByChecker) {
+    this.checksByChecker = ImmutableMap.copyOf(requireNonNull(checksByChecker));
+  }
+
   @Override
   protected void setupSoyContext() {
     super.setupSoyContext();
@@ -93,6 +104,16 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
 
     if (checker != null && check != null) {
       soyContext.put("checker", getCheckerData(checker, check));
+    }
+
+    if (checksByChecker != null) {
+      Map<String, Object> allCheckersData = new HashMap<>();
+      for (CheckState checkState : CheckState.values()) {
+        allCheckersData.put(
+            CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, checkState.name()),
+            getCheckerDataForCheckState(checkState));
+      }
+      soyContext.put("allCheckers", allCheckersData);
     }
   }
 
@@ -126,6 +147,14 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
     checker.getUrl().ifPresent(url -> checkerData.put("url", url));
 
     return checkerData;
+  }
+
+  private ImmutableList<Map<String, Object>> getCheckerDataForCheckState(CheckState checkState) {
+    return checksByChecker.entrySet().stream()
+        .filter(e -> e.getValue().state() == checkState)
+        .sorted(comparing(e -> e.getKey().getName()))
+        .map(e -> getCheckerData(e.getKey(), e.getValue()))
+        .collect(toImmutableList());
   }
 
   @Override
