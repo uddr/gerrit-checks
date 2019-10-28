@@ -1065,6 +1065,30 @@ public class ChecksEmailIT extends AbstractCheckersTest {
                 + htmlEmailFooterForCombinedCheckStateUpdate());
   }
 
+  @Test
+  public void noEmailForCombinedCheckStateUpdatesOfNonCurrentPatchSet() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().name("My Checker").repository(project).create();
+
+    // push a new patch set
+    PushOneCommit push =
+        pushFactory.create(
+            admin.newIdent(),
+            testRepo,
+            PushOneCommit.SUBJECT,
+            PushOneCommit.FILE_NAME,
+            "new content " + System.nanoTime(),
+            change.getKey().get());
+    push.to("refs/for/master").assertOkStatus();
+
+    sender.clear();
+
+    // post check on old patch set
+    postCheck(checkerUuid, CheckState.SUCCESSFUL);
+
+    assertThat(sender.getMessages()).isEmpty();
+  }
+
   private String combinedCheckStateUpdatedText(CombinedCheckState combinedCheckState) {
     return "The combined check state has been updated to "
         + combinedCheckState

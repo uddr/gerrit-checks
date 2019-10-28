@@ -159,6 +159,14 @@ public class ChecksUpdate {
       return;
     }
 
+    CheckKey checkKey = updatedCheck.key();
+    ChangeNotes changeNotes =
+        notesFactory.create(checkKey.repository(), checkKey.patchSet().changeId());
+    if (!checkKey.patchSet().equals(changeNotes.getCurrentPatchSet().id())) {
+      // do not send an email for non-current patch sets
+      return;
+    }
+
     notifyHandling =
         notifyHandling != null
             ? notifyHandling
@@ -167,8 +175,6 @@ public class ChecksUpdate {
                 ? NotifyHandling.ALL
                 : NotifyHandling.OWNER;
     NotifyResolver.Result notify = notifyResolver.resolve(notifyHandling, notifyDetails);
-
-    CheckKey checkKey = updatedCheck.key();
 
     try {
       CombinedCheckStateUpdatedSender sender =
@@ -179,8 +185,6 @@ public class ChecksUpdate {
         sender.setFrom(currentUser.get().getAccountId());
       }
 
-      ChangeNotes changeNotes =
-          notesFactory.create(checkKey.repository(), checkKey.patchSet().changeId());
       PatchSet patchSet = psUtil.get(changeNotes, checkKey.patchSet());
       sender.setPatchSet(patchSet);
       sender.setCombinedCheckState(oldCombinedCheckState, newCombinedCheckState);
