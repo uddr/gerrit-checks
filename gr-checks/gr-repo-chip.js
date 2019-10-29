@@ -6,7 +6,6 @@
    */
   Polymer({
     is: 'gr-repo-chip',
-    _legacyUndefinedCheck: true,
     properties: {
       // repo type is ProjectInfo
       repo: Object,

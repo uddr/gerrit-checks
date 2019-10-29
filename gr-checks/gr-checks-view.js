@@ -37,7 +37,6 @@
 
   Polymer({
     is: 'gr-checks-view',
-    _legacyUndefinedCheck: true,
 
     properties: {
       revision: Object,

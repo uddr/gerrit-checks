@@ -23,7 +23,6 @@
 
   Polymer({
     is: 'gr-checks-item',
-    _legacyUndefinedCheck: true,
 
     properties: {
       /** @type {Defs.Check} */
