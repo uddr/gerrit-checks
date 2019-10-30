@@ -3,7 +3,6 @@
 
   Polymer({
     is: 'gr-checks-status',
-    _legacyUndefinedCheck: true,
 
     properties: {
       showText: {

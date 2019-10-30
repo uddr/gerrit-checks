@@ -7,7 +7,6 @@
 
   Polymer({
     is: 'gr-create-checkers-dialog',
-    _legacyUndefinedCheck: true,
 
     properties: {
       checker: {

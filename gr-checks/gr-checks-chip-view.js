@@ -66,7 +66,6 @@
 
   Polymer({
     is: 'gr-checks-chip-view',
-    _legacyUndefinedCheck: true,
 
     properties: {
       revision: Object,
