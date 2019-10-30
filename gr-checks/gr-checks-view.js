@@ -228,18 +228,16 @@
 
     _handleRetryCheck(e) {
       const uuid = e.detail.uuid;
-      const retryCheck = (change, revision, uuid) => {
-        return this.pluginRestApi.post(
-            '/changes/' + change + '/revisions/' + revision + '/checks/' + uuid
+      const retryCheck = (change, revision, uuid) => this.pluginRestApi.post(
+          '/changes/' + change + '/revisions/' + revision + '/checks/' + uuid
               + '/rerun'
-        );
-      };
+      );
       retryCheck(this.change._number, this.revision._number, uuid).then(
           res => {
             this._fetchChecks(this.change, this.revision._number,
                 this.getChecks);
-          }, e => {
-            console.error(e);
+          }, error => {
+            this.fire('show-error', {message: error.message});
           }
       );
     },
