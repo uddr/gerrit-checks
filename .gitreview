@@ -1,0 +1,5 @@
+[gerrit]
+host=gerrit-review.googlesource.com
+scheme=https
+project=plugins/checks.git
+defaultbranch=master
