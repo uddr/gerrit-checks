@@ -59,7 +59,7 @@
      */
     _computeStartTime(check) {
       if (!check.started) return "-";
-      return moment(check.started).format('LTS');
+      return check.started;
     },
 
     _toggleMessageShown() {

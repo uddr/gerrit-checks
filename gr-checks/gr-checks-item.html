@@ -35,7 +35,13 @@
       <gr-checks-status show-text status="[[check.state]]" downgrade-failure-to-warning="[[false]]"></gr-checks-status>
     </td>
     <td><!--Check System--></td>
-    <td>[[_startTime]]</td>
+    <td>
+      <gr-date-formatter
+        has-tooltip
+        show-date-and-time
+        date-str="[[_startTime]]">
+      </gr-date-formatter>
+    </td>
     <td>[[_duration]]</td>
     <td>
       <a href$="[[check.url]]" target="_blank" class="log">
