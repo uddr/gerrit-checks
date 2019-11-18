@@ -97,7 +97,7 @@
     </style>
 
     <template is="dom-if" if="[[_createCheckerCapability]]">
-      <gr-button class="configure-button" on-tap="_handleConfigureClicked"> Configure </gr-button>
+      <gr-button class="configure-button" on-click="_handleConfigureClicked"> Configure </gr-button>
     </template>
 
     <template is="dom-if" if="[[_isLoading(_status)]]">

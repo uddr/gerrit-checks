@@ -73,7 +73,7 @@
         </div>
         <div id="createNewContainer"
             class$="[[_computeCreateClass(_createNewCapability)]]">
-          <gr-button primary link id="createNew" on-tap="_handleCreateClicked">
+          <gr-button primary link id="createNew" on-click="_handleCreateClicked">
             Create New
           </gr-button>
         </div>
@@ -98,7 +98,7 @@
               <td class="name">[[item.status]]</td>
               <td class="name">[[_computeBlocking(item)]]</td>
               <td class="description">[[item.description]]</td>
-              <td on-tap="_handleEditIconClicked">
+              <td on-click="_handleEditIconClicked">
                 <iron-icon icon="gr-icons:edit"></iron-icon>
               </td>
             </tr>
@@ -109,13 +109,13 @@
       <nav>
         <template is="dom-if" if="[[_showPrevButton]]">
           <a class="nav-buttons" id="prevArrow"
-            on-tap="_handlePrevClicked">
+            on-click="_handlePrevClicked">
             <iron-icon class="nav-iron-icon" icon="gr-icons:chevron-left"></iron-icon>
           </a>
         </template>
         <template is="dom-if" if="[[_showNextButton]]">
           <a class="nav-buttons" id="nextArrow"
-            on-tap="_handleNextClicked">
+            on-click="_handleNextClicked">
             <iron-icon icon="gr-icons:chevron-right"></iron-icon>
           </a>
         </template>

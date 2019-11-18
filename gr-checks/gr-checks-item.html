@@ -24,7 +24,7 @@
     </style>
     <td>
       <template is="dom-if" if="[[check.message]]">
-          <iron-icon class="nav-icon" on-tap="_toggleMessageShown"
+          <iron-icon class="nav-icon" on-click="_toggleMessageShown"
             icon="[[_computeExpandIcon(showCheckMessage)]]">
           </iron-icon>
       </template>
@@ -54,7 +54,7 @@
       <gr-button
         link
         no-uppercase
-        on-tap="_handleReRunClicked">
+        on-click="_handleReRunClicked">
         Re-run
       </gr-button>
     </td>

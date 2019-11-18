@@ -14,7 +14,7 @@
         value: true,
       },
     },
-    _handleRemoveTap(e) {
+    _handleRemove(e) {
       e.preventDefault();
       this.fire('remove', {repo: this.repo});
     },

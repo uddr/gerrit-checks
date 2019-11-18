@@ -104,7 +104,7 @@
     ],
 
     listeners: {
-      'tap': 'showChecksTable'
+      'click': 'showChecksTable'
     },
 
     showChecksTable() {
