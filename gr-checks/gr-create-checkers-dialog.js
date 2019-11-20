@@ -71,7 +71,7 @@
       _query: String,
     },
 
-    behaviours: [
+    behaviors: [
       Gerrit.FireBehavior,
     ],
     /**
