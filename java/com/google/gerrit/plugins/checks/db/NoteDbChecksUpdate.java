@@ -141,10 +141,11 @@ public class NoteDbChecksUpdate implements ChecksStorageUpdate {
   public Check createCheck(CheckKey checkKey, CheckUpdate checkUpdate)
       throws DuplicateKeyException, IOException {
     try {
-      return retryHelper.execute(
-          RetryHelper.ActionType.PLUGIN_UPDATE,
-          () -> upsertCheckInNoteDb(checkKey, checkUpdate, Operation.CREATE),
-          LockFailureException.class::isInstance);
+      return retryHelper
+          .pluginUpdate(
+              "createCheck", () -> upsertCheckInNoteDb(checkKey, checkUpdate, Operation.CREATE))
+          .retryOn(LockFailureException.class::isInstance)
+          .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       Throwables.throwIfInstanceOf(e, DuplicateKeyException.class);
@@ -156,10 +157,11 @@ public class NoteDbChecksUpdate implements ChecksStorageUpdate {
   @Override
   public Check updateCheck(CheckKey checkKey, CheckUpdate checkUpdate) throws IOException {
     try {
-      return retryHelper.execute(
-          RetryHelper.ActionType.PLUGIN_UPDATE,
-          () -> upsertCheckInNoteDb(checkKey, checkUpdate, Operation.UPDATE),
-          LockFailureException.class::isInstance);
+      return retryHelper
+          .pluginUpdate(
+              "updateCheck", () -> upsertCheckInNoteDb(checkKey, checkUpdate, Operation.UPDATE))
+          .retryOn(LockFailureException.class::isInstance)
+          .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       Throwables.throwIfInstanceOf(e, IOException.class);

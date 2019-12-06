@@ -44,7 +44,6 @@ import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gerrit.server.query.change.ChangeStatusPredicate;
 import com.google.gerrit.server.query.change.ProjectPredicate;
 import com.google.gerrit.server.update.RetryHelper;
-import com.google.gerrit.server.update.RetryHelper.ActionType;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.util.ArrayList;
@@ -246,7 +245,7 @@ public class CheckerQuery {
         predicateList.add(
             createQueryPredicate(checker.getUuid(), checker.getRepository(), checker.getQuery()));
       }
-      return executeIndexQueryWithRetry(qp -> {}, predicateList);
+      return executeIndexQueryWithRetry("queryMatchingChangesForCheckers", qp -> {}, predicateList);
     } catch (QueryParseException e) {
       throw new ConfigInvalidException(
           String.format(
@@ -269,7 +268,9 @@ public class CheckerQuery {
       throws ConfigInvalidException, StorageException {
     try {
       return executeIndexQueryWithRetry(
-          queryProcessorSetup, createQueryPredicate(checkerUuid, repository, optionalQuery));
+          "queryMatchingChangesForChecker",
+          queryProcessorSetup,
+          createQueryPredicate(checkerUuid, repository, optionalQuery));
     } catch (QueryParseException e) {
       throw invalidQueryException(checkerUuid, optionalQuery, e);
     }
@@ -319,25 +320,32 @@ public class CheckerQuery {
 
   // TODO(ekempin): Retrying the query should be done by ChangeQueryProcessor.
   private ImmutableList<ChangeData> executeIndexQueryWithRetry(
-      Consumer<ChangeQueryProcessor> queryProcessorSetup, Predicate<ChangeData> predicate)
+      String actionName,
+      Consumer<ChangeQueryProcessor> queryProcessorSetup,
+      Predicate<ChangeData> predicate)
       throws StorageException, QueryParseException {
-    return executeIndexQueryWithRetry(queryProcessorSetup, ImmutableList.of(predicate)).get(0);
+    return executeIndexQueryWithRetry(actionName, queryProcessorSetup, ImmutableList.of(predicate))
+        .get(0);
   }
 
   private ImmutableList<ImmutableList<ChangeData>> executeIndexQueryWithRetry(
-      Consumer<ChangeQueryProcessor> queryProcessorSetup, List<Predicate<ChangeData>> predicateList)
+      String actionName,
+      Consumer<ChangeQueryProcessor> queryProcessorSetup,
+      List<Predicate<ChangeData>> predicateList)
       throws StorageException, QueryParseException {
     try {
-      return retryHelper.execute(
-          ActionType.INDEX_QUERY,
-          () -> {
-            ChangeQueryProcessor qp = changeQueryProcessorProvider.get();
-            queryProcessorSetup.accept(qp);
-            return qp.query(predicateList).stream()
-                .map(predicate -> predicate.entities())
-                .collect(toImmutableList());
-          },
-          StorageException.class::isInstance);
+      return retryHelper
+          .indexQuery(
+              actionName,
+              () -> {
+                ChangeQueryProcessor qp = changeQueryProcessorProvider.get();
+                queryProcessorSetup.accept(qp);
+                return qp.query(predicateList).stream()
+                    .map(predicate -> predicate.entities())
+                    .collect(toImmutableList());
+              })
+          .retryOn(StorageException.class::isInstance)
+          .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       Throwables.throwIfInstanceOf(e, QueryParseException.class);
