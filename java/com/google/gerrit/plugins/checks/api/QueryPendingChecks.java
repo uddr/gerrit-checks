@@ -109,7 +109,8 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
       if (!checker.isPresent() || checker.get().isDisabled()) {
         return Response.ok(ImmutableList.of());
       }
-      List<ChangeData> changes = checkerQueryProvider.get().queryMatchingChanges(checker.get());
+      ImmutableList<ChangeData> changes =
+          checkerQueryProvider.get().queryMatchingChanges(checker.get());
       return Response.ok(getPendingChecksOfChecker(checker.get(), predicate, changes));
     }
     // Scheme query
@@ -120,7 +121,7 @@ public class QueryPendingChecks implements RestReadView<TopLevelResource> {
                     new IllegalStateException(
                         String.format("no checker scheme predicate found: %s", finalPredicate)));
     ImmutableList<Checker> checkersOfScheme = checkers.listCheckers(scheme);
-    List<List<ChangeData>> changes =
+    ImmutableList<ImmutableList<ChangeData>> changes =
         checkerQueryProvider.get().queryMatchingChanges(checkersOfScheme);
     List<PendingChecksInfo> pendingChecks = new ArrayList<>();
     for (int i = 0; i < changes.size(); i++) {
