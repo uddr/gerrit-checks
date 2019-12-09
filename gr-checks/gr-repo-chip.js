@@ -18,6 +18,5 @@
       e.preventDefault();
       this.fire('remove', {repo: this.repo});
     },
-  })
-
+  });
 })();

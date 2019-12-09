@@ -15,22 +15,20 @@
 </test-fixture>
 
 <script>
-
   suite('gr-checks-change-list-item-cell-view tests', () => {
     let element;
     let sandbox;
 
-    setup((done) => {
+    setup(done => {
       sandbox = sinon.sandbox.create();
-
 
       element = fixture('basic', {
         change: {
-          'project': 'test-repository',
-          'revisions': {
-            'first-sha': "test-revision",
-            'second-sha': "test-revision2",
-          }
+          project: 'test-repository',
+          revisions: {
+            'first-sha': 'test-revision',
+            'second-sha': 'test-revision2',
+          },
         },
       });
       flush(done);

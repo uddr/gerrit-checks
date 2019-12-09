@@ -23,7 +23,7 @@
     let sandbox;
     let retryCheckSpy;
 
-    setup((done) => {
+    setup(done => {
       sandbox = sinon.sandbox.create();
       retryCheckSpy = sinon.stub();
       retryCheckSpy.returns(Promise.resolve());
@@ -33,8 +33,8 @@
         check: {
           checkId: 'test-check-id',
           url: 'http://example.com/test-log-url',
-          started: "2019-02-06T22:25:19.269Z",
-          finished: "2019-02-06T22:25:44.574Z",
+          started: '2019-02-06T22:25:19.269Z',
+          finished: '2019-02-06T22:25:44.574Z',
         },
       });
       flush(done);
@@ -49,31 +49,32 @@
 
     test('renders the run time', () => {
       const name = element.$$('td:nth-child(6)');
-      assert.equal(name .textContent.trim(), "11:25:19 PM");
+      assert.equal(name .textContent.trim(), '11:25:19 PM');
     });
 
     suite('duration', () => {
       test('renders the run duration', () => {
         const name = element.$$('td:nth-child(7)');
-        assert.equal(name .textContent.trim(), "25 sec");
+        assert.equal(name .textContent.trim(), '25 sec');
       });
 
       test('renders 0 sec when the start and end time are the same', () => {
         element.check = {
           checkId: 'test-check-id',
           url: 'http://example.com/test-log-url',
-          started: "2019-02-06T22:25:19.269Z",
-          finished: "2019-02-06T22:25:19.269Z",
+          started: '2019-02-06T22:25:19.269Z',
+          finished: '2019-02-06T22:25:19.269Z',
         };
         const name = element.$$('td:nth-child(7)');
-        assert.equal(name .textContent.trim(), "0 sec");
+        assert.equal(name .textContent.trim(), '0 sec');
       });
     });
 
     test('renders a link to the log', () => {
       const logLink = element.$$('td:nth-child(8) > a');
-      assert.equal(logLink.getAttribute('href'), "http://example.com/test-log-url");
-      assert.equal(logLink.textContent.trim(), "View log");
+      assert.equal(logLink.getAttribute('href'),
+          'http://example.com/test-log-url');
+      assert.equal(logLink.textContent.trim(), 'View log');
     });
 
     // pausing this check until retry api is available from backend
@@ -94,6 +95,5 @@
     //     assert.isTrue(retryCheckSpy.called);
     //   });
     // });
-
   });
 </script>

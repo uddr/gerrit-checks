@@ -15,14 +15,12 @@
 </test-fixture>
 
 <script>
-
   suite('gr-checks-change-list-header-view tests', () => {
     let element;
     let sandbox;
 
-    setup((done) => {
+    setup(done => {
       sandbox = sinon.sandbox.create();
-
 
       element = fixture('basic');
       flush(done);

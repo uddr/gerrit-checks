@@ -1,7 +1,7 @@
 (function() {
   'use strict';
   const CHECKERS_PER_PAGE = 15;
-  const GET_CHECKERS_URL = "/plugins/checks/checkers/";
+  const GET_CHECKERS_URL = '/plugins/checks/checkers/';
 
   /**
    * Show a list of all checkers along with creating/editing them
@@ -40,17 +40,17 @@
       },
       _startingIndex: {
         type: Number,
-        value: 0
+        value: 0,
       },
       _showNextButton: {
         type: Boolean,
         value: true,
-        computed: '_computeShowNextButton(_startingIndex, _filteredCheckers)'
+        computed: '_computeShowNextButton(_startingIndex, _filteredCheckers)',
       },
       _showPrevButton: {
         type: Boolean,
         value: true,
-        computed: '_computeShowPrevButton(_startingIndex, _filteredCheckers)'
+        computed: '_computeShowPrevButton(_startingIndex, _filteredCheckers)',
       },
     },
     observers: [
@@ -66,14 +66,14 @@
        */
       if (Polymer.FlattenedNodesObserver) {
         this._checkersListObserver = new Polymer.FlattenedNodesObserver(
-          this.$.listBody, () => {
-            this.$.listOverlay.refit();
-          });
+            this.$.listBody, () => {
+              this.$.listOverlay.refit();
+            });
       } else {
         this._checkersListObserver = Polymer.dom(this.$.listBody).observeNodes(
-          () => {
-            this.$.listOverlay.refit();
-          });
+            () => {
+              this.$.listOverlay.refit();
+            });
       }
     },
 
@@ -87,10 +87,10 @@
 
     _showConfigureOverlay() {
       this.$.listOverlay.open().then(
-        () => {
-          this._getCheckers();
-        }
-      )
+          () => {
+            this._getCheckers();
+          }
+      );
     },
 
     _showCheckers(_checkers, _filter) {
@@ -99,7 +99,7 @@
       // TODO(dhruvsri): highlight matching part
       this._filteredCheckers = this._checkers.filter(checker =>
         this._contains(checker.name, this._filter) ||
-        this._contains(checker.repository, this._filter))
+        this._contains(checker.repository, this._filter));
       this._startingIndex = 0;
     },
 
@@ -112,7 +112,7 @@
         return [];
       }
       return this._filteredCheckers.slice(this._startingIndex,
-        this._startingIndex + CHECKERS_PER_PAGE);
+          this._startingIndex + CHECKERS_PER_PAGE);
     },
 
     _computeShowNextButton(_startingIndex, _filteredCheckers) {
@@ -132,7 +132,7 @@
     _handleNextClicked() {
       if (this._startingIndex + CHECKERS_PER_PAGE <
         this._filteredCheckers.length) {
-          this._startingIndex += CHECKERS_PER_PAGE;
+        this._startingIndex += CHECKERS_PER_PAGE;
       }
     },
 
@@ -157,7 +157,7 @@
     },
 
     _handleEditIconClicked(e) {
-      let checker = e.model.item;
+      const checker = e.model.item;
       this.checker = checker;
       this.$.editOverlay.open();
     },
@@ -175,7 +175,7 @@
 
     _computeBlocking(checker) {
       return (checker && checker.blocking && checker.blocking.length > 0)
-        ? "YES": "NO";
+        ? 'YES': 'NO';
     },
 
     _handleCreateConfirm() {
@@ -193,5 +193,5 @@
       this.$.createOverlay.close();
     },
 
-  })
+  });
 })();

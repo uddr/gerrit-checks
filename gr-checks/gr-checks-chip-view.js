@@ -49,20 +49,19 @@
 
   function downgradeFailureToWarning(checks) {
     const hasFailedCheck = checks.some(
-      (check) => {
-        return check.state == Statuses.FAILED;
-      }
-    )
+        check => {
+          return check.state == Statuses.FAILED;
+        }
+    );
     if (!hasFailedCheck) return '';
     const hasRequiredFailedCheck = checks.some(
-      (check) => {
-        return check.state == Statuses.FAILED &&
+        check => {
+          return check.state == Statuses.FAILED &&
                check.blocking && check.blocking.length > 0;
-      }
-    )
+        }
+    );
     return hasRequiredFailedCheck ? '' : 'set';
   }
-
 
   Polymer({
     is: 'gr-checks-chip-view',
@@ -78,20 +77,21 @@
       _status: {type: String, computed: '_computeStatus(_checkStatuses)'},
       _statusString: {
         type: String,
-        computed: '_computeStatusString(_status, _checkStatuses, _failedRequiredChecksCount)',
+        computed: '_computeStatusString(_status, _checkStatuses,' +
+         '_failedRequiredChecksCount)',
       },
       _chipClasses: {type: String, computed: '_computeChipClass(_status)'},
       // Type is set as string so that it reflects on changes
       // Polymer does not support reflecting changes in Boolean property
       _downgradeFailureToWarning: {
         type: String,
-        value: ''
+        value: '',
       },
       pollChecksInterval: Object,
       visibilityChangeListenerAdded: {
         type: Boolean,
-        value: false
-      }
+        value: false,
+      },
     },
 
     detached() {
@@ -104,21 +104,21 @@
     ],
 
     listeners: {
-      'click': 'showChecksTable'
+      click: 'showChecksTable',
     },
 
     showChecksTable() {
       this.dispatchEvent(
-        new CustomEvent(
-          'show-checks-table',
-          {
-            bubbles: true,
-            composed: true,
-            detail: {
-              tab: 'change-view-tab-content-checks'
-            }
-          })
-        );
+          new CustomEvent(
+              'show-checks-table',
+              {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  tab: 'change-view-tab-content-checks',
+                },
+              })
+      );
     },
 
     /**
@@ -155,7 +155,7 @@
       }
       const poll = () => this._fetchChecks(change, revision, getChecks);
       poll();
-      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS)
+      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS);
       if (!this.visibilityChangeListenerAdded) {
         this.visibilityChangeListenerAdded = true;
         this.listen(document, 'visibilitychange', '_onVisibililityChange');
@@ -174,10 +174,10 @@
 
     computeFailedRequiredChecksCount(checks) {
       const failedRequiredChecks = checks.filter(
-        check => {
-          return check.state == Statuses.FAILED &&
+          check => {
+            return check.state == Statuses.FAILED &&
             check.blocking && check.blocking.length > 0;
-        }
+          }
       );
       return failedRequiredChecks.length;
     },
@@ -191,7 +191,7 @@
       if (!checkStatuses) return;
       if (checkStatuses.total === 0) return 'No checks';
       let statusString = `${checkStatuses[status]} of ${
-          checkStatuses.total} checks ${HumanizedStatuses[status]}`;
+        checkStatuses.total} checks ${HumanizedStatuses[status]}`;
       if (status === Statuses.FAILED && failedRequiredChecksCount > 0) {
         statusString += ` (${failedRequiredChecksCount} required)`;
       }

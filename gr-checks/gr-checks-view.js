@@ -55,11 +55,11 @@
       pollChecksInterval: Number,
       visibilityChangeListenerAdded: {
         type: Boolean,
-        value: false
+        value: false,
       },
       _createCheckerCapability: {
         type: Boolean,
-        value: false
+        value: false,
       },
     },
 
@@ -87,12 +87,12 @@
       return this.pluginRestApi.getAccount().then(account => {
         if (!account) { return; }
         return this.pluginRestApi
-          .getAccountCapabilities(['checks-administrateCheckers'])
-          .then(capabilities => {
-            if (capabilities['checks-administrateCheckers']) {
-              this._createCheckerCapability = true;
-            }
-          });
+            .getAccountCapabilities(['checks-administrateCheckers'])
+            .then(capabilities => {
+              if (capabilities['checks-administrateCheckers']) {
+                this._createCheckerCapability = true;
+              }
+            });
       });
     },
 
@@ -102,15 +102,16 @@
 
     _orderChecks(a, b) {
       if (a.state != b.state) {
-        let indexA = StatusPriorityOrder.indexOf(a.state);
-        let indexB = StatusPriorityOrder.indexOf(b.state);
+        const indexA = StatusPriorityOrder.indexOf(a.state);
+        const indexB = StatusPriorityOrder.indexOf(b.state);
         if (indexA != -1 && indexB != -1) {
           return indexA - indexB;
         }
         return indexA == -1 ? 1 : -1;
       }
       if (a.state === Statuses.FAILED) {
-        if (a.blocking && b.blocking && a.blocking.length !== b.blocking.length) {
+        if (a.blocking && b.blocking &&
+            a.blocking.length !== b.blocking.length) {
           return a.blocking.length == 0 ? 1 : -1;
         }
       }
@@ -121,18 +122,18 @@
       const uuid = e.detail.uuid;
       const retryCheck = (change, revision, uuid) => {
         return this.pluginRestApi.post(
-          '/changes/' + change + '/revisions/' + revision + '/checks/' + uuid + '/rerun'
-        )
-      }
+            '/changes/' + change + '/revisions/' + revision + '/checks/' + uuid
+              + '/rerun'
+        );
+      };
       retryCheck(this.change._number, this.revision._number, uuid).then(
-        res => {
-          this._fetchChecks(this.change, this.revision, this.getChecks);
-        }, e => {
-          console.error(e);
-        }
-      )
+          res => {
+            this._fetchChecks(this.change, this.revision, this.getChecks);
+          }, e => {
+            console.error(e);
+          }
+      );
     },
-
 
     /**
      * Merge new checks into old checks to maintain showCheckMessage
@@ -144,14 +145,14 @@
      */
     _updateChecks(checks) {
       return checks.map(
-        (check) => {
-          const prevCheck = this._checks.find(
-            (c) => { return c.checker_uuid === check.checker_uuid }
-          )
-          if (!prevCheck) return Object.assign({}, check);
-          return Object.assign({}, prevCheck, check,
-            {showCheckMessage: prevCheck.showCheckMessage});
-        });
+          check => {
+            const prevCheck = this._checks.find(
+                c => { return c.checker_uuid === check.checker_uuid; }
+            );
+            if (!prevCheck) return Object.assign({}, check);
+            return Object.assign({}, prevCheck, check,
+                {showCheckMessage: prevCheck.showCheckMessage});
+          });
     },
 
     /**
@@ -188,17 +189,17 @@
     _toggleCheckMessage(e) {
       const uuid = e.detail.uuid;
       if (!uuid) {
-        console.warn("uuid not found");
+        console.warn('uuid not found');
         return;
       }
       const idx = this._checks.findIndex(check => check.checker_uuid === uuid);
       if (idx == -1) {
-        console.warn("check not found");
+        console.warn('check not found');
         return;
       }
       // Update subproperty of _checks[idx] so that it reflects to polymer
       this.set(`_checks.${idx}.showCheckMessage`,
-        !this._checks[idx].showCheckMessage)
+          !this._checks[idx].showCheckMessage);
     },
 
     _pollChecksRegularly(change, revision, getChecks) {
@@ -207,7 +208,7 @@
       }
       const poll = () => this._fetchChecks(change, revision, getChecks);
       poll();
-      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS)
+      this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS);
       if (!this.visibilityChangeListenerAdded) {
         this.visibilityChangeListenerAdded = true;
         this.listen(document, 'visibilitychange', '_onVisibililityChange');

@@ -18,7 +18,7 @@
     FAILED: 'FAILED',
     NOT_RELEVANT: 'NOT_RELEVANT',
 
-    STATUS_UNKNOWN: 'UNKNOWN'
+    STATUS_UNKNOWN: 'UNKNOWN',
   };
 
   function isStatus(status, includedStatuses) {

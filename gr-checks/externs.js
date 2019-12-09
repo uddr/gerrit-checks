@@ -3,4 +3,4 @@
  * @externs
  */
 
-function moment() {};
+function moment() {}

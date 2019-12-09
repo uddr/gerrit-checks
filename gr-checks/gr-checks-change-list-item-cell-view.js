@@ -1,5 +1,5 @@
 (function() {
-'use strict';
+  'use strict';
 
   Polymer({
     is: 'gr-checks-change-list-item-cell-view',

@@ -20,9 +20,8 @@
     let element;
     let sandbox;
 
-    setup((done) => {
+    setup(done => {
       sandbox = sinon.sandbox.create();
-
 
       element = fixture('basic');
       flush(done);

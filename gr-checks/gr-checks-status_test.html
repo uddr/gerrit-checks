@@ -16,7 +16,6 @@
 
 <script>
   suite('gr-checks-status tests', () => {
-    let element;
     let sandbox;
 
     setup(() => {
@@ -27,9 +26,8 @@
 
     function testStatus(expectedStatusClass, statusText, statusesToTest) {
       suite(expectedStatusClass, () => {
-
-        for(let statusToTest of statusesToTest) {
-          test(`renders ${expectedStatusClass} for ${statusToTest}`, (done) => {
+        for (const statusToTest of statusesToTest) {
+          test(`renders ${expectedStatusClass} for ${statusToTest}`, done => {
             const element = fixture('basic', {
               status: statusToTest,
               showText: false,
@@ -41,7 +39,8 @@
               done();
             });
           });
-          test(`renders ${expectedStatusClass} for ${statusToTest} rendering text ${statusText}`, (done) => {
+          test(`renders ${expectedStatusClass} for ${statusToTest} rendering
+            text ${statusText}`, done => {
             const element = fixture('basic', {
               status: statusToTest,
               showText: true,

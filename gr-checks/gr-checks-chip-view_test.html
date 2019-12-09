@@ -18,16 +18,16 @@
   const CHECK1 = {
     checkId: 'test-check-id',
     log: 'http://example.com/test-log-url',
-    started: "2019-02-06T22:25:19.269Z",
-    finished: "2019-02-06T22:25:44.574Z",
+    started: '2019-02-06T22:25:19.269Z',
+    finished: '2019-02-06T22:25:44.574Z',
     state: 'SUCCESSFUL',
   };
 
   const CHECK2 = {
     checkId: 'test-check-id-2',
     log: 'http://example.com/test-log-url',
-    started: "2019-02-06T22:25:19.269Z",
-    finished: "2019-02-06T22:25:44.574Z",
+    started: '2019-02-06T22:25:19.269Z',
+    finished: '2019-02-06T22:25:44.574Z',
     state: 'FAILED',
   };
 
@@ -36,7 +36,7 @@
     let sandbox;
     let getChecksSpy;
 
-    setup((done) => {
+    setup(done => {
       sandbox = sinon.sandbox.create();
 
       getChecksSpy = sinon.stub();
@@ -45,10 +45,10 @@
       element = fixture('basic', {
         getChecks: getChecksSpy,
         change: {
-          '_number': 314,
+          _number: 314,
         },
         revision: {
-          '_number': 271,
+          _number: 271,
         },
       });
       flush(done);

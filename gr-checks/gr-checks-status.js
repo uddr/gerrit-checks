@@ -1,5 +1,5 @@
 (function() {
-'use strict';
+  'use strict';
 
   Polymer({
     is: 'gr-checks-status',
@@ -11,7 +11,7 @@
         reflectToAttribute: true,
       },
       status: String,
-      downgradeFailureToWarning: String
+      downgradeFailureToWarning: String,
     },
 
     _isUnevaluated(status) {
@@ -35,11 +35,13 @@
     },
 
     _isFailed(status) {
-      return !this.downgradeFailureToWarning && window.Gerrit.Checks.isFailed(status);
+      return !this.downgradeFailureToWarning &&
+        window.Gerrit.Checks.isFailed(status);
     },
 
     _isWarning(status) {
-      return this.downgradeFailureToWarning && window.Gerrit.Checks.isFailed(status);
+      return this.downgradeFailureToWarning &&
+        window.Gerrit.Checks.isFailed(status);
     },
 
   });
