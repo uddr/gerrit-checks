@@ -8,7 +8,6 @@
 <title>gr-checks-item</title>
 <link rel="import" href="gr-checks-view.html">
 
-
 <!-- Gr-overlay does not exist in the test framework
 It is expected to be provided by Gerrit core -->
 <dom-module id="gr-overlay">
@@ -30,7 +29,7 @@ It is expected to be provided by Gerrit core -->
       get-checks="[[getChecks]]"
       is-configured="[[isConfigured]]"
       plugin="[[plugin]]"
-      retry-check="[[retryCheck]]">
+      retry-check="[[retryCheck]]"
     </gr-checks-view>
   </template>
 </test-fixture>
@@ -79,6 +78,23 @@ It is expected to be provided by Gerrit core -->
       commit: '1c9a1dfd38ea51dc7880f3ddf669100710f0c91b',
     },
   };
+  const REVISION2 = {
+    kind: 'REWORK',
+    _number: 2,
+    created: '2018-05-15 21:56:13.000000000',
+    uploader: {
+      _account_id: 1000000,
+    },
+    ref: 'refs/changes/00/1000/2',
+    commit: {
+      parents: [],
+      subject: '',
+      message: '\n\nChange-Id: I8df212a28ae23cc239afd10ee4f506887e03ab70\n',
+      commit: '1c9a1dfd38ea51dc6880f3ddf669100710f0c91b',
+    },
+  };
+
+  const CHECKS_POLL_INTERVAL_MS = 60 * 1000;
 
   suite('gr-checks-view tests', () => {
     let element;
@@ -143,7 +159,7 @@ It is expected to be provided by Gerrit core -->
           project: 'test-repository',
           _number: 2,
           revisions: {
-            'first-sha': 'test-revision',
+            'first-sha': REVISION2,
             'second-sha': REVISION,
           },
         },
@@ -198,6 +214,7 @@ It is expected to be provided by Gerrit core -->
             getAccountCapabilitiesResolve({'checks-administrateCheckers': false});
             flush(done);
           });
+
           test('checker button does not render', () => {
             assert(!element.$$('gr-button'));
           });
@@ -301,11 +318,6 @@ It is expected to be provided by Gerrit core -->
         assert.isFalse(isConfiguredSpy.called);
       });
 
-      test('renders the header', () => {
-        const header = element.$$('header > h3');
-        assert.equal(header.textContent.trim(), 'Latest checks for Patchset 3');
-      });
-
       test('renders a table of all the checks', () => {
         const tbody = element.$$('table > tbody');
         assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 3);
@@ -328,8 +340,41 @@ It is expected to be provided by Gerrit core -->
           getAccountCapabilitiesResolve({'checks-administrateCheckers': true});
           flush(done);
         });
+
         test('checker button renders', () => {
           assert(element.$$('gr-button'));
+        });
+      });
+
+      suite('patchset navigation', () => {
+        test('renders the dropdown', () => {
+          assert.isNotNull(element.querySelector('gr-dropdown-list'));
+        });
+
+        test('when patchset updated it fetches new checks', done => {
+          const clock = sinon.useFakeTimers();
+          const fetchChecksStub = sandbox.stub(element,
+              '_fetchChecks');
+          assert.equal(element._currentPatchSet, 3);
+          element._currentPatchSet = 2;
+          const firstCallArgs = fetchChecksStub.args[0];
+          assert.equal(firstCallArgs[1], element._currentPatchSet);
+          clock.tick(CHECKS_POLL_INTERVAL_MS + 1000);
+          flush(() => {
+            assert(fetchChecksStub.callCount === 2);
+            const secondCallArgs = fetchChecksStub.args[1];
+            assert.equal(secondCallArgs[1], element._currentPatchSet);
+            done();
+          });
+        });
+
+        test('update to revision updatesd currentPatchset', done => {
+          assert.equal(element._currentPatchSet, 3);
+          element.revision = REVISION2;
+          flush(() => {
+            assert.equal(element._currentPatchSet, 2);
+            done();
+          });
         });
       });
     });
