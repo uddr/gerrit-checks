@@ -344,7 +344,6 @@ public class CheckerQuery {
                     .map(predicate -> predicate.entities())
                     .collect(toImmutableList());
               })
-          .retryOn(StorageException.class::isInstance)
           .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
