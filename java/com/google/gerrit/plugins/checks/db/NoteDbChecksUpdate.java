@@ -21,7 +21,6 @@ import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.gerrit.exceptions.DuplicateKeyException;
-import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Check;
 import com.google.gerrit.plugins.checks.CheckKey;
@@ -144,7 +143,6 @@ public class NoteDbChecksUpdate implements ChecksStorageUpdate {
       return retryHelper
           .pluginUpdate(
               "createCheck", () -> upsertCheckInNoteDb(checkKey, checkUpdate, Operation.CREATE))
-          .retryOn(LockFailureException.class::isInstance)
           .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
@@ -160,7 +158,6 @@ public class NoteDbChecksUpdate implements ChecksStorageUpdate {
       return retryHelper
           .pluginUpdate(
               "updateCheck", () -> upsertCheckInNoteDb(checkKey, checkUpdate, Operation.UPDATE))
-          .retryOn(LockFailureException.class::isInstance)
           .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
