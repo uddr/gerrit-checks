@@ -33,7 +33,6 @@ import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.update.RetryHelper;
-import com.google.gerrit.server.update.RetryHelper.ActionType;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import java.io.IOException;
@@ -137,10 +136,11 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
   public Checker createChecker(CheckerCreation checkerCreation, CheckerUpdate checkerUpdate)
       throws DuplicateKeyException, IOException, ConfigInvalidException {
     try {
-      return retryHelper.execute(
-          RetryHelper.ActionType.PLUGIN_UPDATE,
-          () -> createCheckerInNoteDb(checkerCreation, checkerUpdate),
-          LockFailureException.class::isInstance);
+      return retryHelper
+          .pluginUpdate(
+              "createChecker", () -> createCheckerInNoteDb(checkerCreation, checkerUpdate))
+          .retryOn(LockFailureException.class::isInstance)
+          .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       Throwables.throwIfInstanceOf(e, DuplicateKeyException.class);
@@ -231,10 +231,10 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
   private Checker updateCheckerWithRetry(CheckerUuid checkerUuid, CheckerUpdate checkerUpdate)
       throws NoSuchCheckerException, IOException, ConfigInvalidException {
     try {
-      return retryHelper.execute(
-          ActionType.PLUGIN_UPDATE,
-          () -> updateCheckerInNoteDb(checkerUuid, checkerUpdate),
-          LockFailureException.class::isInstance);
+      return retryHelper
+          .pluginUpdate("updateChecker", () -> updateCheckerInNoteDb(checkerUuid, checkerUpdate))
+          .retryOn(LockFailureException.class::isInstance)
+          .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       Throwables.throwIfInstanceOf(e, IOException.class);
