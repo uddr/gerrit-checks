@@ -17,7 +17,6 @@ package com.google.gerrit.plugins.checks.db;
 import com.google.common.base.Throwables;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.exceptions.DuplicateKeyException;
-import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.git.RefUpdateUtil;
 import com.google.gerrit.plugins.checks.Checker;
 import com.google.gerrit.plugins.checks.CheckerCreation;
@@ -139,7 +138,6 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
       return retryHelper
           .pluginUpdate(
               "createChecker", () -> createCheckerInNoteDb(checkerCreation, checkerUpdate))
-          .retryOn(LockFailureException.class::isInstance)
           .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
@@ -233,7 +231,6 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
     try {
       return retryHelper
           .pluginUpdate("updateChecker", () -> updateCheckerInNoteDb(checkerUuid, checkerUpdate))
-          .retryOn(LockFailureException.class::isInstance)
           .call();
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
