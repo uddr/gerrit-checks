@@ -44,6 +44,7 @@ import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gerrit.server.query.change.ChangeStatusPredicate;
 import com.google.gerrit.server.query.change.ProjectPredicate;
 import com.google.gerrit.server.update.RetryHelper;
+import com.google.gerrit.server.update.RetryableAction.ActionType;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.util.ArrayList;
@@ -335,7 +336,8 @@ public class CheckerQuery {
       throws StorageException, QueryParseException {
     try {
       return retryHelper
-          .indexQuery(
+          .action(
+              ActionType.INDEX_QUERY,
               actionName,
               () -> {
                 ChangeQueryProcessor qp = changeQueryProcessorProvider.get();
