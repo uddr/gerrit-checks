@@ -138,6 +138,9 @@
             this.computeFailedRequiredChecksCount(checks);
           this._checkStatuses = computeCheckStatuses(checks);
         }
+      }, error => {
+        this.set('_hasChecks', false);
+        console.error(error);
       });
     },
 

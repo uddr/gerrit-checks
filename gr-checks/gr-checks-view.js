@@ -175,6 +175,9 @@
         } else {
           this._checkConfigured();
         }
+      }, error => {
+        this._checks = [];
+        this.set('_status', LoadingStatus.EMPTY);
       });
     },
 
