@@ -97,6 +97,8 @@ It is expected to be provided by Gerrit core -->
   };
 
   const CHECKS_POLL_INTERVAL_MS = 60 * 1000;
+  const STATE_ALL = 'ALL';
+  const Statuses = window.Gerrit.Checks.Statuses;
 
   suite('gr-checks-view tests', () => {
     let element;
@@ -319,7 +321,9 @@ It is expected to be provided by Gerrit core -->
 
     suite('with checks', () => {
       setup(done => {
-        getChecksResolve([CHECK1, CHECK1, CHECK1]);
+        const CHECK3 = Object.assign({}, CHECK1, {state: 'FAILED'});
+        const CHECK4 = Object.assign({}, CHECK1, {state: 'FAILED'});
+        getChecksResolve([CHECK1, CHECK2, CHECK3, CHECK4]);
         flush(done);
       });
 
@@ -329,7 +333,7 @@ It is expected to be provided by Gerrit core -->
 
       test('renders a table of all the checks', () => {
         const tbody = element.$$('table > tbody');
-        assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 3);
+        assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 4);
       });
 
       suite('create checker capability false', () => {
@@ -369,7 +373,7 @@ It is expected to be provided by Gerrit core -->
 
       suite('patchset navigation', () => {
         test('renders the dropdown', () => {
-          assert.isNotNull(element.querySelector('gr-dropdown-list'));
+          assert.isNotNull(element.querySelector('.patch-set-dropdown'));
         });
 
         test('when patchset updated it fetches new checks', done => {
@@ -396,6 +400,25 @@ It is expected to be provided by Gerrit core -->
           element.revision = REVISION2;
           flush(() => {
             assert.equal(element._currentPatchSet, 2);
+            done();
+          });
+        });
+      });
+
+      suite('check state filter', () => {
+        test('renders the filter dropdown', () => {
+          assert.isNotNull(element.querySelector('.check-state-filter'));
+        });
+
+        test('default filter is all', () => {
+          assert.equal(element._currentStatus, STATE_ALL);
+        });
+
+        test('updating filter status filters checks', done => {
+          assert.equal(element._visibleChecks.length, 4);
+          element._currentStatus = Statuses.RUNNING;
+          flush(() => {
+            assert.equal(element._visibleChecks.length, 2);
             done();
           });
         });
