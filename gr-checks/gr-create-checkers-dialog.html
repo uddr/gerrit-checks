@@ -28,6 +28,9 @@
       #checkerIdInput[disabled] {
         background-color: var(--table-subheader-background-color);
       }
+      .uuid {
+        overflow: scroll;
+      }
     </style>
 
     <div class="gr-form-styles">
@@ -116,7 +119,8 @@
         </section>
 
         <section>
-          <span class="title"> UUID {{_uuid}}</span>
+          <span class="title"> UUID </span>
+          <span class="title uuid"> {{_uuid}} </span>
         </section>
 
         <section>
