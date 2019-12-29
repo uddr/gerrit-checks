@@ -104,6 +104,12 @@
         display: flex;
         width: 100%;
       }
+
+      .blocking-checks-container {
+        margin-left: 10px;
+        display: flex;
+        align-items: center;
+      }
     </style>
 
     <header>
@@ -125,6 +131,14 @@
               on-value-change="_handleStatusFilterChanged"
               value="[[_currentStatus]]">
             </gr-dropdown-list>
+          </div>
+          <div class="blocking-checks-container">
+            <input type="checkbox"
+              name="blocking"
+              checked$="[[_showBlockingChecksOnly]]"
+              on-click="_handleBlockingCheckboxClicked"
+              value="blocking">
+              Required for Submit
           </div>
         </template>
         <template is="dom-if" if="[[_createCheckerCapability]]">

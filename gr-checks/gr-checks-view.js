@@ -60,7 +60,8 @@
       },
       _visibleChecks: {
         type: Array,
-        computed: '_computeVisibleChecks(_checks, _currentStatus)',
+        computed: '_computeVisibleChecks(_checks, _currentStatus, ' +
+          '_showBlockingChecksOnly)',
       },
       _statuses: Array,
       pollChecksInterval: Number,
@@ -83,6 +84,10 @@
       _currentStatus: {
         type: String,
         value: STATE_ALL,
+      },
+      _showBlockingChecksOnly: {
+        type: Boolean,
+        value: false,
       },
     },
 
@@ -118,11 +123,13 @@
           .sort((a, b) => b.value - a.value);
     },
 
-    _computeVisibleChecks(checks, status) {
-      if (!checks) return;
-      return checks.filter(check =>
-        status === STATE_ALL || check.state === status
-      );
+    _computeVisibleChecks(checks, status, showBlockingChecksOnly) {
+      if (!checks) return [];
+      return checks.filter(check => {
+        if (showBlockingChecksOnly && (!check.blocking ||
+            !check.blocking.length)) return false;
+        return status === STATE_ALL || check.state === status;
+      });
     },
 
     _handleRevisionUpdate(revision) {
@@ -134,6 +141,10 @@
       const patchSet = parseInt(e.detail.value);
       if (patchSet === this._currentPatchSet) return;
       this._currentPatchSet = patchSet;
+    },
+
+    _handleBlockingCheckboxClicked() {
+      this._showBlockingChecksOnly = !this._showBlockingChecksOnly;
     },
 
     _handleStatusFilterChanged(e) {
