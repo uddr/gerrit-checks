@@ -158,7 +158,8 @@
       };
       retryCheck(this.change._number, this.revision._number, uuid).then(
           res => {
-            this._fetchChecks(this.change, this.revision, this.getChecks);
+            this._fetchChecks(this.change, this.revision._number,
+                this.getChecks);
           }, e => {
             console.error(e);
           }
