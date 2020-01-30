@@ -377,19 +377,21 @@ It is expected to be provided by Gerrit core -->
           const fetchChecksStub = sandbox.stub(element,
               '_fetchChecks');
           assert.equal(element._currentPatchSet, 3);
-          element._currentPatchSet = 2;
-          const firstCallArgs = fetchChecksStub.args[0];
-          assert.equal(firstCallArgs[1], element._currentPatchSet);
-          clock.tick(CHECKS_POLL_INTERVAL_MS + 1000);
+          element.revision = REVISION2;
           flush(() => {
-            assert(fetchChecksStub.callCount === 2);
-            const secondCallArgs = fetchChecksStub.args[1];
-            assert.equal(secondCallArgs[1], element._currentPatchSet);
-            done();
+            const firstCallArgs = fetchChecksStub.args[0];
+            assert.equal(firstCallArgs[1], element._currentPatchSet);
+            clock.tick(CHECKS_POLL_INTERVAL_MS + 1000);
+            flush(() => {
+              assert(fetchChecksStub.callCount === 2);
+              const secondCallArgs = fetchChecksStub.args[1];
+              assert.equal(secondCallArgs[1], element._currentPatchSet);
+              done();
+            });
           });
         });
 
-        test('update to revision updatesd currentPatchset', done => {
+        test('update to revision updates currentPatchset', done => {
           assert.equal(element._currentPatchSet, 3);
           element.revision = REVISION2;
           flush(() => {
