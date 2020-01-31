@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
 
 import com.google.gerrit.acceptance.UseClockStep;
+import com.google.gerrit.acceptance.config.GerritConfig;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.acceptance.testsuite.request.RequestScopeOperations;
 import com.google.gerrit.entities.PatchSet;
@@ -95,6 +96,31 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.message).isEqualTo(input.message);
+  }
+
+  @Test
+  public void updateMessage_rejected_tooLong() {
+    CheckInput input = new CheckInput();
+    input.message = new String(new char[10_001]).replace('\0', 'x');
+
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input));
+    assertThat(thrown).hasMessageThat().contains("exceeds size limit (10001 > 10000)");
+  }
+
+  @Test
+  @GerritConfig(name = "plugin.checks.messageSizeLimit", value = "5")
+  public void updateMessage_rejected_configureLimit() {
+    CheckInput input = new CheckInput();
+    input.message = "foobar";
+
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input));
+    assertThat(thrown).hasMessageThat().contains("exceeds size limit (6 > 5)");
   }
 
   @Test

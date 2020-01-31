@@ -36,6 +36,7 @@ import com.google.gerrit.plugins.checks.UrlValidator;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.RevisionResource;
+import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import java.io.IOException;
@@ -55,6 +56,7 @@ public class PostCheck
   private final Checks checks;
   private final Provider<ChecksUpdate> checksUpdate;
   private final CheckJson.Factory checkJsonFactory;
+  private final PluginConfigFactory pluginConfigFactory;
 
   @Inject
   PostCheck(
@@ -64,7 +66,8 @@ public class PostCheck
       Checkers checkers,
       Checks checks,
       @UserInitiated Provider<ChecksUpdate> checksUpdate,
-      CheckJson.Factory checkJsonFactory) {
+      CheckJson.Factory checkJsonFactory,
+      PluginConfigFactory pluginConfigFactory) {
     this.self = self;
     this.permissionBackend = permissionBackend;
     this.permission = permission;
@@ -72,6 +75,7 @@ public class PostCheck
     this.checks = checks;
     this.checksUpdate = checksUpdate;
     this.checkJsonFactory = checkJsonFactory;
+    this.pluginConfigFactory = pluginConfigFactory;
   }
 
   @Override
@@ -102,6 +106,7 @@ public class PostCheck
     CheckKey key = CheckKey.create(rsrc.getProject(), rsrc.getPatchSet().id(), checkerUuid);
     Optional<Check> check = checks.getCheck(key, GetCheckOptions.defaults());
     Check updatedCheck;
+    CheckUpdate checkUpdate = toCheckUpdate(input);
     if (!check.isPresent()) {
       checkers
           .getChecker(checkerUuid)
@@ -110,19 +115,15 @@ public class PostCheck
                   new UnprocessableEntityException(
                       String.format("checker %s not found", checkerUuid)));
       updatedCheck =
-          checksUpdate
-              .get()
-              .createCheck(key, toCheckUpdate(input), input.notify, input.notifyDetails);
+          checksUpdate.get().createCheck(key, checkUpdate, input.notify, input.notifyDetails);
     } else {
       updatedCheck =
-          checksUpdate
-              .get()
-              .updateCheck(key, toCheckUpdate(input), input.notify, input.notifyDetails);
+          checksUpdate.get().updateCheck(key, checkUpdate, input.notify, input.notifyDetails);
     }
     return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
   }
 
-  private static CheckUpdate toCheckUpdate(CheckInput input) throws BadRequestException {
+  private CheckUpdate toCheckUpdate(CheckInput input) throws BadRequestException {
     CheckUpdate.Builder checkUpdateBuilder = CheckUpdate.builder();
 
     if (input.state != null) {
@@ -130,7 +131,9 @@ public class PostCheck
     }
 
     if (input.message != null) {
-      checkUpdateBuilder.setMessage(input.message.trim());
+      String message = input.message.trim();
+      checkMessageSizeLimit(message.length());
+      checkUpdateBuilder.setMessage(message);
     }
 
     if (input.url != null) {
@@ -146,5 +149,15 @@ public class PostCheck
     }
 
     return checkUpdateBuilder.build();
+  }
+
+  private void checkMessageSizeLimit(int messageSize) throws BadRequestException {
+    int messageSizeLimit =
+        pluginConfigFactory.getFromGerritConfig("checks").getInt("messageSizeLimit", 10_000);
+    if (messageSize > messageSizeLimit) {
+      throw new BadRequestException(
+          String.format(
+              "Field \"message\" exceeds size limit (%d > %d)", messageSize, messageSizeLimit));
+    }
   }
 }
