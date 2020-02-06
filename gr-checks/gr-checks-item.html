@@ -21,6 +21,9 @@
       .nav-icon {
         cursor: pointer;
       }
+      .duration {
+        text-align: center;
+      }
     </style>
     <td>
       <template is="dom-if" if="[[check.message]]">
@@ -34,7 +37,6 @@
     <td>
       <gr-checks-status show-text status="[[check.state]]" downgrade-failure-to-warning="[[false]]"></gr-checks-status>
     </td>
-    <td><!--Check System--></td>
     <td>
       <gr-date-formatter
         has-tooltip
@@ -42,7 +44,7 @@
         date-str="[[_startTime]]">
       </gr-date-formatter>
     </td>
-    <td>[[_duration]]</td>
+    <td class="duration">[[_duration]]</td>
     <td>
       <a href$="[[check.url]]" target="_blank" class="log">
         <gr-button link no-uppercase disabled="[[!check.url]]">
