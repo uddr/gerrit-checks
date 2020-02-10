@@ -101,6 +101,7 @@ It is expected to be provided by Gerrit core -->
 
   const CHECKS_POLL_INTERVAL_MS = 60 * 1000;
   const STATE_ALL = 'ALL';
+  const CHECKS_LIMIT = 20;
 
   suite('gr-checks-view tests', async () => {
     await readyToTest();
@@ -471,6 +472,44 @@ It is expected to be provided by Gerrit core -->
         });
       });
     });
+
+    suite('with large number of checks', () => {
+      setup(done => {
+        const CHECK3 = Object.assign({}, CHECK1, {state: 'FAILED'});
+        const CHECK4 = Object.assign({}, CHECK1, {state: 'FAILED',
+          blocking: [1, 2, 3]});
+        const checks = [];
+        for (let i = 1;i <= 20;i++) {
+          checks.push(...[CHECK1, CHECK2, CHECK3, CHECK4]);
+        }
+        getChecksResolve(checks);
+        flush(done);
+      });
+
+      test('rendered checks are limited by default', () => {
+        assert.equal(element._visibleChecks.length, CHECKS_LIMIT);
+      });
+
+      test('show more button expands to show all checks', () => {
+        const showMoreChecksButton = element.querySelector('.show-more-checks');
+        assert.isOk(showMoreChecksButton);
+        showMoreChecksButton.click();
+        flush(() => {
+          assert.equal(element._visibleChecks.length, element._checks.length);
+        });
+      });
+
+      test('show more button hides if checks are below limit', () => {
+        element._currentStatus = Statuses.NOT_STARTED;
+        flush(() => {
+          const showMoreChecksButton = element.querySelector
+            ('.show-more-checks');
+          assert.equal(showMoreChecksButton.style.display, "none");
+        });
+      });
+
+    });
+
   });
 
 </script>
