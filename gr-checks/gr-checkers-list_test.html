@@ -4,9 +4,26 @@
 <script src="/bower_components/web-component-tester/browser.js"></script>
 
 <link rel="import" href="/bower_components/polymer/polymer.html">
+<script src="test-pre-setup.js"></script>
 
 <title>gr-checkers-list-view</title>
 <link rel="import" href="gr-checkers-list.html">
+
+<!-- Gr-overlay does not exist in the test framework
+It is expected to be provided by Gerrit core -->
+<dom-module id="gr-overlay">
+  <template>
+  </template>
+  <script>
+    readyToTest().then(() => {
+      Polymer({
+        is: 'gr-overlay',
+        refit() {},
+        open() {return Promise.resolve({})},
+      });
+    })
+  </script>
+</dom-module>
 
 <test-fixture id="basic">
   <template is="dom-template">
@@ -165,7 +182,8 @@
 </script>
 
 <script>
-  suite('gr-checkers-list tests', () => {
+  suite('gr-checkers-list tests', async () => {
+    await readyToTest();
     let element;
     let sandbox;
     let fetchJSONSpy; let fetchJSONResolve;
@@ -213,6 +231,7 @@
     suite('with checkers', () => {
       setup(done => {
         fetchJSONResolve(CHECKERS);
+        element._showConfigureOverlay();
         flush(done);
       });
       test('renders correct number of checkers', () => {

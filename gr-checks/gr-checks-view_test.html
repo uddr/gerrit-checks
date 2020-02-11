@@ -4,6 +4,7 @@
 <script src="/bower_components/web-component-tester/browser.js"></script>
 
 <link rel="import" href="/bower_components/polymer/polymer.html">
+<script src="test-pre-setup.js"></script>
 <script src="../bower_components/iron-test-helpers/mock-interactions.js"></script>
 
 
@@ -16,10 +17,12 @@ It is expected to be provided by Gerrit core -->
   <template>
   </template>
   <script>
-    Polymer({
-      is: 'gr-overlay',
-      refit() {},
-    });
+    readyToTest().then(() => {
+      Polymer({
+        is: 'gr-overlay',
+        refit() {},
+      });
+    })
   </script>
 </dom-module>
 
@@ -31,7 +34,7 @@ It is expected to be provided by Gerrit core -->
       get-checks="[[getChecks]]"
       is-configured="[[isConfigured]]"
       plugin="[[plugin]]"
-      retry-check="[[retryCheck]]"
+      retry-check="[[retryCheck]]">
     </gr-checks-view>
   </template>
 </test-fixture>
@@ -98,9 +101,10 @@ It is expected to be provided by Gerrit core -->
 
   const CHECKS_POLL_INTERVAL_MS = 60 * 1000;
   const STATE_ALL = 'ALL';
-  const Statuses = window.Gerrit.Checks.Statuses;
 
-  suite('gr-checks-view tests', () => {
+  suite('gr-checks-view tests', async () => {
+    await readyToTest();
+    const Statuses = window.Gerrit.Checks.Statuses;
     let element;
     let sandbox;
     let getChecksSpy;

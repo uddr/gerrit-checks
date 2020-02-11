@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="../../../bower_components/webcomponentsjs/webcomponents.js"></script>
+<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <script src="../../../bower_components/moment/min/moment.min.js"></script>
 <link rel="import" href="/bower_components/polymer/polymer.html">
+<script src="test-pre-setup.js"></script>
 
 <title>gr-checks-item</title>
 <link rel="import" href="gr-checks-item.html">
@@ -18,7 +19,8 @@
 </test-fixture>
 
 <script>
-  suite('gr-checks-item tests', () => {
+  suite('gr-checks-item tests', async () => {
+    await readyToTest();
     let element;
     let sandbox;
     let retryCheckSpy;

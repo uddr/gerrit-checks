@@ -4,6 +4,7 @@
 <script src="/bower_components/web-component-tester/browser.js"></script>
 
 <link rel="import" href="/bower_components/polymer/polymer.html">
+<script src="test-pre-setup.js"></script>
 
 <title>gr-checks-chip-view</title>
 <link rel="import" href="gr-checks-chip-view.html">
@@ -31,7 +32,8 @@
     state: 'FAILED',
   };
 
-  suite('gr-checks-chip-view tests', () => {
+  suite('gr-checks-chip-view tests', async () => {
+    await readyToTest();
     let element;
     let sandbox;
     let getChecksSpy;
