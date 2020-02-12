@@ -60,8 +60,6 @@
       },
       _visibleChecks: {
         type: Array,
-        computed: '_computeVisibleChecks(_checks, _currentStatus, ' +
-          '_showBlockingChecksOnly)',
       },
       _statuses: Array,
       pollChecksInterval: Number,
@@ -93,6 +91,8 @@
 
     observers: [
       '_pollChecksRegularly(change, _currentPatchSet, getChecks)',
+      '_updateVisibleChecks(_checks.*, _currentStatus, ' +
+          '_showBlockingChecksOnly)',
     ],
 
     attached() {
@@ -123,13 +123,22 @@
           .sort((a, b) => b.value - a.value);
     },
 
-    _computeVisibleChecks(checks, status, showBlockingChecksOnly) {
+    _updateVisibleChecks(checksRecord, status, showBlockingChecksOnly) {
+      const checks = checksRecord.base;
       if (!checks) return [];
-      return checks.filter(check => {
+      this._visibleChecks = checks.filter(check => {
         if (showBlockingChecksOnly && (!check.blocking ||
             !check.blocking.length)) return false;
         return status === STATE_ALL || check.state === status;
       });
+      /* The showCheckMessage property is notified for change because the
+      changes to showCheckMessage are not reflected to the dom as the object
+      check has the same reference as before
+      If not notified, then the message for the check is not displayed after
+      clicking the toggle
+      */
+      this._visibleChecks.forEach((val, idx) =>
+        this.notifyPath(`_visibleChecks.${idx}.showCheckMessage`));
     },
 
     _handleRevisionUpdate(revision) {
@@ -224,7 +233,7 @@
       return checks.map(
           check => {
             const prevCheck = this._checks.find(
-                c => { return c.checker_uuid === check.checker_uuid; }
+                c => c.checker_uuid === check.checker_uuid
             );
             if (!prevCheck) return Object.assign({}, check);
             return Object.assign({}, prevCheck, check,
