@@ -341,6 +341,28 @@ It is expected to be provided by Gerrit core -->
         assert.lengthOf(tbody.querySelectorAll('gr-checks-item'), 4);
       });
 
+      suite('message is rendered', () => {
+        setup(done => {
+          element._checks = [CHECK1, CHECK2];
+          flush(done);
+        });
+
+        test('messsage icon is displayed', () => {
+          assert.isOk(element.querySelectorAll('.expand-message').length,
+            element._visibleChecks.length);
+        });
+
+        test('message displayed on clicking icon', done => {
+          element.querySelector('.expand-message').click();
+          flush(() => {
+            const msg = element.querySelector('.check-message').innerText
+              .trim();
+            assert.equal(msg, element._visibleChecks[0].message.trim());
+            done();
+          });
+        });
+      });
+
       suite('create checker capability false', () => {
         setup(done => {
           getAccountResolve(true);
