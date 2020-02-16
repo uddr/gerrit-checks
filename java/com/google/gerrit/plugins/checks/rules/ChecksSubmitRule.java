@@ -23,10 +23,10 @@ import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.extensions.annotations.Exports;
-import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.SubmitRule;
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class ChecksSubmitRule implements SubmitRule {
           .setType("checks_pass")
           .build();
 
-  public static class Module extends FactoryModule {
+  public static class Module extends AbstractModule {
     @Override
     public void configure() {
       bind(SubmitRule.class)
