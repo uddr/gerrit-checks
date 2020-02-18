@@ -48,6 +48,12 @@
         getChecks: getChecksSpy,
         change: {
           _number: 314,
+          current_revision: 'abcd',
+          revisions: {
+            abcd: {
+              _number: 271,
+            },
+          },
         },
         revision: {
           _number: 271,
@@ -60,6 +66,14 @@
 
     test('renders the checks prefix', () => {
       assert.include(element.textContent.trim(), 'Checks:');
+    });
+
+    test('updating revision does not update getChecks call', done => {
+      element.revision = {_number: 272};
+      flush(() => {
+        assert.isFalse(getChecksSpy.calledWith(314, 272));
+        done();
+      });
     });
 
     suite('builds chip contents', () => {
