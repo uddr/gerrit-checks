@@ -22,7 +22,7 @@ It is expected to be provided by Gerrit core -->
         is: 'gr-overlay',
         refit() {},
       });
-    })
+    });
   </script>
 </dom-module>
 
@@ -114,10 +114,10 @@ It is expected to be provided by Gerrit core -->
     let isConfiguredSpy;
     let isConfiguredResolve;
     let getAccountSpy; let getAccountResolve;
-    let fetchJSONSpy; let fetchJSONResolve;
+    let fetchJSONSpy;
     let getAccountCapabilitiesSpy;
     let getAccountCapabilitiesResolve;
-    let postSpy; let postResolve;
+    let postSpy;
     setup(done => {
       sandbox = sinon.sandbox.create();
 
@@ -144,15 +144,11 @@ It is expected to be provided by Gerrit core -->
       getAccountSpy.returns(getAccountPromise);
 
       postSpy = sinon.stub();
-      const postPromise = new Promise(resolve => {
-        postResolve = resolve;
-      });
+      const postPromise = new Promise();
       postSpy.returns(postPromise);
 
       fetchJSONSpy = sinon.stub();
-      const fetchJSONPromise = new Promise((resolve, reject) => {
-        fetchJSONResolve = resolve;
-      });
+      const fetchJSONPromise = new Promise();
       fetchJSONSpy.returns(fetchJSONPromise);
 
       getAccountCapabilitiesSpy = sinon.stub();
@@ -350,14 +346,14 @@ It is expected to be provided by Gerrit core -->
 
         test('messsage icon is displayed', () => {
           assert.isOk(element.querySelectorAll('.expand-message').length,
-            element._visibleChecks.length);
+              element._visibleChecks.length);
         });
 
         test('message displayed on clicking icon', done => {
           element.querySelector('.expand-message').click();
           flush(() => {
             const msg = element.querySelector('.check-message').innerText
-              .trim();
+                .trim();
             assert.equal(msg, element._visibleChecks[0].message.trim());
             done();
           });
@@ -479,7 +475,7 @@ It is expected to be provided by Gerrit core -->
         const CHECK4 = Object.assign({}, CHECK1, {state: 'FAILED',
           blocking: [1, 2, 3]});
         const checks = [];
-        for (let i = 1;i <= 20;i++) {
+        for (let i = 1; i <= 20; i++) {
           checks.push(...[CHECK1, CHECK2, CHECK3, CHECK4]);
         }
         getChecksResolve(checks);
@@ -502,14 +498,12 @@ It is expected to be provided by Gerrit core -->
       test('show more button hides if checks are below limit', () => {
         element._currentStatus = Statuses.NOT_STARTED;
         flush(() => {
-          const showMoreChecksButton = element.querySelector
-            ('.show-more-checks');
-          assert.equal(showMoreChecksButton.style.display, "none");
+          const showMoreChecksButton = element.querySelector(
+              '.show-more-checks');
+          assert.equal(showMoreChecksButton.style.display, 'none');
         });
       });
-
     });
-
   });
 
 </script>
