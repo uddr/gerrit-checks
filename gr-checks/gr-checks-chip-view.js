@@ -115,7 +115,7 @@
                 bubbles: true,
                 composed: true,
                 detail: {
-                  tab: 'change-view-tab-content-checks',
+                  tab: 'change-view-tab-header-checks',
                 },
               })
       );
