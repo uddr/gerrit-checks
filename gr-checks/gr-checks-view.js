@@ -340,14 +340,27 @@
     _isLoading(status) {
       return status === LoadingStatus.LOADING;
     },
+
     _isEmpty(status) {
       return status === LoadingStatus.EMPTY;
     },
+
     _hasResults(status) {
       return status === LoadingStatus.RESULTS;
     },
+
     _isNotConfigured(status) {
       return status === LoadingStatus.NOT_CONFIGURED;
+    },
+
+    _computeHeaderClass(currentPatchSet, sortedAllPatchsets) {
+      if (!sortedAllPatchsets
+         || sortedAllPatchsets.length < 1
+          || !currentPatchSet) {
+        return '';
+      }
+      return currentPatchSet === sortedAllPatchsets[0].value ?
+        '' : 'oldPatchset';
     },
   });
 })();

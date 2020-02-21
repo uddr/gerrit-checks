@@ -115,11 +115,13 @@ It is expected to be provided by Gerrit core -->
     let retryCheckSpy;
     let isConfiguredSpy;
     let isConfiguredResolve;
-    let getAccountSpy; let getAccountResolve;
+    let getAccountSpy;
+    let getAccountResolve;
     let fetchJSONSpy;
     let getAccountCapabilitiesSpy;
     let getAccountCapabilitiesResolve;
-    let postSpy, postResolve, postReject;
+    let postSpy;
+    let postReject;
     setup(done => {
       sandbox = sinon.sandbox.create();
 
@@ -347,8 +349,9 @@ It is expected to be provided by Gerrit core -->
         postReject(new Error('random error'));
         const fireStub = sandbox.stub(element, 'fire');
         Polymer.dom.flush();
-        const checksItem = element.querySelectorAll
-            ('table > tbody > gr-checks-item')[0];
+        const checksItem = element.querySelectorAll(
+            'table > tbody > gr-checks-item'
+        )[0];
         const reRun = checksItem.querySelectorAll('td')[7];
         const reRunButton = reRun.querySelector('gr-button');
         reRunButton.click();

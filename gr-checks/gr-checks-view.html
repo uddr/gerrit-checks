@@ -19,6 +19,25 @@
         display: table-row;
       }
 
+      gr-dropdown-list {
+        --trigger-style: {
+          color: var(--deemphasized-text-color);
+          text-transform: none;
+          font-family: var(--font-family);
+        }
+        --trigger-hover-color: rgba(0,0,0,.6);
+      }
+      @media screen and (max-width: 50em) {
+        gr-dropdown-list {
+          --native-select-style: {
+            max-width: 5.25em;
+          }
+          --dropdown-content-stype: {
+            max-width: 300px;
+          }
+        }
+      }
+
       .headerRow {
         border-bottom: 1px solid #ddd;
       }
@@ -48,7 +67,11 @@
 
       header {
         display: flex;
-        margin: 1rem 1rem 0;
+        padding: var(--spacing-s) var(--spacing-m);
+      }
+
+      header.oldPatchset {
+        background: var(--emphasis-color);
       }
 
       table {
@@ -117,7 +140,7 @@
 
     </style>
 
-    <header>
+    <header class$="[[_computeHeaderClass(_currentPatchSet, _patchSetDropdownItems)]]">
       <div class="container">
         <template is="dom-if" if="[[_patchSetDropdownItems.length]]">
           <gr-dropdown-list
