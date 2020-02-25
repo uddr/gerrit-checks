@@ -100,7 +100,7 @@
     },
 
     observers: [
-      '_pollChecksRegularly(change, revision, getChecks)',
+      '_pollChecksRegularly(change, getChecks)',
     ],
 
     listeners: {
@@ -123,13 +123,14 @@
 
     /**
      * @param {!Defs.Change} change
-     * @param {!Defs.Revision} revision
      * @param {function(number, number): !Promise<!Object>} getChecks
      */
-    _fetchChecks(change, revision, getChecks) {
-      if (!getChecks || !change || !revision) return;
+    _fetchChecks(change, getChecks) {
+      if (!getChecks || !change) return;
 
-      getChecks(change._number, revision._number).then(checks => {
+      // change.current_revision always points to latest patchset
+      getChecks(change._number, change.revisions[change.current_revision]
+          ._number).then(checks => {
         this.set('_hasChecks', checks.length > 0);
         if (checks.length > 0) {
           this._downgradeFailureToWarning =
@@ -149,14 +150,14 @@
         clearInterval(this.pollChecksInterval);
         return;
       }
-      this._pollChecksRegularly(this.change, this.revision, this.getChecks);
+      this._pollChecksRegularly(this.change, this.getChecks);
     },
 
-    _pollChecksRegularly(change, revision, getChecks) {
+    _pollChecksRegularly(change, getChecks) {
       if (this.pollChecksInterval) {
         clearInterval(this.pollChecksInterval);
       }
-      const poll = () => this._fetchChecks(change, revision, getChecks);
+      const poll = () => this._fetchChecks(change, getChecks);
       poll();
       this.pollChecksInterval = setInterval(poll, CHECKS_POLL_INTERVAL_MS);
       if (!this.visibilityChangeListenerAdded) {
