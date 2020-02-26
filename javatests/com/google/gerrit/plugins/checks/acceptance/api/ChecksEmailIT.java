@@ -160,7 +160,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
     assertThat(message.body())
         .contains("The combined check state has been updated to " + CombinedCheckState.FAILED);
-    assertThat(message.rcpt()).containsExactly(owner.getEmailAddress());
+    assertThat(message.rcpt()).containsExactly(owner.getNameEmail());
   }
 
   @Test
@@ -193,10 +193,10 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         .contains("The combined check state has been updated to " + CombinedCheckState.SUCCESSFUL);
     assertThat(message.rcpt())
         .containsExactly(
-            owner.getEmailAddress(),
-            reviewer.getEmailAddress(),
-            starrer.getEmailAddress(),
-            watcher.getEmailAddress());
+            owner.getNameEmail(),
+            reviewer.getNameEmail(),
+            starrer.getNameEmail(),
+            watcher.getNameEmail());
   }
 
   @Test
@@ -258,7 +258,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
     assertThat(message.body())
         .contains("The combined check state has been updated to " + CombinedCheckState.IN_PROGRESS);
-    assertThat(message.rcpt()).containsExactly(owner.getEmailAddress());
+    assertThat(message.rcpt()).containsExactly(owner.getNameEmail());
   }
 
   @Test
@@ -294,10 +294,10 @@ public class ChecksEmailIT extends AbstractCheckersTest {
         .contains("The combined check state has been updated to " + CombinedCheckState.SUCCESSFUL);
     assertThat(message.rcpt())
         .containsExactly(
-            owner.getEmailAddress(),
-            reviewer.getEmailAddress(),
-            starrer.getEmailAddress(),
-            watcher.getEmailAddress());
+            owner.getNameEmail(),
+            reviewer.getNameEmail(),
+            starrer.getNameEmail(),
+            watcher.getNameEmail());
   }
 
   @Test
@@ -358,7 +358,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     assertThat(message.from().getName()).isEqualTo(bot.fullName() + " (Code Review)");
     assertThat(message.body())
         .contains("The combined check state has been updated to " + CombinedCheckState.IN_PROGRESS);
-    assertThat(message.rcpt()).containsExactly(owner.getEmailAddress());
+    assertThat(message.rcpt()).containsExactly(owner.getNameEmail());
   }
 
   @Test
@@ -461,7 +461,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
       assertThat(message.rcpt())
           .containsExactlyElementsIn(
               Arrays.stream(expectedRecipients)
-                  .map(TestAccount::getEmailAddress)
+                  .map(TestAccount::getNameEmail)
                   .collect(toImmutableList()));
     }
 
@@ -546,7 +546,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
       assertThat(message.rcpt())
           .containsExactlyElementsIn(
               Arrays.stream(expectedRecipients)
-                  .map(TestAccount::getEmailAddress)
+                  .map(TestAccount::getNameEmail)
                   .collect(toImmutableList()));
     }
   }
