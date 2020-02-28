@@ -77,24 +77,5 @@
           'http://example.com/test-log-url');
       assert.equal(logLink.textContent.trim(), 'Details');
     });
-
-    // pausing this check until retry api is available from backend
-    // suite('retryCheck', () => {
-    //   let retryCheckLink;
-
-    //   setup(() => {
-    //     retryCheckLink = element.$$('td:nth-child(7) > gr-button');
-    //   });
-
-    //   test('shows a link to the retry button', () => {
-    //     assert.equal(retryCheckLink.textContent.trim(), "Re-run");
-    //   });
-
-    //   test('clicking on the link calls the retryCheck property', () => {
-    //     assert.isFalse(retryCheckSpy.called);
-    //     retryCheckLink.click();
-    //     assert.isTrue(retryCheckSpy.called);
-    //   });
-    // });
   });
 </script>
