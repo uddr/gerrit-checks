@@ -18,6 +18,7 @@ import static com.google.gerrit.common.FileUtil.chmod;
 import static com.google.gerrit.pgm.init.api.InitUtil.extract;
 
 import com.google.gerrit.pgm.init.api.InitStep;
+import com.google.gerrit.plugins.checks.api.CheckerRefMigration;
 import com.google.gerrit.plugins.checks.email.ChecksEmailModule;
 import com.google.gerrit.server.config.SitePaths;
 import com.google.inject.Inject;
@@ -25,16 +26,19 @@ import java.nio.file.Path;
 
 public class Init implements InitStep {
   private final SitePaths site;
+  private final CheckerRefMigration checkerRefMigration;
 
   @Inject
-  Init(SitePaths site) {
+  Init(SitePaths site, CheckerRefMigration checkerRefMigration) {
     this.site = site;
+    this.checkerRefMigration = checkerRefMigration;
   }
 
   @Override
   public void run() throws Exception {
     extractMailExample("CombinedCheckStateUpdated.soy");
     extractMailExample("CombinedCheckStateUpdatedHtml.soy");
+    checkerRefMigration.migrate();
   }
 
   private void extractMailExample(String orig) throws Exception {
