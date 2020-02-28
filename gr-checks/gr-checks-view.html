@@ -138,6 +138,10 @@
         margin: 0 0 var(--spacing-l) var(--spacing-l);
       }
 
+      .checks-table {
+        border-collapse: collapse;
+      }
+
     </style>
 
     <header class$="[[_computeHeaderClass(_currentPatchSet, _patchSetDropdownItems)]]">
@@ -198,7 +202,7 @@
     </template>
 
     <template is="dom-if" if="[[_hasResults(_status)]]">
-      <table>
+      <table class="checks-table">
         <thead>
           <tr class="headerRow">
             <th class="topHeader"></th>

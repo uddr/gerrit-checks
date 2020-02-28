@@ -2,7 +2,7 @@
   <template>
     <style>
       :host {
-        border-top: 1px solid #ddd;
+        border-top: 1px solid var(--border-color);
       }
 
       td:first-child {
@@ -48,7 +48,7 @@
     <td>
       <a href$="[[check.url]]" target="_blank" class="log">
         <gr-button link no-uppercase disabled="[[!check.url]]">
-          View log
+          Details
         </gr-button>
       </a>
     </td>
