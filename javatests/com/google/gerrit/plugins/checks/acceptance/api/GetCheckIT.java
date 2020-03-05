@@ -43,6 +43,7 @@ import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
 import com.google.gerrit.plugins.checks.acceptance.testsuite.CheckerTestData;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.gerrit.plugins.checks.api.CheckState;
+import com.google.gerrit.plugins.checks.api.CheckSubmitImpactInfo;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.gson.reflect.TypeToken;
@@ -95,7 +96,8 @@ public class GetCheckIT extends AbstractCheckersTest {
     expectedCheckInfo.checkerName = "My Checker";
     expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
     expectedCheckInfo.blocking = ImmutableSortedSet.of();
-    expectedCheckInfo.required = null;
+    expectedCheckInfo.submitImpact = new CheckSubmitImpactInfo();
+    expectedCheckInfo.submitImpact.required = null;
     expectedCheckInfo.checkerDescription = "Description";
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER))
         .isEqualTo(expectedCheckInfo);
@@ -114,7 +116,8 @@ public class GetCheckIT extends AbstractCheckersTest {
     expectedCheckInfo.checkerName = "My Checker";
     expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
     expectedCheckInfo.blocking = ImmutableSortedSet.of();
-    expectedCheckInfo.required = null;
+    expectedCheckInfo.submitImpact = new CheckSubmitImpactInfo();
+    expectedCheckInfo.submitImpact.required = null;
 
     RestResponse r =
         adminRestSession.get(
@@ -263,7 +266,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void getCheckReturnsRequiredOnlyForCheckerOption() throws Exception {
+  public void getCheckReturnsSubmitImpactOnlyForCheckerOption() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
 
@@ -273,8 +276,9 @@ public class GetCheckIT extends AbstractCheckersTest {
     assertThat(getCheckInfo(patchSetId, checkerUuid).blocking).isNull();
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).blocking)
         .isNotEmpty();
-    assertThat(getCheckInfo(patchSetId, checkerUuid).required).isNull();
-    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).required).isTrue();
+    assertThat(getCheckInfo(patchSetId, checkerUuid).submitImpact).isNull();
+    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).submitImpact)
+        .isNotNull();
   }
 
   @Test
@@ -288,7 +292,9 @@ public class GetCheckIT extends AbstractCheckersTest {
             .create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
-    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).required).isNull();
+    assertThat(
+            getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).submitImpact.required)
+        .isNull();
   }
 
   @Test
@@ -297,7 +303,9 @@ public class GetCheckIT extends AbstractCheckersTest {
         checkerOperations.newChecker().repository(project).disable().required().create();
     CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
     checkOperations.newCheck(checkKey).upsert();
-    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).required).isNull();
+    assertThat(
+            getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).submitImpact.required)
+        .isNull();
   }
 
   @Test
@@ -316,7 +324,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     // Checker fields are not set.
     assertThat(check.checkerName).isNull();
     assertThat(check.blocking).isNull();
-    assertThat(check.required).isNull();
+    assertThat(check.submitImpact).isNull();
     assertThat(check.checkerStatus).isNull();
 
     // Check that at least some non-checker fields are set to ensure that we didn't get a completely

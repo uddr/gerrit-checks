@@ -56,8 +56,8 @@ public class CheckInfo {
   /** Blocking conditions that apply to this check. */
   public Set<BlockingCondition> blocking;
 
-  /** True if the check is required for submission, unset otherwise */
-  public Boolean required;
+  /** Submit impact of this check. */
+  public CheckSubmitImpactInfo submitImpact;
 
   /** Description of the checker that produced this check */
   public String checkerDescription;
@@ -82,7 +82,7 @@ public class CheckInfo {
         && Objects.equals(other.checkerName, checkerName)
         && Objects.equals(other.checkerStatus, checkerStatus)
         && Objects.equals(other.blocking, blocking)
-        && Objects.equals(other.required, required)
+        && Objects.equals(other.submitImpact, submitImpact)
         && Objects.equals(other.checkerDescription, checkerDescription);
   }
 
@@ -103,7 +103,7 @@ public class CheckInfo {
         checkerName,
         checkerStatus,
         blocking,
-        required,
+        submitImpact,
         checkerDescription);
   }
 
@@ -124,7 +124,7 @@ public class CheckInfo {
         .add("checkerName", checkerName)
         .add("checkerStatus", checkerStatus)
         .add("blocking", blocking)
-        .add("required", required)
+        .add("submitImpact", submitImpact)
         .add("checkerDescription", checkerDescription)
         .toString();
   }

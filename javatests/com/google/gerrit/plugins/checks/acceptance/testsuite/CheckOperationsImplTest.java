@@ -81,7 +81,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     assertThat(foundCheck.checkerName).isNull();
     assertThat(foundCheck.checkerStatus).isNull();
     assertThat(foundCheck.blocking).isNull();
-    assertThat(foundCheck.required).isNull();
+    assertThat(foundCheck.submitImpact).isNull();
   }
 
   @Test
