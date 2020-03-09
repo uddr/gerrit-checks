@@ -125,16 +125,18 @@ public class UpdateChecker implements RestModifyView<CheckerResource, CheckerInp
   }
 
   private Project.NameKey resolveRepository(String repository)
-      throws BadRequestException, UnprocessableEntityException, IOException {
+      throws BadRequestException, UnprocessableEntityException {
     if (repository == null || repository.trim().isEmpty()) {
       throw new BadRequestException("repository cannot be unset");
     }
 
-    ProjectState projectState = projectCache.checkedGet(Project.nameKey(repository.trim()));
-    if (projectState == null) {
-      throw new UnprocessableEntityException(String.format("repository %s not found", repository));
-    }
-
+    ProjectState projectState =
+        projectCache
+            .get(Project.nameKey(repository.trim()))
+            .orElseThrow(
+                () ->
+                    new UnprocessableEntityException(
+                        String.format("repository %s not found", repository)));
     return projectState.getNameKey();
   }
 
