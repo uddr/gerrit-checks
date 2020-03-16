@@ -16,7 +16,6 @@ package com.google.gerrit.plugins.checks.acceptance.rules;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -31,8 +30,7 @@ import org.junit.Test;
 
 public class ChecksSubmitRuleIT extends AbstractCheckersTest {
   private static final SubmitRequirementInfo SUBMIT_REQUIREMENT_INFO =
-      new SubmitRequirementInfo(
-          "NOT_READY", "All required checks must pass", "checks_pass", ImmutableMap.of());
+      new SubmitRequirementInfo("NOT_READY", "All required checks must pass", "checks_pass");
 
   private String testChangeId;
   private PatchSet.Id testPatchSetId;
