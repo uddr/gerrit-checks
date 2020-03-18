@@ -167,7 +167,6 @@ class NoteDbChecks implements Checks {
 
   private ImmutableListMultimap<CheckState, Boolean> getStatesAndRequiredMap(
       Project.NameKey projectName, PatchSet.Id patchSetId) throws IOException, StorageException {
-    ChangeData changeData = changeDataFactory.create(projectName, patchSetId.changeId());
     ImmutableMap<String, Checker> allCheckersOfProject =
         checkers.checkersOf(projectName).stream()
             .collect(ImmutableMap.toImmutableMap(c -> c.getUuid().get(), c -> c));
@@ -192,14 +191,20 @@ class NoteDbChecks implements Checks {
         continue;
       }
 
-      boolean isRequired =
-          checker.getStatus() == CheckerStatus.ENABLED
-              && checker.isRequired()
-              && checkerQueryProvider.get().isCheckerRelevant(checker, changeData);
+      boolean isRequired = isRequiredForSubmit(checker, patchSetId.changeId());
       statesAndRequired.put(check.state(), isRequired);
     }
 
     return statesAndRequired.build();
+  }
+
+  @Override
+  public boolean isRequiredForSubmit(Checker checker, Change.Id changeId) {
+    ChangeData changeData = changeDataFactory.create(checker.getRepository(), changeId);
+
+    return checker.getStatus() == CheckerStatus.ENABLED
+        && checker.isRequired()
+        && checkerQueryProvider.get().isCheckerRelevant(checker, changeData);
   }
 
   private ImmutableList<Checker> getCheckersForBackfiller(

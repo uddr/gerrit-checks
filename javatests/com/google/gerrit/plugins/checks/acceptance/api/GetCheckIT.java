@@ -278,6 +278,29 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
+  public void notApplyingButRequiredCheckerIsNotRequiredForSubmission() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations
+            .newChecker()
+            .repository(project)
+            .query("status:merged")
+            .required()
+            .create();
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).upsert();
+    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).required).isNull();
+  }
+
+  @Test
+  public void disabledButRequiredCheckerIsNotRequiredForSubmission() throws Exception {
+    CheckerUuid checkerUuid =
+        checkerOperations.newChecker().repository(project).disable().required().create();
+    CheckKey checkKey = CheckKey.create(project, patchSetId, checkerUuid);
+    checkOperations.newCheck(checkKey).upsert();
+    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).required).isNull();
+  }
+
+  @Test
   public void getCheckWithCheckerOptionReturnsCheckEvenIfCheckerIsInvalid() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).name("My Checker").create();

@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.entities.Change;
 import com.google.gerrit.plugins.checks.api.CheckInfo;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -50,11 +51,13 @@ public class CheckJson {
   }
 
   private final Checkers checkers;
+  private final Checks checks;
   private final ImmutableSet<ListChecksOption> options;
 
   @Inject
-  CheckJson(Checkers checkers, @Assisted Iterable<ListChecksOption> options) {
+  CheckJson(Checkers checkers, Checks checks, @Assisted Iterable<ListChecksOption> options) {
     this.checkers = checkers;
+    this.checks = checks;
     this.options = ImmutableSet.copyOf(options);
   }
 
@@ -75,12 +78,14 @@ public class CheckJson {
     info.updated = check.updated();
 
     if (options.contains(ListChecksOption.CHECKER)) {
-      populateCheckerFields(check.key().checkerUuid(), info);
+      populateCheckerFields(check.key().checkerUuid(), info, check.key().patchSet().changeId());
     }
     return info;
   }
 
-  private void populateCheckerFields(CheckerUuid checkerUuid, CheckInfo info) throws IOException {
+  private void populateCheckerFields(CheckerUuid checkerUuid, CheckInfo info, Change.Id changeId)
+      throws IOException {
+
     try {
       checkers
           .getChecker(checkerUuid)
@@ -89,7 +94,7 @@ public class CheckJson {
                 info.checkerName = checker.getName();
                 info.checkerStatus = checker.getStatus();
                 info.blocking = checker.getBlockingConditions();
-                info.required = checker.isRequired() ? true : null;
+                info.required = checks.isRequiredForSubmit(checker, changeId) ? true : null;
                 info.checkerDescription = checker.getDescription().orElse(null);
               });
     } catch (ConfigInvalidException e) {

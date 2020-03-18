@@ -101,6 +101,15 @@ public interface Checks {
    */
   String getETag(Project.NameKey projectName, Change.Id changeId) throws IOException;
 
+  /**
+   * Returns whether the checker is required for submission for this change.
+   *
+   * @param checker The checker that is being checked whether it's required for submission.
+   * @param changeId The changeId of the change which submission requirement is in question.
+   * @return True if the checker is required for submit, false otherwise.
+   */
+  boolean isRequiredForSubmit(Checker checker, Change.Id changeId);
+
   @AutoValue
   abstract class GetCheckOptions {
     public static GetCheckOptions defaults() {
