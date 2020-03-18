@@ -11,9 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.google.gerrit.plugins.checks.api;
+package com.google.gerrit.plugins.checks.db;
 
-import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.GitRepositoryManager;
@@ -29,7 +28,6 @@ import org.eclipse.jgit.lib.Repository;
 
 @Singleton
 public class CheckerRefMigration {
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String TMP_REF = "refs/tmp/checker-migration";
   private static final String LEGACY_REFS_META_CHECKERS = "refs/meta/checkers/";
 

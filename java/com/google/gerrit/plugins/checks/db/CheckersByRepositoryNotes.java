@@ -31,6 +31,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.common.hash.Hashing;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.entities.Project;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.server.config.AllProjectsName;
@@ -111,7 +112,18 @@ public class CheckersByRepositoryNotes extends VersionedMetaData {
 
   @Override
   protected String getRefName() {
-    return CheckerRef.REFS_META_CHECKERS;
+    // To allow for an online migration of the old checker ref (refs/meta/checkers/) to the new ref
+    // (refs/meta/checkers) we need to check which state we are in here. If we omit the legacy ref
+    // exists, we operate on that instead. The migration will move to the new ref eventually and
+    // delete the old ref. At that point, we'll start using the new ref here.
+    // TODO(paiking): Remove when migration on googlesource.com is done.
+    try {
+      return repo.exactRef("refs/meta/checkers/") != null
+          ? "refs/meta/checkers/"
+          : CheckerRef.REFS_META_CHECKERS;
+    } catch (IOException e) {
+      throw new StorageException(e);
+    }
   }
 
   /**
