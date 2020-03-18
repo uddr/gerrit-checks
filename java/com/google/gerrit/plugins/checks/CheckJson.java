@@ -89,6 +89,7 @@ public class CheckJson {
                 info.checkerName = checker.getName();
                 info.checkerStatus = checker.getStatus();
                 info.blocking = checker.getBlockingConditions();
+                info.required = checker.isRequired() ? true : null;
                 info.checkerDescription = checker.getDescription().orElse(null);
               });
     } catch (ConfigInvalidException e) {

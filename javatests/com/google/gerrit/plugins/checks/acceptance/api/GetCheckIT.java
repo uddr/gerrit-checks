@@ -95,6 +95,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     expectedCheckInfo.checkerName = "My Checker";
     expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
     expectedCheckInfo.blocking = ImmutableSortedSet.of();
+    expectedCheckInfo.required = null;
     expectedCheckInfo.checkerDescription = "Description";
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER))
         .isEqualTo(expectedCheckInfo);
@@ -113,6 +114,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     expectedCheckInfo.checkerName = "My Checker";
     expectedCheckInfo.checkerStatus = CheckerStatus.ENABLED;
     expectedCheckInfo.blocking = ImmutableSortedSet.of();
+    expectedCheckInfo.required = null;
 
     RestResponse r =
         adminRestSession.get(
@@ -261,7 +263,7 @@ public class GetCheckIT extends AbstractCheckersTest {
   }
 
   @Test
-  public void getCheckReturnsBlockingConditionsOnlyForCheckerOption() throws Exception {
+  public void getCheckReturnsRequiredOnlyForCheckerOption() throws Exception {
     CheckerUuid checkerUuid =
         checkerOperations.newChecker().repository(project).required().create();
 
@@ -271,6 +273,8 @@ public class GetCheckIT extends AbstractCheckersTest {
     assertThat(getCheckInfo(patchSetId, checkerUuid).blocking).isNull();
     assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).blocking)
         .isNotEmpty();
+    assertThat(getCheckInfo(patchSetId, checkerUuid).required).isNull();
+    assertThat(getCheckInfo(patchSetId, checkerUuid, ListChecksOption.CHECKER).required).isTrue();
   }
 
   @Test
@@ -289,6 +293,7 @@ public class GetCheckIT extends AbstractCheckersTest {
     // Checker fields are not set.
     assertThat(check.checkerName).isNull();
     assertThat(check.blocking).isNull();
+    assertThat(check.required).isNull();
     assertThat(check.checkerStatus).isNull();
 
     // Check that at least some non-checker fields are set to ensure that we didn't get a completely

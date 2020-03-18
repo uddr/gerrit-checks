@@ -92,12 +92,14 @@ public class ListChecksIT extends AbstractCheckersTest {
     expectedCheckInfo1.repository = project.get();
     expectedCheckInfo1.checkerName = checkerName1;
     expectedCheckInfo1.blocking = ImmutableSet.of();
+    expectedCheckInfo1.required = null;
     expectedCheckInfo1.checkerStatus = CheckerStatus.ENABLED;
 
     CheckInfo expectedCheckInfo2 = checkOperations.check(checkKey2).asInfo();
     expectedCheckInfo2.repository = project.get();
     expectedCheckInfo2.checkerName = checkerName2;
     expectedCheckInfo2.blocking = ImmutableSet.of();
+    expectedCheckInfo2.required = null;
     expectedCheckInfo2.checkerStatus = CheckerStatus.ENABLED;
 
     assertThat(checksApiFactory.revision(patchSetId).list(ListChecksOption.CHECKER))
@@ -124,12 +126,14 @@ public class ListChecksIT extends AbstractCheckersTest {
     expectedCheckInfo1.repository = project.get();
     expectedCheckInfo1.checkerName = checkerName1;
     expectedCheckInfo1.blocking = ImmutableSet.of();
+    expectedCheckInfo1.required = null;
     expectedCheckInfo1.checkerStatus = CheckerStatus.ENABLED;
 
     CheckInfo expectedCheckInfo2 = checkOperations.check(checkKey2).asInfo();
     expectedCheckInfo2.repository = project.get();
     expectedCheckInfo2.checkerName = checkerName2;
     expectedCheckInfo2.blocking = ImmutableSet.of();
+    expectedCheckInfo2.required = null;
     expectedCheckInfo2.checkerStatus = CheckerStatus.ENABLED;
 
     RestResponse r =
@@ -174,6 +178,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckInfo check1 = maybeCheck1.get();
     assertThat(check1.checkerName).isEqualTo(checkerName1);
     assertThat(check1.blocking).isEmpty();
+    assertThat(check1.required).isNull();
     assertThat(check1.checkerStatus).isEqualTo(CheckerStatus.ENABLED);
 
     Optional<CheckInfo> maybeCheck2 =
@@ -182,6 +187,7 @@ public class ListChecksIT extends AbstractCheckersTest {
     CheckInfo check2 = maybeCheck2.get();
     assertThat(check2.checkerName).isNull();
     assertThat(check2.blocking).isNull();
+    assertThat(check2.required).isNull();
     assertThat(check2.checkerStatus).isNull();
   }
 
