@@ -192,6 +192,7 @@ The `CheckInfo` entity describes a check.
 | `checker_status`      | optional | The [status](rest-api-checkers.md#checker-info) of the checker that produced this check.<br />Only set if [checker details](#option-checker) are requested.
 | `blocking`            | optional | Set of [blocking conditions](rest-api-checkers.md#blocking-conditions) that apply to this checker.<br />Only set if [checker details](#option-checker) are requested.
 | `checker_description` | optional | The description of the checker that reported this check.
+| `submit_impact`       | optional | The [CheckSubmitImpactInfo](#check-submit-impact-info) that describes a check's impact on the submission of the change.<br />Only set if [checker details](#option-checker) are requested.
 
 ### <a id="check-input"> CheckInput
 The `CheckInput` entity contains information for creating or updating a check.
@@ -206,6 +207,13 @@ The `CheckInput` entity contains information for creating or updating a check.
 | `finished`      | optional | The [timestamp](../../../Documentation/rest-api.html#timestamp) of when the check finished processing.
 | `notify`        | optional | Notify handling that defines to whom email notifications should be sent when the combined check state changes due to posting this check. Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`. If not set, the default is `ALL` if the combined check state is updated to either `SUCCESSFUL` or `NOT_RELEVANT`, otherwise the default is `OWNER`. Regardless of this setting there are no email notifications for posting checks on non-current patch sets.
 | `notify_details`| optional | Additional information about whom to notify when the combined check state changes due to posting this check as a map of recipient type to [NotifyInfo](../../../Documentation/rest-api-changes.html#notify-info) entity. Regardless of this setting there are no email notifications for posting checks on non-current patch sets.
+
+### <a id="check-submit-impact-info"> CheckSubmitImpactInfo
+The `CheckSubmitImpactInfo` entity describes a check's impact on the submission of the change.
+
+| Field Name            |          | Description |
+| --------------------- | -------- | ----------- |
+| `required`            |          | When set, that check blocks change submission until it's in appropriate non-blocking state.
 
 ### <a id="rerun-input"> RerunInput
 The `RerunInput` entity contains information for rerunning a check.
