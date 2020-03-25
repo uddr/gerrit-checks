@@ -55,6 +55,11 @@
         text-decoration: underline;
         cursor: pointer;
       }
+      #listOverlay {
+        max-width: 90%;
+        max-height: 90%;
+        overflow: auto;
+      }
     </style>
 
     <gr-overlay on-fullscreen-overlay-closed="_handleOverlayClosed" id="listOverlay" with-backdrop>
