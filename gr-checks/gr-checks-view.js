@@ -165,6 +165,7 @@
     },
 
     _handleRevisionUpdate(revision) {
+      if (!revision) return;
       this._currentPatchSet = revision._number;
     },
 
