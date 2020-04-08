@@ -318,6 +318,17 @@ It is expected to be provided by Gerrit core -->
         element._checks[1].showCheckMessage = undefined;
       });
 
+
+      test('url is not set if new check has no url', () => {
+        const NEW_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        delete NEW_CHECKS[0]['url'];
+        delete NEW_CHECKS[1]['url'];
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.isNotOk(UPDATED_CHECKS[0].url);
+        assert.isNotOk(UPDATED_CHECKS[1].url);
+      });
+
       test('message is not shown if new check has no message', () => {
         const NEW_CHECKS = [Object.assign({}, CHECK1),
           Object.assign({}, CHECK2)];
