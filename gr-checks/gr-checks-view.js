@@ -237,7 +237,12 @@
             this._fetchChecks(this.change, this.revision._number,
                 this.getChecks);
           }, error => {
-            this.fire('show-error', {message: error.message});
+            this.dispatchEvent(new CustomEvent('show-error',
+                {
+                  detail: {message: error.message},
+                  bubbles: true,
+                  composed: true,
+                }));
           }
       );
     },

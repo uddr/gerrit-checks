@@ -63,7 +63,12 @@
 
     _toggleMessageShown() {
       this.showCheckMessage = !this.showCheckMessage;
-      this.fire('toggle-check-message', {uuid: this.check.checker_uuid});
+      this.dispatchEvent(new CustomEvent('toggle-check-message',
+          {
+            detail: {uuid: this.check.checker_uuid},
+            bubbles: true,
+            composed: true,
+          }));
     },
 
     _computeExpandIcon(showCheckMessage) {
@@ -92,9 +97,13 @@
       return (check.blocking && check.blocking.length === 0) ? 'Optional' :
         'Required';
     },
-    _handleReRunClicked(event) {
-      this.fire('retry-check', {uuid: this.check.checker_uuid},
-          {bubbles: false});
+    _handleReRunClicked() {
+      this.dispatchEvent(new CustomEvent('retry-check',
+          {
+            detail: {uuid: this.check.checker_uuid},
+            bubbles: false,
+            composed: true,
+          }));
     },
   });
 
