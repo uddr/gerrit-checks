@@ -9,22 +9,6 @@
 <title>gr-checkers-list-view</title>
 <link rel="import" href="gr-checkers-list.html">
 
-<!-- Gr-overlay does not exist in the test framework
-It is expected to be provided by Gerrit core -->
-<dom-module id="gr-overlay">
-  <template>
-  </template>
-  <script>
-    readyToTest().then(() => {
-      Polymer({
-        is: 'gr-overlay',
-        refit() {},
-        open() { return Promise.resolve({}); },
-      });
-    });
-  </script>
-</dom-module>
-
 <test-fixture id="basic">
   <template is="dom-template">
     <gr-checkers-list
@@ -186,24 +170,29 @@ It is expected to be provided by Gerrit core -->
     await readyToTest();
     let element;
     let sandbox;
-    let fetchJSONSpy; let fetchJSONResolve;
+    let getSpy; let getResolve;
 
     setup(done => {
       sandbox = sinon.sandbox.create();
 
-      fetchJSONSpy = sinon.stub();
-      const fetchJSONPromise = new Promise((resolve, reject) => {
-        fetchJSONResolve = resolve;
+      getSpy = sinon.stub();
+      const getPromise = new Promise((resolve, reject) => {
+        getResolve = resolve;
       });
-      fetchJSONSpy.returns(fetchJSONPromise);
+      getSpy.returns(getPromise);
 
       const pluginRestApi = {
-        fetchJSON: fetchJSONSpy,
+        get: getSpy,
       };
 
       element = fixture('basic', {
         pluginRestApi,
       });
+
+      element.$.listOverlay.refit = () => {};
+      element.$.listOverlay.open = () => {
+        return Promise.resolve(() => {});
+      };
       flush(done);
     });
 
@@ -216,7 +205,7 @@ It is expected to be provided by Gerrit core -->
       const expectedHeadings = ['Checker Name', 'Repository', 'Status',
         'Required', 'Checker Description', 'Edit'];
       for (let i = 0; i < headings.length; i++) {
-        assert(headings[i].innerText === expectedHeadings[i]);
+        assert(headings[i].innerText.trim() === expectedHeadings[i]);
       }
     });
 
@@ -230,7 +219,7 @@ It is expected to be provided by Gerrit core -->
 
     suite('with checkers', () => {
       setup(done => {
-        fetchJSONResolve(CHECKERS);
+        getResolve(CHECKERS);
         element._showConfigureOverlay();
         flush(done);
       });
