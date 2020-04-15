@@ -347,7 +347,7 @@ It is expected to be provided by Gerrit core -->
 
       test('retry fires show-error event', done => {
         postReject(new Error('random error'));
-        const fireStub = sandbox.stub(element, 'fire');
+        const fireStub = sandbox.stub(element, 'dispatchEvent');
         Polymer.dom.flush();
         const checksItem = element.querySelectorAll(
             'table > tbody > gr-checks-item'
@@ -356,7 +356,7 @@ It is expected to be provided by Gerrit core -->
         const reRunButton = reRun.querySelector('gr-button');
         reRunButton.click();
         flush(() => {
-          assert(fireStub.calledWith('show-error'));
+          assert.equal(fireStub.firstCall.args[0].type, ('show-error'));
           done();
         });
       });

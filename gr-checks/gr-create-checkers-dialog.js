@@ -71,14 +71,11 @@
       _query: String,
     },
 
-    behaviors: [
-      Gerrit.FireBehavior,
-    ],
     /**
-    * Fired when the cancel button is pressed.
-    *
-    * @event cancel
-    */
+     * Fired when the cancel button is pressed.
+     *
+     * @event cancel
+     */
 
     observers: [
       '_updateUUID(_scheme, _id)',
@@ -176,7 +173,13 @@
           res => {
             if (res) {
               this._errorMsg = '';
-              this.fire('cancel', {reload: true}, {bubbles: true});
+              this.dispatchEvent(new CustomEvent('cancel',
+                  {
+                    detail: {reload: true},
+                    bubbles: true,
+                    composed: true,
+                  }
+              ));
             }
           },
           error => {
@@ -224,7 +227,13 @@
       this._required = false;
       this._query = '';
       this._status = '';
-      this.fire('cancel', {reload: true}, {bubbles: true});
+      this.dispatchEvent(new CustomEvent('cancel',
+          {
+            detail: {reload: true},
+            bubbles: true,
+            composed: true,
+          }
+      ));
     },
 
     _repoSuggestions(filter) {

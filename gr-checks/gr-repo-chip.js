@@ -16,7 +16,12 @@
     },
     _handleRemove(e) {
       e.preventDefault();
-      this.fire('remove', {repo: this.repo});
+      this.dispatchEvent(new CustomEvent('remove',
+          {
+            detail: {repo: this.repo},
+            bubbles: true,
+            composed: true,
+          }));
     },
   });
 })();
