@@ -1,7 +1,8 @@
 {
   "extends": ["eslint:recommended", "google"],
   "parserOptions": {
-    "ecmaVersion": 8
+    "ecmaVersion": 8,
+    "sourceType": "module"
   },
   "env": {
     "browser": true,
@@ -48,7 +49,10 @@
       "error",
       80,
       2,
-      {"ignoreComments": true}
+      {
+        "ignoreComments": true,
+        "ignorePattern": "^import .*;$"
+      }
     ],
     "new-cap": ["error", { "capIsNewExceptions": ["Polymer", "LegacyElementMixin", "GestureEventListeners", "LegacyDataMixin"] }],
     "no-console": "off",
@@ -90,12 +94,74 @@
     "require-jsdoc": "off",
     "semi": [2, "always"],
     "template-curly-spacing": "error",
-    "valid-jsdoc": "off"
+    "valid-jsdoc": "off",
+
+    "require-jsdoc": 0,
+    "valid-jsdoc": 0,
+    "jsdoc/check-alignment": 2,
+    "jsdoc/check-examples": 0,
+    "jsdoc/check-indentation": 0,
+    "jsdoc/check-param-names": 0,
+    "jsdoc/check-syntax": 0,
+    "jsdoc/check-tag-names": 0,
+    "jsdoc/check-types": 0,
+    "jsdoc/implements-on-classes": 2,
+    "jsdoc/match-description": 0,
+    "jsdoc/newline-after-description": 2,
+    "jsdoc/no-types": 0,
+    "jsdoc/no-undefined-types": 0,
+    "jsdoc/require-description": 0,
+    "jsdoc/require-description-complete-sentence": 0,
+    "jsdoc/require-example": 0,
+    "jsdoc/require-hyphen-before-param-description": 0,
+    "jsdoc/require-jsdoc": 0,
+    "jsdoc/require-param": 0,
+    "jsdoc/require-param-description": 0,
+    "jsdoc/require-param-name": 2,
+    "jsdoc/require-param-type": 2,
+    "jsdoc/require-returns": 0,
+    "jsdoc/require-returns-check": 0,
+    "jsdoc/require-returns-description": 0,
+    "jsdoc/require-returns-type": 2,
+    "jsdoc/valid-types": 2,
+    "jsdoc/require-file-overview": ["error", {
+      "tags": {
+        "license": {
+          "mustExist": true,
+          "preventDuplicates": true
+        }
+      }
+    }],
+    "import/named": 2,
+    "import/no-unresolved": 2,
+    "import/no-self-import": 2,
+    // The no-cycle rule is slow, because it doesn't cache dependencies.
+    // Disable it.
+    "import/no-cycle": 0,
+    "import/no-useless-path-segments": 2,
+    "import/no-unused-modules": 2,
+    "import/no-default-export": 2
   },
   "plugins": [
-    "html"
+    "html",
+    "jsdoc",
+    "import"
   ],
   "settings": {
     "html/report-bad-indent": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*_html.js", "*-styles.js", "externs.js"],
+      "rules": {
+        "max-len": "off"
+      }
+    },
+    {
+      "files": ["*.html"],
+      "rules": {
+        "jsdoc/require-file-overview": "off"
+      }
+    }
+  ]
 }

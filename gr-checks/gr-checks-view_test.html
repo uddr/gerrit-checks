@@ -1,47 +1,38 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<script src="test-pre-setup.js"></script>
-<script src="../bower_components/iron-test-helpers/mock-interactions.js"></script>
-
+<script src="/node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+<script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
 
 <title>gr-checks-item</title>
-<link rel="import" href="gr-checks-view.html">
-<link rel="import" href="gr-checks-item.html">
 
 <!-- Gr-overlay does not exist in the test framework
 It is expected to be provided by Gerrit core -->
-<dom-module id="gr-overlay">
-  <template>
-  </template>
-  <script>
-    readyToTest().then(() => {
-      Polymer({
-        is: 'gr-overlay',
-        refit() {},
-        open() {},
-      });
-    });
-  </script>
-</dom-module>
+
+<script type="module">
+  import '../test/common-test-setup.js';
+
+  class GrOverlay extends Polymer.Element {
+    static get is() { return 'gr-overlay'; }
+
+    refit() {}
+
+    open() {}
+  }
+
+  customElements.define(GrOverlay.is, GrOverlay);
+</script>
 
 <test-fixture id="basic">
-  <template is="dom-template">
-    <gr-checks-view
-      change="[[change]]"
-      revision="[[revision]]"
-      get-checks="[[getChecks]]"
-      is-configured="[[isConfigured]]"
-      plugin="[[plugin]]"
-      retry-check="[[retryCheck]]">
-    </gr-checks-view>
+  <template>
+    <gr-checks-view></gr-checks-view>
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
+  import './gr-checks-view.js';
+  import {Statuses} from './gr-checks-all-statuses.js';
+
   const CHECK1 = {
     checkId: 'test-check-id',
     logUrl: 'http://example.com/test-log-url',
@@ -105,9 +96,7 @@ It is expected to be provided by Gerrit core -->
   const STATE_ALL = 'ALL';
   const CHECKS_LIMIT = 20;
 
-  suite('gr-checks-view tests', async () => {
-    await readyToTest();
-    const Statuses = window.Gerrit.Checks.Statuses;
+  suite('gr-checks-view tests', () => {
     let element;
     let sandbox;
     let getChecksSpy;
@@ -149,7 +138,6 @@ It is expected to be provided by Gerrit core -->
 
       postSpy = sinon.stub();
       const postPromise = new Promise((resolve, reject) => {
-        postResolve = resolve;
         postReject = reject;
       });
       postSpy.returns(postPromise);
@@ -170,7 +158,8 @@ It is expected to be provided by Gerrit core -->
         getAccountCapabilities: getAccountCapabilitiesSpy,
         post: postSpy,
       });
-      element = fixture('basic', {
+      element = fixture('basic');
+      Object.assign(element, {
         retryCheck: retryCheckSpy,
         getChecks: getChecksSpy,
         isConfigured: isConfiguredSpy,
@@ -192,7 +181,7 @@ It is expected to be provided by Gerrit core -->
 
     test('renders loading', () => {
       // Element also contains the hidden gr-overlay hence use includes
-      assert(element.textContent.trim().includes('Loading...'));
+      assert(element.shadowRoot.textContent.trim().includes('Loading...'));
     });
 
     test('queries the checks', () => {
@@ -258,7 +247,7 @@ It is expected to be provided by Gerrit core -->
         });
 
         test('renders checks not configured', () => {
-          const header = element.$$('h2');
+          const header = element.shadowRoot.querySelector('h2');
           assert.equal(header.textContent.trim(),
               'No checks ran for this code review');
         });
@@ -318,6 +307,15 @@ It is expected to be provided by Gerrit core -->
         element._checks[1].showCheckMessage = undefined;
       });
 
+      test('url is not set if new check has no url', () => {
+        const NEW_CHECKS = [Object.assign({}, CHECK1),
+          Object.assign({}, CHECK2)];
+        delete NEW_CHECKS[0]['url'];
+        delete NEW_CHECKS[1]['url'];
+        const UPDATED_CHECKS = element._updateChecks(NEW_CHECKS);
+        assert.isNotOk(UPDATED_CHECKS[0].url);
+        assert.isNotOk(UPDATED_CHECKS[1].url);
+      });
 
       test('url is not set if new check has no url', () => {
         const NEW_CHECKS = [Object.assign({}, CHECK1),
@@ -360,10 +358,10 @@ It is expected to be provided by Gerrit core -->
         postReject(new Error('random error'));
         const fireStub = sandbox.stub(element, 'dispatchEvent');
         Polymer.dom.flush();
-        const checksItem = element.querySelectorAll(
+        const checksItem = element.shadowRoot.querySelectorAll(
             'table > tbody > gr-checks-item'
         )[0];
-        const reRun = checksItem.querySelectorAll('td')[7];
+        const reRun = checksItem.shadowRoot.querySelectorAll('td')[7];
         const reRunButton = reRun.querySelector('gr-button');
         reRunButton.click();
         flush(() => {
@@ -379,14 +377,23 @@ It is expected to be provided by Gerrit core -->
         });
 
         test('messsage icon is displayed', () => {
-          assert.isOk(element.querySelectorAll('.expand-message').length,
+          const checkItems = element.shadowRoot
+              .querySelectorAll('gr-checks-item');
+          const messagesCount = [...checkItems].reduce((count, item) => {
+            return count += item.shadowRoot
+                .querySelectorAll('.expand-message').length;
+          }, 0);
+          assert.equal(messagesCount,
               element._visibleChecks.length);
         });
 
         test('message displayed on clicking icon', done => {
-          element.querySelector('.expand-message').click();
+          const checkItem = element.shadowRoot.querySelector('gr-checks-item');
+          checkItem.shadowRoot
+              .querySelector('.expand-message').click();
           flush(() => {
-            const msg = element.querySelector('.check-message').innerText
+            const msg = element.shadowRoot
+                .querySelector('.check-message').innerText
                 .trim();
             assert.equal(msg, element._visibleChecks[0].message.trim());
             done();
@@ -406,8 +413,10 @@ It is expected to be provided by Gerrit core -->
       });
 
       test('retry checks', done => {
-        const checkItems = element.querySelectorAll('gr-checks-item');
-        const retryButton = checkItems[0].querySelectorAll('gr-button')[1];
+        const checkItems = element.shadowRoot
+            .querySelectorAll('gr-checks-item');
+        const retryButton = checkItems[0].shadowRoot
+            .querySelectorAll('gr-button')[1];
         MockInteractions.tap(retryButton);
         const expectedUrl = '/changes/2/revisions/3/checks/codestyle-'
           + 'a6a0e4682515f3521897c5f950d1394f4619d928/rerun';
@@ -420,7 +429,9 @@ It is expected to be provided by Gerrit core -->
       suite('create checker capability true', () => {
         setup(done => {
           getAccountResolve(true);
-          getAccountCapabilitiesResolve({'checks-administrateCheckers': true});
+          getAccountCapabilitiesResolve({
+            'checks-administrateCheckers': true,
+          });
           flush(done);
         });
 
@@ -431,7 +442,8 @@ It is expected to be provided by Gerrit core -->
 
       suite('patchset navigation', () => {
         test('renders the dropdown', () => {
-          assert.isNotNull(element.querySelector('.patch-set-dropdown'));
+          assert.isNotNull(element.shadowRoot
+              .querySelector('.patch-set-dropdown'));
         });
 
         test('when patchset updated it fetches new checks', done => {
@@ -465,7 +477,8 @@ It is expected to be provided by Gerrit core -->
 
       suite('check state filter', () => {
         test('renders the filter dropdown', () => {
-          assert.isNotNull(element.querySelector('.check-state-filter'));
+          assert.isNotNull(element.shadowRoot
+              .querySelector('.check-state-filter'));
         });
 
         test('default filter is all', () => {
@@ -484,17 +497,19 @@ It is expected to be provided by Gerrit core -->
 
       suite('blocking checkbox', () => {
         test('renders the checkbox', () => {
-          assert.isNotNull(element.querySelector('input[name="blocking"]'));
+          assert.isNotNull(element.shadowRoot
+              .querySelector('input[name="blocking"]'));
         });
 
         test('default filter is all', () => {
-          assert.equal(element.querySelector('input[name="blocking"]').checked,
-              false);
+          assert.equal(element.shadowRoot
+              .querySelector('input[name="blocking"]').checked,
+          false);
         });
 
         test('blocking checkbox filters checks', done => {
           assert.equal(element._visibleChecks.length, 4);
-          element.querySelector('input[name="blocking"]').click();
+          element.shadowRoot.querySelector('input[name="blocking"]').click();
           flush(() => {
             assert.equal(element._visibleChecks.length, 1);
             done();
@@ -521,7 +536,8 @@ It is expected to be provided by Gerrit core -->
       });
 
       test('show more button expands to show all checks', () => {
-        const showMoreChecksButton = element.querySelector('.show-more-checks');
+        const showMoreChecksButton = element.shadowRoot
+            .querySelector('.show-more-checks');
         assert.isOk(showMoreChecksButton);
         showMoreChecksButton.click();
         flush(() => {

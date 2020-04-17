@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<script src="/bower_components/web-component-tester/browser.js"></script>
 
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<script src="test-pre-setup.js"></script>
+<script src="/node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+<script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
 
 <title>gr-checkers-list-view</title>
-<link rel="import" href="gr-checkers-list.html">
 
 <test-fixture id="basic">
-  <template is="dom-template">
-    <gr-checkers-list
-      plugin-rest-api="[[pluginRestApi]]"
-    >
+  <template>
+    <gr-checkers-list>
     </gr-checkers-list>
-</template>
+  </template>
 </test-fixture>
 
-<script>
+<script type="module">
+  import '../test/common-test-setup.js';
+  import './gr-checkers-list.js';
   const CHECKERS = [
     {
       uuid: 'C:D',
@@ -163,11 +161,8 @@
       updated: '2019-07-29 13:30:47.000000000',
     },
   ];
-</script>
 
-<script>
-  suite('gr-checkers-list tests', async () => {
-    await readyToTest();
+  suite('gr-checkers-list tests', () => {
     let element;
     let sandbox;
     let getSpy; let getResolve;
@@ -185,9 +180,8 @@
         get: getSpy,
       };
 
-      element = fixture('basic', {
-        pluginRestApi,
-      });
+      element = fixture('basic');
+      element.pluginRestApi = pluginRestApi;
 
       element.$.listOverlay.refit = () => {};
       element.$.listOverlay.open = () => {
@@ -210,8 +204,8 @@
     });
 
     test('create checker button renders', () => {
-      assert(element.querySelector('#createNewContainer'));
-      const button = element.querySelector('#createNewContainer')
+      assert(element.shadowRoot.querySelector('#createNewContainer'));
+      const button = element.shadowRoot.querySelector('#createNewContainer')
           .querySelector('gr-button');
       assert(button);
       assert(button.innerText === 'Create New');
@@ -223,11 +217,14 @@
         element._showConfigureOverlay();
         flush(done);
       });
+
       test('renders correct number of checkers', () => {
-        const checkers = element.$$('table > tbody:nth-child(2)')
+        const checkers = element
+            .shadowRoot.querySelector('table > tbody:nth-child(2)')
             .querySelectorAll('tr');
         assert(checkers.length === CHECKERS.length);
       });
+
       test('renders correct checkers', () => {
         const checkers = element.$$('table > tbody:nth-child(2)')
             .querySelectorAll('tr');

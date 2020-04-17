@@ -1,45 +1,43 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<script src="test-pre-setup.js"></script>
+<script src="/node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+<script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
 
 <title>gr-checks-change-list-item-cell-view</title>
-<link rel="import" href="gr-checks-change-list-item-cell-view.html">
 
 <test-fixture id="basic">
-  <template is="dom-template">
-    <gr-checks-change-list-item-cell-view change="[[change]]"></gr-checks-change-list-item-cell-view>
+  <template>
+    <gr-checks-change-list-item-cell-view></gr-checks-change-list-item-cell-view>
   </template>
 </test-fixture>
 
-<script>
-  suite('gr-checks-change-list-item-cell-view tests', async () => {
-    await readyToTest();
+<script type="module">
+  import '../test/common-test-setup.js';
+  import './gr-checks-change-list-item-cell-view.js';
+
+  suite('gr-checks-change-list-item-cell-view tests', () => {
     let element;
     let sandbox;
 
     setup(done => {
       sandbox = sinon.sandbox.create();
 
-      element = fixture('basic', {
-        change: {
-          project: 'test-repository',
-          revisions: {
-            'first-sha': 'test-revision',
-            'second-sha': 'test-revision2',
-          },
+      element = fixture('basic');
+      element.change = {
+        project: 'test-repository',
+        revisions: {
+          'first-sha': 'test-revision',
+          'second-sha': 'test-revision2',
         },
-      });
+      };
       flush(done);
     });
 
     teardown(() => { sandbox.restore(); });
 
     test('renders the element', () => {
-      assert.exists(element);
+      assert.isOk(element);
     });
   });
 </script>

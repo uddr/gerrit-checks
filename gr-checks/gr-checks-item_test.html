@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<script src="/bower_components/web-component-tester/browser.js"></script>
-<script src="../../../bower_components/moment/min/moment.min.js"></script>
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<script src="test-pre-setup.js"></script>
+<script src="/node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+<script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
 
 <title>gr-checks-item</title>
-<link rel="import" href="gr-checks-item.html">
 
 <test-fixture id="basic">
-  <template is="dom-template">
-    <gr-checks-item
-      check="{{check}}"
-      retry-check="[[retryCheck]]">
-    </gr-checks-item>
+  <template>
+    <gr-checks-item></gr-checks-item>
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
+  import '../test/common-test-setup.js';
+  import './gr-checks-item.js';
   const CHECKS_ITEM = {
     MESSAGE: 1,
     NAME: 2,
@@ -30,8 +26,7 @@
     RERUN: 8,
     DESCRIPTION: 9,
   };
-  suite('gr-checks-item tests', async () => {
-    await readyToTest();
+  suite('gr-checks-item tests', () => {
     let element;
     let sandbox;
     let retryCheckSpy;
@@ -41,15 +36,14 @@
       retryCheckSpy = sinon.stub();
       retryCheckSpy.returns(Promise.resolve());
 
-      element = fixture('basic', {
-        retryCheck: retryCheckSpy,
-        check: {
-          checkId: 'test-check-id',
-          url: 'http://example.com/test-log-url',
-          started: '2019-02-06T22:25:19.269Z',
-          finished: '2019-02-06T22:25:44.574Z',
-        },
-      });
+      element = fixture('basic');
+      element.retryCheck = retryCheckSpy;
+      element.check = {
+        checkId: 'test-check-id',
+        url: 'http://example.com/test-log-url',
+        started: '2019-02-06T22:25:19.269Z',
+        finished: '2019-02-06T22:25:44.574Z',
+      };
       flush(done);
     });
 
@@ -57,8 +51,9 @@
 
     test('renders the status', () => {
       const idx = CHECKS_ITEM.STATUS;
-      const status = element.$$(`td:nth-child(${idx}) > gr-checks-status`);
-      assert.exists(status);
+      const status = element.shadowRoot
+          .querySelector(`td:nth-of-type(${idx}) > gr-checks-status`);
+      assert.isOk(status);
     });
 
     test('renders the start time', () => {
@@ -68,8 +63,8 @@
     suite('duration', () => {
       test('renders the run duration', () => {
         const idx = CHECKS_ITEM.DURATION;
-        const name = element.$$(`td:nth-child(${idx})`);
-        assert.equal(name .textContent.trim(), '25 sec');
+        const name = element.$$(`td:nth-of-type(${idx})`);
+        assert.equal(name.textContent.trim(), '25 sec');
       });
 
       test('renders 0 sec when the start and end time are the same', () => {
@@ -80,14 +75,16 @@
           finished: '2019-02-06T22:25:19.269Z',
         };
         const idx = CHECKS_ITEM.DURATION;
-        const name = element.$$(`td:nth-child(${idx})`);
-        assert.equal(name .textContent.trim(), '0 sec');
+        const name = element.shadowRoot
+            .querySelector(`td:nth-of-type(${idx})`);
+        assert.equal(name.textContent.trim(), '0 sec');
       });
     });
 
     test('renders a link to the log', () => {
       const idx = CHECKS_ITEM.DETAILS;
-      const logLink = element.$$(`td:nth-child(${idx}) > a`);
+      const logLink = element.shadowRoot
+          .querySelector(`td:nth-of-type(${idx}) > a`);
       assert.equal(logLink.getAttribute('href'),
           'http://example.com/test-log-url');
       assert.equal(logLink.textContent.trim(), 'Details');

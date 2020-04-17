@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
 
-<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<script src="test-pre-setup.js"></script>
+<script src="/node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+<script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
 
 <title>gr-checks-change-view-tab-header-view</title>
-<link rel="import" href="gr-checks-change-view-tab-header-view.html">
 
 <test-fixture id="basic">
-  <template is="dom-template">
+  <template>
     <gr-checks-change-view-tab-header-view></gr-checks-change-view-tab-header-view>
   </template>
 </test-fixture>
 
-<script>
-  suite('gr-checks-change-view-tab-header-view tests', async () => {
-    await readyToTest();
+<script type="module">
+  import '../test/common-test-setup.js';
+  import './gr-checks-change-view-tab-header-view.js';
+  suite('gr-checks-change-view-tab-header-view tests', () => {
     let element;
     let sandbox;
 
@@ -32,7 +30,7 @@
     teardown(() => { sandbox.restore(); });
 
     test('renders the header', () => {
-      assert.include(element.textContent.trim(), 'Checks');
+      assert.include(element.shadowRoot.textContent.trim(), 'Checks');
     });
   });
 </script>

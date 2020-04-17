@@ -5,18 +5,25 @@ package_group(
 
 package(default_visibility = [":visibility"])
 
+load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
 load("//tools/bzl:js.bzl", "polygerrit_plugin")
 load("//tools/bzl:genrule2.bzl", "genrule2")
 
 polygerrit_plugin(
     name = "gr-checks",
-    srcs = glob([
-        "*.html",
-        "*.js",
-    ]),
-    app = "gr-checks.html",
-    externs = ["externs.js"],
+    app = "checks-bundle.js",
     plugin_name = "checks",
+)
+
+rollup_bundle(
+    name = "checks-bundle",
+    srcs = glob(["*.js"]),
+    entry_point = "gr-checks.js",
+    rollup_bin = "//tools/node_tools:rollup-bin",
+    sourcemap = "hidden",
+    deps = [
+        "@tools_npm//rollup-plugin-node-resolve",
+    ],
 )
 
 genrule2(

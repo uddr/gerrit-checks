@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-<script src="../../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<script src="test-pre-setup.js"></script>
+<script src="/node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+<script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
 
 <title>gr-checks-item</title>
-<link rel="import" href="gr-checks-status.html">
 
 <test-fixture id="basic">
-  <template is="dom-template">
-    <gr-checks-status show-text="{{showText}}" status="{{status}}"></gr-checks-status>
+  <template>
+    <gr-checks-status></gr-checks-status>
   </template>
 </test-fixture>
 
-<script>
-  suite('gr-checks-status tests', async () => {
-    await readyToTest();
+<script type="module">
+  import '../test/common-test-setup.js';
+  import './gr-checks-status.js';
+  suite('gr-checks-status tests', () => {
     let sandbox;
 
     setup(() => {
@@ -30,26 +28,24 @@
       suite(expectedStatusClass, () => {
         for (const statusToTest of statusesToTest) {
           test(`renders ${expectedStatusClass} for ${statusToTest}`, done => {
-            const element = fixture('basic', {
-              status: statusToTest,
-              showText: false,
-            });
+            const element = fixture('basic');
+            element.status = statusToTest;
+            element.showText = false;
 
             flush(() => {
-              const svg = element.$$(`span svg`);
-              assert.exists(svg);
+              const svg = element.shadowRoot.querySelector(`span svg`);
+              assert.isOk(svg);
               done();
             });
           });
           test(`renders ${expectedStatusClass} for ${statusToTest} rendering
             text ${statusText}`, done => {
-            const element = fixture('basic', {
-              status: statusToTest,
-              showText: true,
-            });
+            const element = fixture('basic');
+            element.status = statusToTest;
+            element.showText = true;
 
             flush(() => {
-              const text = element.$$(`span span`);
+              const text = element.shadowRoot.querySelector(`span span`);
               assert.equal(text.textContent.trim(), statusText);
               done();
             });
