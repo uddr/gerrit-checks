@@ -249,10 +249,8 @@
     },
 
     /**
-     * Merge new checks into old checks to maintain showCheckMessage
-     * property
+     * Explicity add showCheckMessage to maintain it
      * Loop over checks to make sure no new checks are missed
-     * Merge new check object into prev check
      * Remove any check that is not returned the next time
      * Ensure message is updated
      */
@@ -263,7 +261,7 @@
                 c => c.checker_uuid === check.checker_uuid
             );
             if (!prevCheck) return Object.assign({}, check);
-            return Object.assign({}, prevCheck, check,
+            return Object.assign({}, check,
                 {showCheckMessage: prevCheck.showCheckMessage});
           });
     },
