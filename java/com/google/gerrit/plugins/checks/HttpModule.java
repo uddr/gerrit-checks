@@ -28,6 +28,6 @@ public class HttpModule extends ServletModule {
     serveRegex("^/checkers/(.*)$").with(CheckersRestApiServlet.class);
     serveRegex("^/checks.pending/(.*)$").with(PendingChecksRestApiServlet.class);
 
-    DynamicSet.bind(binder(), WebUiPlugin.class).toInstance(new JavaScriptPlugin("checks.html"));
+    DynamicSet.bind(binder(), WebUiPlugin.class).toInstance(new JavaScriptPlugin("checks.js"));
   }
 }
