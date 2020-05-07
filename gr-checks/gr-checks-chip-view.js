@@ -186,6 +186,7 @@ class GrChecksChipView extends Polymer.GestureEventListeners(
               composed: true,
               detail: {
                 tab: 'change-view-tab-header-checks',
+                scrollIntoView: true,
               },
             })
     );
