@@ -181,10 +181,9 @@ class GrChecksItem extends Polymer.GestureEventListeners(
     if (!check.started || !check.finished) {
       return '-';
     }
-    const startTime = moment(check.started);
-    const finishTime = check.finished ? moment(check.finished) : moment();
-    return generateDurationString(
-        moment.duration(finishTime.diff(startTime)));
+    const startTime = new Date(check.started);
+    const finishTime = check.finished ? new Date(check.finished) : new Date();
+    return generateDurationString(startTime, finishTime);
   }
 
   /**
@@ -211,34 +210,41 @@ customElements.define(GrChecksItem.is, GrChecksItem);
 const ZERO_SECONDS = '0 sec';
 
 /**
- * @param {!Moment.Duration} duration a moment object
+ * @param {Date} startTime
+ * @param {Date} endTime
  * @return {string}
  */
-function generateDurationString(duration) {
-  if (duration.asSeconds() === 0) {
+function generateDurationString(startTime, endTime) {
+  const secondsAgo = Math.round((endTime - startTime) / 1000);
+
+  if (secondsAgo === 0) {
     return ZERO_SECONDS;
   }
 
   const durationSegments = [];
-  if (duration.months()) {
-    const months = pluralize(duration.months(), 'month', 'months');
-    durationSegments.push(`${duration.months()} ${months}`);
+  if (secondsAgo % 60 !== 0) {
+    durationSegments.push(`${secondsAgo % 60} sec`);
   }
-  if (duration.days()) {
-    const days = pluralize(duration.days(), 'day', 'days');
-    durationSegments.push(`${duration.days()} ${days}`);
+  const minutesAgo = Math.round(secondsAgo / 60);
+  if (minutesAgo % 60 !== 0) {
+    durationSegments.push(`${minutesAgo % 60} min`);
   }
-  if (duration.hours()) {
-    const hours = pluralize(duration.hours(), 'hour', 'hours');
-    durationSegments.push(`${duration.hours()} ${hours}`);
+  const hoursAgo = Math.round(minutesAgo / 60);
+  if (hoursAgo % 24 !== 0) {
+    const hours = pluralize(hoursAgo % 24, 'hour', 'hours');
+    durationSegments.push(`${hoursAgo % 24} ${hours}`);
   }
-  if (duration.minutes()) {
-    durationSegments.push(`${duration.minutes()} min`);
+  const daysAgo = Math.round(hoursAgo / 24);
+  if (daysAgo % 30 !== 0) {
+    const days = pluralize(daysAgo % 30, 'day', 'days');
+    durationSegments.push(`${daysAgo % 30} ${days}`);
   }
-  if (duration.seconds()) {
-    durationSegments.push(`${duration.seconds()} sec`);
+  const monthsAgo = Math.round(daysAgo / 30);
+  if (monthsAgo > 0) {
+    const months = pluralize(monthsAgo, 'month', 'months');
+    durationSegments.push(`${monthsAgo} ${months}`);
   }
-  return durationSegments.slice(0, 2).join(' ');
+  return durationSegments.reverse().slice(0, 2).join(' ');
 }
 
 /**

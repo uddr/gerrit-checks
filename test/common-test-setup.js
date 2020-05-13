@@ -55,7 +55,4 @@ import 'polymer-bridges/polymer/lib/elements/array-selector_bridge.js';
 import 'polymer-bridges/polymer/lib/elements/custom-style_bridge.js';
 import 'polymer-bridges/polymer/lib/legacy/mutable-data-behavior_bridge.js';
 import 'polymer-bridges/polymer/polymer-legacy_bridge.js';
-
 import '@polymer/iron-test-helpers/iron-test-helpers.js';
-import moment from 'moment/src/moment.js';
-self.moment = moment;
