@@ -152,7 +152,7 @@
   },
   "overrides": [
     {
-      "files": ["*_html.js", "*-styles.js", "externs.js"],
+      "files": ["*_html.js", "*-styles.js"],
       "rules": {
         "max-len": "off"
       }

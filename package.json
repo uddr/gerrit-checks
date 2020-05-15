@@ -20,7 +20,6 @@
     "eslint-plugin-html": "^6.0.0",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-jsdoc": "^19.2.0",
-    "moment": "^2.24.0",
     "polymer-bridges": "file:../../polymer-bridges/",
     "polymer-cli": "^1.9.11"
   },
