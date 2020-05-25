@@ -20,7 +20,7 @@ You will need `polymer-bridges` which is a submodule you can clone from: https:/
 ## Test plugin on Gerrit
 
 1. Build the bundle locally with: `bazel build gr-checks:gr-checks`
-2. Serve your generated 'checks.js' somewhere, you can put it under `gerrit/plugins/checks/` folder and it will automatically served at `http://localhost:8081/plugins_/checks/`
+2. Serve your generated 'checks.js' somewhere, you can put it under `gerrit/plugins/checks/` folder and it will automatically served at `http://localhost:8081/plugins_/checks/` (no need to pass it to --plugins flag)
 3. Use FE dev helper, https://gerrit.googlesource.com/gerrit-fe-dev-helper/, inject the local served 'checks.js' to the page
 
 If your plugin is already enabled, then you can block it and then inject the compiled local verison.
