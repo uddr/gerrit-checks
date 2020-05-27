@@ -31,6 +31,7 @@ import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.UserInitiated;
 import com.google.gerrit.server.change.NotifyResolver;
+import com.google.gerrit.server.mail.send.MessageIdGenerator;
 import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -64,6 +65,7 @@ public class ChecksUpdate {
   private final Checks checks;
   private final Checkers checkers;
   private final NotifyResolver notifyResolver;
+  private final MessageIdGenerator messageIdGenerator;
   private final Optional<IdentifiedUser> currentUser;
 
   @AssistedInject
@@ -76,6 +78,7 @@ public class ChecksUpdate {
       Checks checks,
       Checkers checkers,
       NotifyResolver notifyResolver,
+      MessageIdGenerator messageIdGenerator,
       @Assisted IdentifiedUser currentUser) {
     this.checksStorageUpdate = checksStorageUpdate;
     this.combinedCheckStateCache = combinedCheckStateCache;
@@ -85,6 +88,7 @@ public class ChecksUpdate {
     this.checks = checks;
     this.checkers = checkers;
     this.notifyResolver = notifyResolver;
+    this.messageIdGenerator = messageIdGenerator;
     this.currentUser = Optional.of(currentUser);
   }
 
@@ -97,7 +101,8 @@ public class ChecksUpdate {
       PatchSetUtil psUtil,
       Checks checks,
       Checkers checkers,
-      NotifyResolver notifyResolver) {
+      NotifyResolver notifyResolver,
+      MessageIdGenerator messageIdGenerator) {
     this.checksStorageUpdate = checksStorageUpdate;
     this.combinedCheckStateCache = combinedCheckStateCache;
     this.combinedCheckStateUpdatedSenderFactory = combinedCheckStateUpdatedSenderFactory;
@@ -106,6 +111,7 @@ public class ChecksUpdate {
     this.checks = checks;
     this.checkers = checkers;
     this.notifyResolver = notifyResolver;
+    this.messageIdGenerator = messageIdGenerator;
     this.currentUser = Optional.empty();
   }
 
@@ -200,6 +206,8 @@ public class ChecksUpdate {
           updatedCheck);
       sender.setNotify(notify);
       sender.setChecksByChecker(getAllChecksByChecker(checkKey));
+      sender.setMessageId(
+          messageIdGenerator.fromChangeUpdate(checkKey.repository(), checkKey.patchSet()));
       sender.send();
     } catch (Exception e) {
       logger.atSevere().withCause(e).log(
