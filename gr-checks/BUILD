@@ -1,13 +1,13 @@
+load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
+load("//tools/bzl:js.bzl", "polygerrit_plugin")
+load("//tools/bzl:genrule2.bzl", "genrule2")
+
 package_group(
     name = "visibility",
     packages = ["//plugins/checks/..."],
 )
 
 package(default_visibility = [":visibility"])
-
-load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
-load("//tools/bzl:js.bzl", "polygerrit_plugin")
-load("//tools/bzl:genrule2.bzl", "genrule2")
 
 polygerrit_plugin(
     name = "gr-checks",
@@ -19,9 +19,9 @@ rollup_bundle(
     name = "checks-bundle",
     srcs = glob(["*.js"]),
     entry_point = "gr-checks.js",
+    format = "iife",
     rollup_bin = "//tools/node_tools:rollup-bin",
     sourcemap = "hidden",
-    format = 'iife',
     deps = [
         "@tools_npm//rollup-plugin-node-resolve",
     ],

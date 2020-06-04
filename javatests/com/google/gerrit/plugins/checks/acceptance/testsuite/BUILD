@@ -1,6 +1,6 @@
-package(default_visibility = ["//plugins/checks:visibility"])
-
 load("//javatests/com/google/gerrit/acceptance:tests.bzl", "acceptance_tests")
+
+package(default_visibility = ["//plugins/checks:visibility"])
 
 acceptance_tests(
     srcs = glob(["*Test.java"]),

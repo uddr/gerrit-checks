@@ -1,6 +1,6 @@
-package(default_visibility = ["//plugins/checks:visibility"])
-
 load("//tools/bzl:junit.bzl", "junit_tests")
+
+package(default_visibility = ["//plugins/checks:visibility"])
 
 junit_tests(
     name = "checks_tests",
