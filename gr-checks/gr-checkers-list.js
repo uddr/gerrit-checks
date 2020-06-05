@@ -200,7 +200,7 @@ class GrCheckersList extends Polymer.GestureEventListeners(
   }
 
   _handleEditCancel(e) {
-    if (e.detail.reload) {
+    if (e.detail && e.detail.reload) {
       this._getCheckers();
     }
     this.$.editOverlay.close();
