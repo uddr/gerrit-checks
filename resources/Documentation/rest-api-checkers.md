@@ -107,7 +107,7 @@ Unsetting properties:
 * `name`: Can be unset by setting an empty string ("") for it.
 * `description`: Can be unset by setting an empty string ("") for it.
 * `url`: Can be unset by setting an empty string ("") for it.
-* '`repository`: Cannot be unset. Attempting to set it to an empty string ("")
+* `repository`: Cannot be unset. Attempting to set it to an empty string ("")
   or a string that is empty after trim is rejected as `400 Bad Request`.
 * `status`: Cannot be unset.
 * `blocking`: Can be unset by setting an empty list (\[\]) for it.

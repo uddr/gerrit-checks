@@ -13,8 +13,9 @@
 // limitations under the License.
 package com.google.gerrit.plugins.checks.db;
 
+import com.google.gerrit.entities.Project;
+import com.google.gerrit.pgm.init.api.AllProjectsNameOnInitProvider;
 import com.google.gerrit.plugins.checks.CheckerRef;
-import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -32,16 +33,17 @@ public class CheckerRefMigration {
   private static final String LEGACY_REFS_META_CHECKERS = "refs/meta/checkers/";
 
   private final GitRepositoryManager repoManager;
-  private final AllProjectsName allProjectsName;
+  private final AllProjectsNameOnInitProvider allProjectsName;
 
   @Inject
-  CheckerRefMigration(GitRepositoryManager repoManager, AllProjectsName allProjectsName) {
+  CheckerRefMigration(
+      GitRepositoryManager repoManager, AllProjectsNameOnInitProvider allProjectsName) {
     this.repoManager = repoManager;
     this.allProjectsName = allProjectsName;
   }
 
   public void migrate() throws Exception {
-    try (Repository repo = repoManager.openRepository(allProjectsName)) {
+    try (Repository repo = repoManager.openRepository(Project.nameKey(allProjectsName.get()))) {
 
       // This part is specifically for cases where the rename failed half-way last time.
       Ref ref = repo.exactRef(TMP_REF);
