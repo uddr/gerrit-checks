@@ -114,7 +114,7 @@ global capability are permitted to create check.
     "checker_uuid": "test:my-checker",
     "state": "RUNNING",
     "url": "https://foo.corp.com/test-checker/results/123",
-    "started": "2019-01-31 09:59:32.126000000",
+    "started": "2019-01-31 09:59:32.126000000"
   }
 ```
 
