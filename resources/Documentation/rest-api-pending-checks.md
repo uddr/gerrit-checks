@@ -62,11 +62,11 @@ entities is returned that describes the pending checks.
       "patch_set": {
         "repository": "test-repo",
         "change_number": 1,
-        "patch_set_id": 1,
+        "patch_set_id": 1
       }
       "pending_checks": {
         "test:my-checker": {
-          "state": "NOT_STARTED",
+          "state": "NOT_STARTED"
         }
       }
     },
@@ -74,11 +74,11 @@ entities is returned that describes the pending checks.
       "patch_set": {
         "repository": "test-repo",
         "change_number": 5,
-        "patch_set_id": 2,
+        "patch_set_id": 2
       }
       "pending_checks": {
         "test:my-checker": {
-          "state": "SCHEDULED",
+          "state": "SCHEDULED"
         }
       }
     }
