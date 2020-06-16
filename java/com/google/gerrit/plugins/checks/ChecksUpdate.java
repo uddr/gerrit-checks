@@ -17,12 +17,16 @@ package com.google.gerrit.plugins.checks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.PatchSet;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.exceptions.DuplicateKeyException;
+import com.google.gerrit.extensions.api.changes.Changes;
 import com.google.gerrit.extensions.api.changes.NotifyHandling;
 import com.google.gerrit.extensions.api.changes.NotifyInfo;
 import com.google.gerrit.extensions.api.changes.RecipientType;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.plugins.checks.Checks.GetCheckOptions;
 import com.google.gerrit.plugins.checks.api.CombinedCheckState;
 import com.google.gerrit.plugins.checks.email.CombinedCheckStateUpdatedSender;
@@ -64,6 +68,7 @@ public class ChecksUpdate {
   private final Checks checks;
   private final Checkers checkers;
   private final NotifyResolver notifyResolver;
+  private final Changes changes;
   private final Optional<IdentifiedUser> currentUser;
 
   @AssistedInject
@@ -76,6 +81,7 @@ public class ChecksUpdate {
       Checks checks,
       Checkers checkers,
       NotifyResolver notifyResolver,
+      Changes changes,
       @Assisted IdentifiedUser currentUser) {
     this.checksStorageUpdate = checksStorageUpdate;
     this.combinedCheckStateCache = combinedCheckStateCache;
@@ -85,6 +91,7 @@ public class ChecksUpdate {
     this.checks = checks;
     this.checkers = checkers;
     this.notifyResolver = notifyResolver;
+    this.changes = changes;
     this.currentUser = Optional.of(currentUser);
   }
 
@@ -97,7 +104,8 @@ public class ChecksUpdate {
       PatchSetUtil psUtil,
       Checks checks,
       Checkers checkers,
-      NotifyResolver notifyResolver) {
+      NotifyResolver notifyResolver,
+      Changes changes) {
     this.checksStorageUpdate = checksStorageUpdate;
     this.combinedCheckStateCache = combinedCheckStateCache;
     this.combinedCheckStateUpdatedSenderFactory = combinedCheckStateUpdatedSenderFactory;
@@ -106,6 +114,7 @@ public class ChecksUpdate {
     this.checks = checks;
     this.checkers = checkers;
     this.notifyResolver = notifyResolver;
+    this.changes = changes;
     this.currentUser = Optional.empty();
   }
 
@@ -122,6 +131,8 @@ public class ChecksUpdate {
 
     CombinedCheckState newCombinedCheckState =
         combinedCheckStateCache.get(key.repository(), key.patchSet());
+    maybeIndexChange(
+        oldCombinedCheckState, newCombinedCheckState, key.repository(), key.patchSet().changeId());
     maybeSendEmail(
         notifyHandling, notifyDetails, check, oldCombinedCheckState, newCombinedCheckState);
 
@@ -141,10 +152,26 @@ public class ChecksUpdate {
 
     CombinedCheckState newCombinedCheckState =
         combinedCheckStateCache.get(key.repository(), key.patchSet());
+    maybeIndexChange(
+        oldCombinedCheckState, newCombinedCheckState, key.repository(), key.patchSet().changeId());
     maybeSendEmail(
         notifyHandling, notifyDetails, check, oldCombinedCheckState, newCombinedCheckState);
 
     return check;
+  }
+
+  private void maybeIndexChange(
+      CombinedCheckState oldState,
+      CombinedCheckState newState,
+      Project.NameKey project,
+      Change.Id changeId) {
+    if (oldState != newState) {
+      try {
+        changes.id(project.get(), changeId.get()).index();
+      } catch (RestApiException e) {
+        logger.atSevere().withCause(e).log("Cannot index change: %s after check update.", changeId);
+      }
+    }
   }
 
   private void maybeSendEmail(
