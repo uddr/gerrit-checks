@@ -40,7 +40,7 @@ checkers).
       "checker_uuid": "test:my-checker",
       "state": "NOT_STARTED",
       "url": "https://foo.corp.com/test-checker/results/123",
-      "created": "2019-01-31 09:59:32.126000000"
+      "created": "2019-01-31 09:59:32.126000000",
       "updated": "2019-01-31 09:59:32.126000000"
     },
     {
@@ -49,7 +49,7 @@ checkers).
       "patch_set_id": 1,
       "checker_uuid": "foo:foo-checker",
       "state": "FINISHED",
-      "created": "2019-01-31 09:59:32.126000000"
+      "created": "2019-01-31 09:59:32.126000000",
       "updated": "2019-01-31 09:59:32.126000000"
     }
    ]
@@ -88,7 +88,7 @@ check.
     "checker_uuid": "test:my-checker",
     "state": "NOT_STARTED",
     "url": "https://foo.corp.com/test-checker/results/123",
-    "created": "2019-01-31 09:59:32.126000000"
+    "created": "2019-01-31 09:59:32.126000000",
     "updated": "2019-01-31 09:59:32.126000000"
   }
 ```
@@ -114,7 +114,7 @@ global capability are permitted to create check.
     "checker_uuid": "test:my-checker",
     "state": "RUNNING",
     "url": "https://foo.corp.com/test-checker/results/123",
-    "started": "2019-01-31 09:59:32.126000000",
+    "started": "2019-01-31 09:59:32.126000000"
   }
 ```
 
@@ -136,7 +136,7 @@ the created check.
     "state": "RUNNING",
     "url": "https://foo.corp.com/test-checker/results/123",
     "started": "2019-01-31 09:59:32.126000000",
-    "created": "2019-01-31 09:59:32.126000000"
+    "created": "2019-01-31 09:59:32.126000000",
     "updated": "2019-01-31 09:59:32.126000000"
   }
 ```

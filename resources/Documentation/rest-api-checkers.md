@@ -64,7 +64,7 @@ are permitted to create checkers.
     "uuid": "test:my-checker",
     "name": "MyChecker",
     "description": "A simple checker.",
-    "repository": "examples/Foo",
+    "repository": "examples/Foo"
   }
 ```
 
