@@ -77,7 +77,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   public void setup() throws Exception {
     // Create a bot account, create a bots group and add the bot as member and allow the bots group
     // to post checks.
-    bot = accountCreator.create("bot", "bot@test.com", "Bot", null);
+    bot = accountCreator.create("bot", "bot@example.com", "Bot", null);
     AccountGroup.UUID botsAccountGroupUuid =
         groupOperations.newGroup().name("bots").addMember(bot.id()).create();
     projectOperations
@@ -93,16 +93,16 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     patchSetId = result.getPatchSetId();
 
     // Add a reviewer.
-    reviewer = accountCreator.create("reviewer", "reviewer@test.com", "Reviewer", null);
+    reviewer = accountCreator.create("reviewer", "reviewer@example.com", "Reviewer", null);
     gApi.changes().id(patchSetId.changeId().get()).addReviewer(reviewer.username());
 
     // Star the change from some user.
-    starrer = accountCreator.create("starred", "starrer@test.com", "Starrer", null);
+    starrer = accountCreator.create("starred", "starrer@example.com", "Starrer", null);
     requestScopeOperations.setApiUser(starrer.id());
     gApi.accounts().self().starChange(patchSetId.changeId().toString());
 
     // Watch all comments of change from some user.
-    watcher = accountCreator.create("watcher", "watcher@test.com", "Watcher", null);
+    watcher = accountCreator.create("watcher", "watcher@example.com", "Watcher", null);
     requestScopeOperations.setApiUser(watcher.id());
     ProjectWatchInfo projectWatchInfo = new ProjectWatchInfo();
     projectWatchInfo.project = project.get();
@@ -114,7 +114,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     TestAccount changeCreationWatcher =
         accountCreator.create(
             "changeCreationWatcher",
-            "changeCreationWatcher@test.com",
+            "changeCreationWatcher@example.com",
             "Change Creation Watcher",
             null);
     requestScopeOperations.setApiUser(changeCreationWatcher.id());
@@ -125,7 +125,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     gApi.accounts().self().setWatchedProjects(ImmutableList.of(projectWatchInfo));
 
     // Add a reviewer that ignores the change --> user doesn't get notified by checks plugin.
-    ignoringReviewer = accountCreator.create("ignorer", "ignorer@test.com", "Ignorer", null);
+    ignoringReviewer = accountCreator.create("ignorer", "ignorer@example.com", "Ignorer", null);
     requestScopeOperations.setApiUser(admin.id());
     gApi.changes().id(patchSetId.changeId().get()).addReviewer(ignoringReviewer.username());
     requestScopeOperations.setApiUser(ignoringReviewer.id());
