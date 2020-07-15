@@ -164,9 +164,4 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
       appendHtml(soyHtmlTemplate("CombinedCheckStateUpdatedHtml"));
     }
   }
-
-  @Override
-  protected boolean supportsHtml() {
-    return true;
-  }
 }
