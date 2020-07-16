@@ -63,9 +63,9 @@ public class ChecksSubmitRule implements SubmitRule {
     Project.NameKey project = changeData.project();
     Change.Id changeId = changeData.getId();
 
-    PatchSet.Id currentPathSetId;
+    PatchSet.Id currentPatchSetId;
     try {
-      currentPathSetId = changeData.currentPatchSet().id();
+      currentPatchSetId = changeData.currentPatchSet().id();
     } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);
@@ -76,7 +76,7 @@ public class ChecksSubmitRule implements SubmitRule {
     boolean areAllRequiredCheckersPassing;
     try {
       areAllRequiredCheckersPassing =
-          checks.areAllRequiredCheckersPassing(project, currentPathSetId);
+          checks.areAllRequiredCheckersPassing(project, currentPatchSetId);
     } catch (IOException e) {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
