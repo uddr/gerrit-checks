@@ -20,11 +20,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.gerrit.common.data.SubmitRecord;
 import com.google.gerrit.entities.Account;
 import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.entities.Project;
+import com.google.gerrit.entities.SubmitRecord;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.util.time.TimeUtil;

@@ -16,12 +16,12 @@ package com.google.gerrit.plugins.checks.rules;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.common.data.SubmitRecord;
-import com.google.gerrit.common.data.SubmitRecord.Status;
-import com.google.gerrit.common.data.SubmitRequirement;
 import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.entities.Project;
+import com.google.gerrit.entities.SubmitRecord;
+import com.google.gerrit.entities.SubmitRecord.Status;
+import com.google.gerrit.entities.SubmitRequirement;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.FactoryModule;
 import com.google.gerrit.plugins.checks.Checks;
