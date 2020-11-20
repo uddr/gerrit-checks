@@ -67,7 +67,7 @@ public class ChecksFactory {
 
   private ChangeResource getChangeResource(Change.Id changeId) throws RestApiException {
     try {
-      ChangeNotes notes = changeNotesFactory.createChecked(changeId);
+      ChangeNotes notes = changeNotesFactory.createCheckedUsingIndexLookup(changeId);
       return changeResourceFactory.create(notes, user.get());
     } catch (NoSuchChangeException e) {
       throw new ResourceNotFoundException(String.format("Change %d not found", changeId.get()), e);
