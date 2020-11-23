@@ -21,8 +21,9 @@ import './gr-checks-change-list-header-view.js';
 import './gr-checks-change-list-item-cell-view.js';
 import './gr-checks-item.js';
 import './gr-checks-status.js';
+import {RebootFetcher} from './gr-checks-reboot.js';
 
-Gerrit.install(plugin => {
+function installChecksLegacy(plugin) {
   const getChecks = (change, revision) => {
     return plugin.restApi().get(
         '/changes/' + change + '/revisions/' + revision + '/checks?o=CHECKER');
@@ -54,4 +55,25 @@ Gerrit.install(plugin => {
         view['isConfigured'] = repository => Promise.resolve(true);
         view['getChecks'] = getChecks;
       });
+}
+
+function installChecksReboot(plugin) {
+  const checksApi = plugin.checks();
+  const fetcher = new RebootFetcher(plugin.restApi());
+  checksApi.register({
+    fetch: (changeNumber, patchsetNumber) => fetcher.fetch(changeNumber,
+        patchsetNumber)
+  });
+}
+
+Gerrit.install(plugin => {
+  const experiments = window.ENABLED_EXPERIMENTS || [];
+  if (experiments.includes("UiFeature__ci_reboot_checks")) {
+    // Until end of 2020 this is only interesting for developing purposes. So
+    // no real user is affected for the time being.
+    console.log('Installing checks REBOOT plugin.');
+    installChecksReboot(plugin);
+  } else {
+    installChecksLegacy(plugin);
+  }
 });
