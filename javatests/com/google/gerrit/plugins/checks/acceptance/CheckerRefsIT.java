@@ -30,7 +30,6 @@ import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.Permission;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.extensions.client.ChangeStatus;
-import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.plugins.checks.CheckerUuid;
@@ -303,52 +302,6 @@ public class CheckerRefsIT extends AbstractCheckersTest {
     PushOneCommit.Result r =
         pushFactory.create(admin.newIdent(), repo).to("refs/for/" + checkerRef);
     r.assertOkStatus();
-  }
-
-  @Test
-  public void createChangeForCheckerRefsViaApiIsDisabled() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().create();
-    String checkerRef = checkerUuid.toRefName();
-
-    TestRepository<InMemoryRepository> repo = cloneProject(allProjects, admin);
-    fetch(repo, checkerRef + ":checkerRef");
-    repo.reset("checkerRef");
-    RevCommit head = getHead(repo.getRepository(), "HEAD");
-
-    ChangeInput input = new ChangeInput();
-    input.project = allProjects.get();
-    input.branch = checkerRef;
-    input.baseCommit = head.name();
-    input.subject = "A change.";
-
-    ResourceConflictException thrown =
-        assertThrows(ResourceConflictException.class, () -> gApi.changes().create(input));
-    assertThat(thrown).hasMessageThat().contains("creating change for checker ref not allowed");
-  }
-
-  @Test
-  public void createChangeForCheckerLikeRefViaApi() throws Exception {
-    String checkerRef = CheckerUuid.parse("foo:bar").toRefName();
-
-    projectOperations
-        .project(project)
-        .forUpdate()
-        .add(allow(Permission.CREATE).ref(checkerRef).group(adminGroupUuid()))
-        .update();
-    createBranch(BranchNameKey.create(project, checkerRef));
-
-    TestRepository<InMemoryRepository> repo = cloneProject(project, admin);
-    fetch(repo, checkerRef + ":checkerRef");
-    repo.reset("checkerRef");
-    RevCommit head = getHead(repo.getRepository(), "HEAD");
-
-    // creating a change on a checker ref via API should work in any project except All-Projects
-    ChangeInput input = new ChangeInput();
-    input.project = project.get();
-    input.branch = checkerRef;
-    input.baseCommit = head.name();
-    input.subject = "A change.";
-    assertThat(gApi.changes().create(input).get()).isNotNull();
   }
 
   private String createChangeWithoutCommitValidation(Project.NameKey project, String targetRef)
