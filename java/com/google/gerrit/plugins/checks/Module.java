@@ -31,8 +31,8 @@ import com.google.gerrit.server.DynamicOptions;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.ServerInitiated;
 import com.google.gerrit.server.UserInitiated;
-import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.change.ChangeETagComputation;
+import com.google.gerrit.server.change.ChangePluginDefinedInfoFactory;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.MergeValidationListener;
 import com.google.gerrit.server.git.validators.RefOperationValidationListener;
@@ -67,7 +67,8 @@ public class Module extends FactoryModule {
         .to(ChecksETagComputation.class)
         .in(SINGLETON);
 
-    DynamicSet.bind(binder(), ChangeAttributeFactory.class).to(ChangeCheckAttributeFactory.class);
+    DynamicSet.bind(binder(), ChangePluginDefinedInfoFactory.class)
+        .to(ChangeCheckAttributeFactory.class);
     bind(DynamicOptions.DynamicBean.class)
         .annotatedWith(Exports.named(GetChange.class))
         .to(GetChangeOptions.class);
