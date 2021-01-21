@@ -79,6 +79,42 @@
             .querySelector(`td:nth-of-type(${idx})`);
         assert.equal(name.textContent.trim(), '0 sec');
       });
+
+      test('renders > 1m correctly', () => {
+        element.check = {
+          checkId: 'test-check-id',
+           started: '2019-02-06T22:25:19.269Z',
+          finished: '2019-02-06T22:45:29.269Z',
+        };
+        const idx = CHECKS_ITEM.DURATION;
+        const name = element.shadowRoot
+            .querySelector(`td:nth-of-type(${idx})`);
+        assert.equal(name.textContent.trim(), '20 min 10 sec');
+      });
+
+      test('renders > 1h correctly', () => {
+        element.check = {
+          checkId: 'test-check-id',
+           started: '2019-02-06T22:25:19.269Z',
+          finished: '2019-02-06T23:45:29.269Z',
+        };
+        const idx = CHECKS_ITEM.DURATION;
+        const name = element.shadowRoot
+            .querySelector(`td:nth-of-type(${idx})`);
+        assert.equal(name.textContent.trim(), '1 hour 20 min');
+      });
+
+      test('renders > 1d correctly', () => {
+        element.check = {
+          checkId: 'test-check-id',
+           started: '2019-02-06T22:25:19.269Z',
+          finished: '2019-02-07T23:45:29.269Z',
+        };
+        const idx = CHECKS_ITEM.DURATION;
+        const name = element.shadowRoot
+            .querySelector(`td:nth-of-type(${idx})`);
+        assert.equal(name.textContent.trim(), '1 day 1 hour');
+      });
     });
 
     test('renders a link to the log', () => {

@@ -225,21 +225,21 @@ function generateDurationString(startTime, endTime) {
   if (secondsAgo % 60 !== 0) {
     durationSegments.push(`${secondsAgo % 60} sec`);
   }
-  const minutesAgo = Math.round(secondsAgo / 60);
+  const minutesAgo = Math.floor(secondsAgo / 60);
   if (minutesAgo % 60 !== 0) {
     durationSegments.push(`${minutesAgo % 60} min`);
   }
-  const hoursAgo = Math.round(minutesAgo / 60);
+  const hoursAgo = Math.floor(minutesAgo / 60);
   if (hoursAgo % 24 !== 0) {
     const hours = pluralize(hoursAgo % 24, 'hour', 'hours');
     durationSegments.push(`${hoursAgo % 24} ${hours}`);
   }
-  const daysAgo = Math.round(hoursAgo / 24);
+  const daysAgo = Math.floor(hoursAgo / 24);
   if (daysAgo % 30 !== 0) {
     const days = pluralize(daysAgo % 30, 'day', 'days');
     durationSegments.push(`${daysAgo % 30} ${days}`);
   }
-  const monthsAgo = Math.round(daysAgo / 30);
+  const monthsAgo = Math.floor(daysAgo / 30);
   if (monthsAgo > 0) {
     const months = pluralize(monthsAgo, 'month', 'months');
     durationSegments.push(`${monthsAgo} ${months}`);
