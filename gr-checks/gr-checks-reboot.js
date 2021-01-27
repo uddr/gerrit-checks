@@ -62,9 +62,14 @@ function convert(check) {
   if (check.finished) run.finishedTimestamp = new Date(check.finished);
   if (status === 'RUNNING') {
     run.statusDescription = check.message;
-  } else if (status === 'COMPLETED') {
+  } else if (check.state === 'SUCCESSFUL') {
+    run.statusDescription = check.message;
+    if (check.url) {
+      run.statusLink = check.url;
+    }
+  } else if (check.state === 'FAILED') {
     run.results = [{
-      category: check.state === 'FAILED' ? 'ERROR' : 'INFO',
+      category: 'ERROR',
       summary: check.message,
     }];
     if (check.url) {
