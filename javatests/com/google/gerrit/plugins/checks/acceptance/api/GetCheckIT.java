@@ -518,8 +518,9 @@ public class GetCheckIT extends AbstractCheckersTest {
 
   @Test
   public void getCheckOnChangeEditRejected() throws Exception {
-    int changeId = patchSetId.changeId().get();
-    gApi.changes().id(changeId).edit().modifyCommitMessage("new message");
+    int numChangeId = patchSetId.changeId().get();
+    String changeId = gApi.changes().id(numChangeId).get().changeId;
+    gApi.changes().id(changeId).edit().modifyCommitMessage("Change edit\n\nChange-Id: " + changeId);
     Optional<EditInfo> editInfo = gApi.changes().id(changeId).edit().get();
     assertThat(editInfo).isPresent();
 

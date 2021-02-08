@@ -338,7 +338,7 @@ public class ListChecksIT extends AbstractCheckersTest {
 
   @Test
   public void listAllOnChangeEditRejected() throws Exception {
-    gApi.changes().id(changeId).edit().modifyCommitMessage("new message");
+    gApi.changes().id(changeId).edit().modifyCommitMessage("Change edit\n\nChange-Id: " + changeId);
     Optional<EditInfo> editInfo = gApi.changes().id(changeId).edit().get();
     assertThat(editInfo).isPresent();
 
