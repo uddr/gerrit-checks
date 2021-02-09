@@ -68,7 +68,7 @@ function installChecksReboot(plugin) {
 
 Gerrit.install(plugin => {
   const experiments = window.ENABLED_EXPERIMENTS || [];
-  if (experiments.includes("UiFeature__ci_reboot_checks")) {
+  if (experiments.includes("UiFeature__ci_reboot_checks_checks")) {
     // Until end of 2020 this is only interesting for developing purposes. So
     // no real user is affected for the time being.
     console.log('Installing checks REBOOT plugin.');
