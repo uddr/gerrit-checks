@@ -443,30 +443,4 @@ public class UpdateCheckIT extends AbstractCheckersTest {
     String newETag = parseChangeResource(patchSetId.changeId().toString()).getETag();
     assertThat(newETag).isEqualTo(oldETag);
   }
-
-  @Test
-  public void updateOfCheckChangesETagOfRevisionActions() throws Exception {
-    String oldETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
-
-    CheckInput input = new CheckInput();
-    input.state = CheckState.FAILED;
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
-
-    String newETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
-    assertThat(newETag).isNotEqualTo(oldETag);
-  }
-
-  @Test
-  public void noOpUpdateOfCheckDoesNotChangeETagOfRevisionActions() throws Exception {
-    CheckInput input = new CheckInput();
-    input.state = CheckState.FAILED;
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
-
-    String oldETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
-
-    checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
-
-    String newETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
-    assertThat(newETag).isEqualTo(oldETag);
-  }
 }

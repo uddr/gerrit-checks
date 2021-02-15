@@ -383,21 +383,6 @@ public class CreateCheckIT extends AbstractCheckersTest {
     assertThat(newETag).isNotEqualTo(oldETag);
   }
 
-  @Test
-  public void creationOfCheckChangesETagOfRevisionActions() throws Exception {
-    CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
-
-    String oldETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
-
-    CheckInput input = new CheckInput();
-    input.checkerUuid = checkerUuid.get();
-    input.state = CheckState.RUNNING;
-    checksApiFactory.revision(patchSetId).create(input).get();
-
-    String newETag = gApi.changes().id(patchSetId.changeId().toString()).current().etag();
-    assertThat(newETag).isNotEqualTo(oldETag);
-  }
-
   // TODO(gerrit-team) More tests, especially for multiple checkers and PS and how commits behave
 
   private Check getCheck(Project.NameKey project, PatchSet.Id patchSetId, CheckerUuid checkerUuid)
