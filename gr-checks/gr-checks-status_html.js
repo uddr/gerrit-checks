@@ -36,6 +36,19 @@ export const htmlTemplate = Polymer.html`
         }
       </style>
     <span>
+      <template is="dom-if" if="[[_isNotRelevant(status)]]">
+        <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+          <g fill="none" fill-rule="evenodd">
+            <path d="M0 0h18v18H0z"/>
+            <path d="M9 11.8a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6M9 2a7 7 0 1 0 0 14A7 7 0 0 0 9 2" fill="#9E9E9E"/>
+          </g>
+        </svg>
+        <template is="dom-if" if="[[showText]]">
+          <span>
+            Not relevant
+          </span>
+        </template>
+      </template>
       <template is="dom-if" if="[[_isUnevaluated(status)]]">
         <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg">
           <g fill="none" fill-rule="evenodd">

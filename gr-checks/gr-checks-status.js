@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import {htmlTemplate} from './gr-checks-status_html.js';
-import {isUnevaluated, isInProgress, isRunning, isScheduled, isSuccessful, isFailed} from './gr-checks-all-statuses.js';
+import {isNotRelevant, isUnevaluated, isInProgress, isRunning, isScheduled, isSuccessful, isFailed} from './gr-checks-all-statuses.js';
 
 class GrChecksStatus extends Polymer.GestureEventListeners(
     Polymer.LegacyElementMixin(
@@ -41,6 +41,10 @@ class GrChecksStatus extends Polymer.GestureEventListeners(
       status: String,
       downgradeFailureToWarning: String,
     };
+  }
+
+  _isNotRelevant(status) {
+    return isNotRelevant(status);
   }
 
   _isUnevaluated(status) {

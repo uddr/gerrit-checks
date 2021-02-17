@@ -44,7 +44,15 @@ function isStatus(status, includedStatuses) {
  * @returns {boolean} if status is Unevaluated.
  */
 export function isUnevaluated(status) {
-  return isStatus(status, [Statuses.NOT_STARTED, Statuses.NOT_RELEVANT]);
+  return isStatus(status, [Statuses.NOT_STARTED]);
+}
+
+/**
+ * @param {string} status
+ * @returns {boolean} if status is Not Relevant
+ */
+export function isNotRelevant(status) {
+  return isStatus(status, [Statuses.NOT_RELEVANT]);
 }
 
 /**
