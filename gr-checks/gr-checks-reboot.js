@@ -31,7 +31,8 @@ export class RebootFetcher {
     return this.fetch(this.changeNumber, this.patchsetNumber);
   }
 
-  async fetch(changeNumber, patchsetNumber) {
+  async fetch(changeData) {
+    const {changeNumber, patchsetNumber} = changeData;
     this.changeNumber = changeNumber;
     this.patchsetNumber = patchsetNumber;
     console.log('Issuing REBOOT http call.');

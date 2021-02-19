@@ -61,8 +61,7 @@ function installChecksReboot(plugin) {
   const checksApi = plugin.checks();
   const fetcher = new RebootFetcher(plugin.restApi());
   checksApi.register({
-    fetch: (changeNumber, patchsetNumber) => fetcher.fetch(changeNumber,
-        patchsetNumber)
+    fetch: (data) => fetcher.fetch(data)
   });
 }
 
