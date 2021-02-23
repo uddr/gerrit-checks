@@ -16,6 +16,8 @@
 
 {namespace com.google.gerrit.server.mail.template}
 
+import * as mailTemplate from 'com/google/gerrit/server/mail/Private.soy';
+
 /**
  * The .CombinedCheckStateUpdatedHtml template will determine the contents of the email related to
  * a change for which the combined check state was updated.
@@ -91,7 +93,7 @@
 
   {if $email.changeUrl}
     <p>
-      {call .ViewChangeButton data="all" /}
+      {call mailTemplate.ViewChangeButton data="all" /}
     </p>
   {/if}
 {/template}
