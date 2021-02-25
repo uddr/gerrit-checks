@@ -21,8 +21,49 @@
  * expected that the amount of comments and tests is limited for the time being.
  */
 
-export class RebootFetcher {
+function generateDurationString(startTime, endTime) {
+  const secondsAgo = Math.round((endTime - startTime) / 1000);
 
+  if (secondsAgo === 0) {
+    return ZERO_SECONDS;
+  }
+
+  const durationSegments = [];
+  if (secondsAgo % 60 !== 0) {
+    durationSegments.push(`${secondsAgo % 60} sec`);
+  }
+  const minutesAgo = Math.floor(secondsAgo / 60);
+  if (minutesAgo % 60 !== 0) {
+    durationSegments.push(`${minutesAgo % 60} min`);
+  }
+  const hoursAgo = Math.floor(minutesAgo / 60);
+  if (hoursAgo % 24 !== 0) {
+    const hours = pluralize(hoursAgo % 24, 'hour', 'hours');
+    durationSegments.push(`${hoursAgo % 24} ${hours}`);
+  }
+  const daysAgo = Math.floor(hoursAgo / 24);
+  if (daysAgo % 30 !== 0) {
+    const days = pluralize(daysAgo % 30, 'day', 'days');
+    durationSegments.push(`${daysAgo % 30} ${days}`);
+  }
+  const monthsAgo = Math.floor(daysAgo / 30);
+  if (monthsAgo > 0) {
+    const months = pluralize(monthsAgo, 'month', 'months');
+    durationSegments.push(`${monthsAgo} ${months}`);
+  }
+  return durationSegments.reverse().slice(0, 2).join(' ');
+}
+
+function computeDuration(check) {
+  if (!check.started || !check.finished) {
+    return '-';
+  }
+  const startTime = new Date(check.started);
+  const finishTime = check.finished ? new Date(check.finished) : new Date();
+  return generateDurationString(startTime, finishTime);
+}
+
+export class RebootFetcher {
   constructor(restApi) {
     this.restApi = restApi;
   }
@@ -35,9 +76,7 @@ export class RebootFetcher {
     const {changeNumber, patchsetNumber} = changeData;
     this.changeNumber = changeNumber;
     this.patchsetNumber = patchsetNumber;
-    console.log('Issuing REBOOT http call.');
     const checks = await this.apiGet('?o=CHECKER');
-    console.log('Returning REBOOT response.');
     return {
       responseCode: 'OK',
       runs: checks.map(check => this.convert(check)),
@@ -80,14 +119,15 @@ export class RebootFetcher {
     if (status === 'RUNNING') {
       run.statusDescription = check.message;
     } else if (check.state === 'SUCCESSFUL') {
-      run.statusDescription = check.message;
+      run.statusDescription =
+          check.message || `Passed (${computeDuration(check)})`;
       if (check.url) {
         run.statusLink = check.url;
       }
     } else if (check.state === 'FAILED') {
       run.results = [{
         category: 'ERROR',
-        summary: check.message,
+        summary: check.message || `Failed (${computeDuration(check)})`,
       }];
       if (check.url) {
         run.results[0].links = [{
@@ -99,7 +139,7 @@ export class RebootFetcher {
     }
     if (status !== 'RUNNING') {
       run.actions = [{
-        name: "Run",
+        name: 'Run',
         primary: true,
         callback: () => this.run(check.checker_uuid),
       }];
@@ -108,8 +148,9 @@ export class RebootFetcher {
   }
 
   run(uuid) {
-    this.apiPost('/' + uuid + '/rerun')
-        .then(() => this.fetchCurrent().then(() => {}))
-        .catch(e => {errorMessage: e.message});
+    return this.apiPost('/' + uuid + '/rerun')
+        .catch(e => {
+          return {errorMessage: `Triggering the run failed: ${e.message}`};
+        });
   }
 }
