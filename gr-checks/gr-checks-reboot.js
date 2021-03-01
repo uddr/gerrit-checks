@@ -21,6 +21,11 @@
  * expected that the amount of comments and tests is limited for the time being.
  */
 
+function pluralize(count, noun) {
+  if (count === 0) return '';
+  return `${count} ${noun}` + (count > 1 ? 's' : '');
+}
+
 function generateDurationString(startTime, endTime) {
   const secondsAgo = Math.round((endTime - startTime) / 1000);
 
