@@ -44,17 +44,17 @@ function generateDurationString(startTime, endTime) {
   const hoursAgo = Math.floor(minutesAgo / 60);
   if (hoursAgo % 24 !== 0) {
     const hours = pluralize(hoursAgo % 24, 'hour', 'hours');
-    durationSegments.push(`${hoursAgo % 24} ${hours}`);
+    durationSegments.push(`${hours}`);
   }
   const daysAgo = Math.floor(hoursAgo / 24);
   if (daysAgo % 30 !== 0) {
     const days = pluralize(daysAgo % 30, 'day', 'days');
-    durationSegments.push(`${daysAgo % 30} ${days}`);
+    durationSegments.push(`${days}`);
   }
   const monthsAgo = Math.floor(daysAgo / 30);
   if (monthsAgo > 0) {
     const months = pluralize(monthsAgo, 'month', 'months');
-    durationSegments.push(`${monthsAgo} ${months}`);
+    durationSegments.push(`${months}`);
   }
   return durationSegments.reverse().slice(0, 2).join(' ');
 }
