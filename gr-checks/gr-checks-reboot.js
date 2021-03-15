@@ -123,6 +123,9 @@ export class RebootFetcher {
     if (check.finished) run.finishedTimestamp = new Date(check.finished);
     if (status === 'RUNNING') {
       run.statusDescription = check.message;
+      if (check.url) {
+        run.statusLink = check.url;
+      }
     } else if (check.state === 'SUCCESSFUL') {
       run.statusDescription =
           check.message || `Passed (${computeDuration(check)})`;
