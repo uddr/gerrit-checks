@@ -349,16 +349,20 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void createCheckOnChangeEditRejected() throws Exception {
-    int changeId = patchSetId.changeId().get();
-    gApi.changes().id(changeId).edit().modifyCommitMessage("new message");
-    assertThat(gApi.changes().id(changeId).edit().get()).isPresent();
+    int numChangeId = patchSetId.changeId().get();
+    String changeId = gApi.changes().id(numChangeId).get().changeId;
+    gApi.changes()
+        .id(numChangeId)
+        .edit()
+        .modifyCommitMessage("Change edit\n\nChange-Id: " + changeId);
+    assertThat(gApi.changes().id(numChangeId).edit().get()).isPresent();
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
 
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.get();
     input.state = CheckState.RUNNING;
     RestResponse response =
-        adminRestSession.post("/changes/" + changeId + "/revisions/edit/checks~checks", input);
+        adminRestSession.post("/changes/" + numChangeId + "/revisions/edit/checks~checks", input);
 
     response.assertConflict();
     assertThat(response.getEntityContent()).isEqualTo("checks are not supported on a change edit");
