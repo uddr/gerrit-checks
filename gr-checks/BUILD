@@ -1,6 +1,4 @@
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("//tools/bzl:js.bzl", "polygerrit_plugin")
-load("//tools/bzl:genrule2.bzl", "genrule2")
+load("//tools/bzl:js.bzl", "gerrit_js_bundle")
 
 package_group(
     name = "visibility",
@@ -9,32 +7,8 @@ package_group(
 
 package(default_visibility = [":visibility"])
 
-polygerrit_plugin(
-    name = "gr-checks",
-    app = "checks-bundle.js",
-    plugin_name = "checks",
-)
-
-rollup_bundle(
-    name = "checks-bundle",
+gerrit_js_bundle(
+    name = "checks",
     srcs = glob(["*.js"]),
     entry_point = "gr-checks.js",
-    format = "iife",
-    rollup_bin = "//tools/node_tools:rollup-bin",
-    sourcemap = "hidden",
-    deps = [
-        "@tools_npm//rollup-plugin-node-resolve",
-    ],
-)
-
-genrule2(
-    name = "gr-checks-static",
-    srcs = [":gr-checks"],
-    outs = ["gr-checks-static.jar"],
-    cmd = " && ".join([
-        "mkdir $$TMP/static",
-        "cp -r $(locations :gr-checks) $$TMP/static",
-        "cd $$TMP",
-        "zip -Drq $$ROOT/$@ -g .",
-    ]),
 )
