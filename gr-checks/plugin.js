@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,61 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {computeDuration} from './util.js';
 
-/**
- * Heads up! Everything in this file is still in flux. The new reboot checks API
- * is still in development. So everything in this file can change. And it is
- * expected that the amount of comments and tests is limited for the time being.
- */
-
-function pluralize(count, noun) {
-  if (count === 0) return '';
-  return `${count} ${noun}` + (count > 1 ? 's' : '');
-}
-
-function generateDurationString(startTime, endTime) {
-  const secondsAgo = Math.round((endTime - startTime) / 1000);
-
-  if (secondsAgo === 0) {
-    return ZERO_SECONDS;
-  }
-
-  const durationSegments = [];
-  if (secondsAgo % 60 !== 0) {
-    durationSegments.push(`${secondsAgo % 60} sec`);
-  }
-  const minutesAgo = Math.floor(secondsAgo / 60);
-  if (minutesAgo % 60 !== 0) {
-    durationSegments.push(`${minutesAgo % 60} min`);
-  }
-  const hoursAgo = Math.floor(minutesAgo / 60);
-  if (hoursAgo % 24 !== 0) {
-    const hours = pluralize(hoursAgo % 24, 'hour', 'hours');
-    durationSegments.push(`${hours}`);
-  }
-  const daysAgo = Math.floor(hoursAgo / 24);
-  if (daysAgo % 30 !== 0) {
-    const days = pluralize(daysAgo % 30, 'day', 'days');
-    durationSegments.push(`${days}`);
-  }
-  const monthsAgo = Math.floor(daysAgo / 30);
-  if (monthsAgo > 0) {
-    const months = pluralize(monthsAgo, 'month', 'months');
-    durationSegments.push(`${months}`);
-  }
-  return durationSegments.reverse().slice(0, 2).join(' ');
-}
-
-function computeDuration(check) {
-  if (!check.started || !check.finished) {
-    return '-';
-  }
-  const startTime = new Date(check.started);
-  const finishTime = check.finished ? new Date(check.finished) : new Date();
-  return generateDurationString(startTime, finishTime);
-}
-
-export class RebootFetcher {
+class ChecksFetcher {
   constructor(restApi) {
     this.restApi = restApi;
   }
@@ -90,21 +38,18 @@ export class RebootFetcher {
 
   async apiGet(suffix) {
     return this.restApi.get(
-        '/changes/' + this.changeNumber + '/revisions/' + this.patchsetNumber
-        + '/checks' + suffix);
+        '/changes/' + this.changeNumber + '/revisions/' + this.patchsetNumber +
+        '/checks' + suffix);
   }
 
   async apiPost(suffix) {
     return this.restApi.post(
-        '/changes/' + this.changeNumber + '/revisions/' + this.patchsetNumber
-        + '/checks' + suffix);
+        '/changes/' + this.changeNumber + '/revisions/' + this.patchsetNumber +
+        '/checks' + suffix);
   }
 
   /**
-   * Converts a Checks Plugin CheckInfo object into a Reboot Checks API Run
-   * object.
-   *
-   * TODO(brohlfs): Refine this conversion and add tests.
+   * Converts a Checks Plugin CheckInfo object into a Checks API Run object.
    */
   convert(check) {
     let status = 'RUNNABLE';
@@ -162,3 +107,11 @@ export class RebootFetcher {
         });
   }
 }
+
+Gerrit.install(plugin => {
+  const checksApi = plugin.checks();
+  const fetcher = new ChecksFetcher(plugin.restApi());
+  checksApi.register({
+    fetch: data => fetcher.fetch(data),
+  });
+});

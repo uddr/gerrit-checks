@@ -10,5 +10,5 @@ package(default_visibility = [":visibility"])
 gerrit_js_bundle(
     name = "checks",
     srcs = glob(["*.js"]),
-    entry_point = "gr-checks.js",
+    entry_point = "plugin.js",
 )
