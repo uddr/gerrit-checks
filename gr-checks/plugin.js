@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import './gr-checkers-list.js';
 import {computeDuration} from './util.js';
 
 class ChecksFetcher {
-  constructor(restApi) {
-    this.restApi = restApi;
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.restApi = plugin.restApi();
   }
 
   async fetchCurrent() {
@@ -32,6 +34,10 @@ class ChecksFetcher {
     const checks = await this.apiGet('?o=CHECKER');
     return {
       responseCode: 'OK',
+      actions: [{
+        name: 'Configure Checkers',
+        callback: () => this.plugin.popup('gr-checkers-list'),
+      }],
       runs: checks.map(check => this.convert(check)),
     };
   }
@@ -110,7 +116,7 @@ class ChecksFetcher {
 
 Gerrit.install(plugin => {
   const checksApi = plugin.checks();
-  const fetcher = new ChecksFetcher(plugin.restApi());
+  const fetcher = new ChecksFetcher(plugin);
   checksApi.register({
     fetch: data => fetcher.fetch(data),
   });

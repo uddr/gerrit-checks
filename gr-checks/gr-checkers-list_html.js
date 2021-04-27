@@ -19,6 +19,11 @@ export const htmlTemplate = Polymer.html`
     <style include="shared-styles"></style>
     <style include="gr-table-styles"></style>
     <style>
+      #container {
+        width: 80vw;
+        height: 80vh;
+        overflow: auto;
+      }
       iron-icon {
         cursor: pointer;
       }
@@ -63,14 +68,9 @@ export const htmlTemplate = Polymer.html`
         text-decoration: underline;
         cursor: pointer;
       }
-      #listOverlay {
-        max-width: 90%;
-        max-height: 90%;
-        overflow: auto;
-      }
     </style>
 
-    <gr-overlay on-fullscreen-overlay-closed="_handleOverlayClosed" id="listOverlay" with-backdrop>
+    <div id="container">
       <div id="topContainer">
         <div>
           <label>Filter:</label>
@@ -133,43 +133,41 @@ export const htmlTemplate = Polymer.html`
           </a>
         </template>
       </nav>
-
-      <gr-overlay id="createOverlay">
-        <gr-dialog
-            id="createDialog"
-            confirm-label="Create"
-            on-confirm="_handleCreateConfirm"
-            on-cancel="_handleCreateCancel">
-          <div class="header" slot="header">
-            Create Checkers
-          </div>
-          <div slot="main">
-            <gr-create-checkers-dialog
-              id="createNewModal"
-              plugin-rest-api="[[pluginRestApi]]">
-            </gr-create-checkers-dialog>
-          </div>
-        </gr-dialog>
-      </gr-overlay>
-      <gr-overlay id="editOverlay">
-        <gr-dialog
-            id="editDialog"
-            confirm-label="Save"
-            on-confirm="_handleEditConfirm"
-            on-cancel="_handleEditCancel">
-          <div class="header" slot="header">
-            Edit Checker
-          </div>
-          <div slot="main">
-            <gr-create-checkers-dialog
-                checker="[[checker]]"
-                plugin-rest-api="[[pluginRestApi]]"
-                on-cancel="_handleEditCancel"
-                id="editModal">
-            </gr-create-checkers-dialog>
-          </div>
-        </gr-dialog>
-      </gr-overlay>
+    </div>
+    <gr-overlay id="createOverlay">
+      <gr-dialog
+          id="createDialog"
+          confirm-label="Create"
+          on-confirm="_handleCreateConfirm"
+          on-cancel="_handleCreateCancel">
+        <div class="header" slot="header">
+          Create Checkers
+        </div>
+        <div slot="main">
+          <gr-create-checkers-dialog
+            id="createNewModal"
+            plugin-rest-api="[[pluginRestApi]]">
+          </gr-create-checkers-dialog>
+        </div>
+      </gr-dialog>
     </gr-overlay>
-    <gr-rest-api-interface id="restAPI"></gr-rest-api-interface>
+    <gr-overlay id="editOverlay">
+      <gr-dialog
+          id="editDialog"
+          confirm-label="Save"
+          on-confirm="_handleEditConfirm"
+          on-cancel="_handleEditCancel">
+        <div class="header" slot="header">
+          Edit Checker
+        </div>
+        <div slot="main">
+          <gr-create-checkers-dialog
+              checker="[[checker]]"
+              plugin-rest-api="[[pluginRestApi]]"
+              on-cancel="_handleEditCancel"
+              id="editModal">
+          </gr-create-checkers-dialog>
+        </div>
+      </gr-dialog>
+    </gr-overlay>
 `;

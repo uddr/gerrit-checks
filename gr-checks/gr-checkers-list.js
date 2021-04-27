@@ -26,7 +26,7 @@ const GET_CHECKERS_URL = '/plugins/checks/checkers/';
 class GrCheckersList extends Polymer.GestureEventListeners(
     Polymer.LegacyElementMixin(
         Polymer.Element)) {
-/** @returns {?} template for this component */
+  /** @returns {?} template for this component */
   static get template() { return htmlTemplate; }
 
   /** @returns {string} name of the component */
@@ -39,12 +39,12 @@ class GrCheckersList extends Polymer.GestureEventListeners(
    */
   static get properties() {
     return {
-      /**
-       * Add observer on pluginRestApi to call getCheckers when it's defined
-       * as initially getCheckers was being called before pluginRestApi was
-       * initialised by gr-checks-view
-       */
+      // This is set by the PopupPluginApi.
+      plugin: {
+        type: Object,
+      },
       pluginRestApi: {
+        computed: '_computePluginRestApi(plugin)',
         type: Object,
       },
       // Checker that will be passed to the editOverlay modal
@@ -89,45 +89,16 @@ class GrCheckersList extends Polymer.GestureEventListeners(
   static get observers() {
     return [
       '_showCheckers(_checkers, _filter)',
+      '_getCheckers(plugin)',
     ];
   }
 
-  attached() {
-    super.attached();
-    /**
-     * Adding an observer to listBody element as gr-overlay does not
-     * automatically resize itself once the getCheckers response comes.
-     * Polymer 2 will deprecate use of obserNodes so replacing it
-     * with FlattenedNodesObserver
-     */
-    if (Polymer.FlattenedNodesObserver) {
-      this._checkersListObserver = new Polymer.FlattenedNodesObserver(
-          this.$.listBody, () => {
-            this.$.listOverlay.refit();
-          });
-    } else {
-      this._checkersListObserver = Polymer.dom(this.$.listBody).observeNodes(
-          () => {
-            this.$.listOverlay.refit();
-          });
-    }
-  }
-
-  detached() {
-    super.detached();
-    Polymer.dom(this.$.listBody).unobserveNodes(this._checkersListObserver);
+  _computePluginRestApi(plugin) {
+    return plugin ? plugin.restApi() : undefined;
   }
 
   _contains(target, keyword) {
     return target.toLowerCase().includes(keyword.toLowerCase().trim());
-  }
-
-  _showConfigureOverlay() {
-    this.$.listOverlay.open().then(
-        () => {
-          this._getCheckers();
-        }
-    );
   }
 
   _showCheckers(_checkers, _filter) {
@@ -179,9 +150,9 @@ class GrCheckersList extends Polymer.GestureEventListeners(
     }
   }
 
-  _getCheckers() {
-    if (!this.pluginRestApi) return;
-    this.pluginRestApi.get(GET_CHECKERS_URL).then(checkers => {
+  _getCheckers(plugin) {
+    if (!plugin) return;
+    plugin.restApi().get(GET_CHECKERS_URL).then(checkers => {
       if (!checkers) { return; }
       this._checkers = checkers;
       this._startingIndex = 0;
