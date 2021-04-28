@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.extensions.common.ChangeInfo;
-import com.google.gerrit.extensions.common.SubmitRequirementInfo;
+import com.google.gerrit.extensions.common.LegacySubmitRequirementInfo;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.acceptance.AbstractCheckersTest;
@@ -29,8 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ChecksSubmitRuleIT extends AbstractCheckersTest {
-  private static final SubmitRequirementInfo SUBMIT_REQUIREMENT_INFO =
-      new SubmitRequirementInfo("NOT_READY", "All required checks must pass", "checks_pass");
+  private static final LegacySubmitRequirementInfo SUBMIT_REQUIREMENT_INFO =
+      new LegacySubmitRequirementInfo("NOT_READY", "All required checks must pass", "checks_pass");
 
   private String testChangeId;
   private PatchSet.Id testPatchSetId;

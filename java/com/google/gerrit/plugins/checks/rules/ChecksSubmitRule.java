@@ -17,11 +17,11 @@ package com.google.gerrit.plugins.checks.rules;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.entities.Change;
+import com.google.gerrit.entities.LegacySubmitRequirement;
 import com.google.gerrit.entities.PatchSet;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.entities.SubmitRecord;
 import com.google.gerrit.entities.SubmitRecord.Status;
-import com.google.gerrit.entities.SubmitRequirement;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.plugins.checks.Checks;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -36,8 +36,8 @@ import java.util.Optional;
 public class ChecksSubmitRule implements SubmitRule {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final SubmitRequirement DEFAULT_SUBMIT_REQUIREMENT_FOR_CHECKS =
-      SubmitRequirement.builder()
+  private static final LegacySubmitRequirement DEFAULT_SUBMIT_REQUIREMENT_FOR_CHECKS =
+      LegacySubmitRequirement.builder()
           .setFallbackText("All required checks must pass")
           .setType("checks_pass")
           .build();
