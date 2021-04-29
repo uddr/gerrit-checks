@@ -108,8 +108,11 @@ class ChecksFetcher {
 
   run(uuid) {
     return this.apiPost('/' + uuid + '/rerun')
+        .then(_ => {
+          return {message: 'Run triggered.', shouldReload: true};
+        })
         .catch(e => {
-          return {errorMessage: `Triggering the run failed: ${e.message}`};
+          return {message: `Triggering the run failed: ${e.message}`};
         });
   }
 }
