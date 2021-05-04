@@ -79,3 +79,5 @@ class GrRepoChip extends Polymer.GestureEventListeners(
 }
 
 customElements.define(GrRepoChip.is, GrRepoChip);
+
+export {};
