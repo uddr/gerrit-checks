@@ -36,6 +36,7 @@ class ChecksFetcher {
       responseCode: 'OK',
       actions: [{
         name: 'Configure Checkers',
+        primary: true,
         callback: () => this.plugin.popup('gr-checkers-list'),
       }],
       runs: checks.map(check => this.convert(check)),
@@ -92,7 +93,7 @@ class ChecksFetcher {
         run.results[0].links = [{
           url: check.url,
           primary: true,
-          icon: 'EXTERNAL',
+          icon: 'external',
         }];
       }
     }
