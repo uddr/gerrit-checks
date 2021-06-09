@@ -39,10 +39,10 @@ import com.google.gerrit.index.query.QueryParser;
 import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.index.change.ChangeField;
 import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.query.change.ChangePredicates;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gerrit.server.query.change.ChangeStatusPredicate;
-import com.google.gerrit.server.query.change.ProjectPredicate;
 import com.google.gerrit.server.update.RetryHelper;
 import com.google.gerrit.server.update.RetryableAction.ActionType;
 import com.google.inject.Inject;
@@ -280,7 +280,7 @@ public class CheckerQuery {
   private Predicate<ChangeData> createQueryPredicate(
       CheckerUuid checkerUuid, Project.NameKey repository, Optional<String> optionalQuery)
       throws ConfigInvalidException {
-    Predicate<ChangeData> predicate = new ProjectPredicate(repository.get());
+    Predicate<ChangeData> predicate = ChangePredicates.project(Project.nameKey(repository.get()));
 
     if (optionalQuery.isPresent()) {
       String query = optionalQuery.get();
