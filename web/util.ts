@@ -14,13 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function pluralize(count, noun) {
+import {Check} from './types';
+
+export function pluralize(count: number, noun: string) {
   if (count === 0) return '';
   return `${count} ${noun}` + (count > 1 ? 's' : '');
 }
 
-function generateDurationString(startTime, endTime) {
-  const secondsAgo = Math.round((endTime - startTime) / 1000);
+export function generateDurationString(startTime: Date, endTime: Date) {
+  const secondsAgo = Math.round(
+    (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000
+  );
   if (secondsAgo === 0) {
     return '0 sec';
   }
@@ -34,27 +38,45 @@ function generateDurationString(startTime, endTime) {
   }
   const hoursAgo = Math.floor(minutesAgo / 60);
   if (hoursAgo % 24 !== 0) {
-    const hours = pluralize(hoursAgo % 24, 'hour', 'hours');
+    const hours = pluralize(hoursAgo % 24, 'hour');
     durationSegments.push(`${hours}`);
   }
   const daysAgo = Math.floor(hoursAgo / 24);
   if (daysAgo % 30 !== 0) {
-    const days = pluralize(daysAgo % 30, 'day', 'days');
+    const days = pluralize(daysAgo % 30, 'day');
     durationSegments.push(`${days}`);
   }
   const monthsAgo = Math.floor(daysAgo / 30);
   if (monthsAgo > 0) {
-    const months = pluralize(monthsAgo, 'month', 'months');
+    const months = pluralize(monthsAgo, 'month');
     durationSegments.push(`${months}`);
   }
   return durationSegments.reverse().slice(0, 2).join(' ');
 }
 
-export function computeDuration(check) {
+export function computeDuration(check: Check) {
   if (!check.started || !check.finished) {
     return '-';
   }
   const startTime = new Date(check.started);
   const finishTime = check.finished ? new Date(check.finished) : new Date();
   return generateDurationString(startTime, finishTime);
+}
+
+export function fire<T>(target: EventTarget, type: string, detail?: T) {
+  target.dispatchEvent(
+    new CustomEvent<T>(type, {
+      detail,
+      composed: true,
+      bubbles: true,
+    })
+  );
+}
+
+export function value(e: InputEvent): string {
+  return (e.target as HTMLInputElement).value;
+}
+
+export function checked(e: InputEvent): boolean {
+  return (e.target as HTMLInputElement).checked;
 }

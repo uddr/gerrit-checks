@@ -9,20 +9,24 @@ When upgrading the plugin, please use init:
 
 More details about "init" in https://gerrit-review.googlesource.com/Documentation/pgm-init.html
 
-## UI tests
+## JavaScript Plugin
 
-To run UI tests here will need install dependencies from both npm and bower.
+For running unit tests execute:
 
-`npm run wct-test` should take care both for you, read more in `package.json`.
+    bazel test --test_output=all //plugins/checks/web:karma_test
 
-You will need `polymer-bridges` which is a submodule you can clone from: https://gerrit-review.googlesource.com/admin/repos/polymer-bridges
+For checking or fixing eslint formatter problems run:
 
-## Test plugin on Gerrit
+    bazel test //plugins/checks/web:lint_test
+    bazel run //plugins/checks/web:lint_bin -- --fix "$(pwd)/plugins/checks/web"
 
-1. Build the bundle locally with: `bazel build gr-checks:gr-checks`
-2. Serve your generated 'checks.js' somewhere, you can put it under `gerrit/plugins/checks/` folder and it will automatically served at `http://localhost:8081/plugins_/checks/` (no need to pass it to --plugins flag)
-3. Use FE dev helper, https://gerrit.googlesource.com/gerrit-fe-dev-helper/, inject the local served 'checks.js' to the page
+For testing the plugin with
+[Gerrit FE Dev Helper](https://gerrit.googlesource.com/gerrit-fe-dev-helper/)
+build the JavaScript bundle and copy it to the `plugins/` folder:
 
-If your plugin is already enabled, then you can block it and then inject the compiled local verison.
+    bazel build //plugins/checks/web:checks
+    cp -f bazel-bin/plugins/checks/web/checks.js plugins/
 
-See more about how to use dev helper extension to help you test here: https://gerrit.googlesource.com/gerrit-fe-dev-helper/+/master
+and let the Dev Helper redirect from `.+/plugins/checks/static/checks.js` to
+`http://localhost:8081/plugins_/checks.js`.
+

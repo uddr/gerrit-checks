@@ -1,7 +1,4 @@
-load(
-    "//tools/bzl:plugin.bzl",
-    "gerrit_plugin",
-)
+load("//tools/bzl:plugin.bzl", "gerrit_plugin")
 
 package_group(
     name = "visibility",
@@ -19,7 +16,7 @@ gerrit_plugin(
         "Gerrit-HttpModule: com.google.gerrit.plugins.checks.HttpModule",
         "Gerrit-InitStep: com.google.gerrit.plugins.checks.Init",
     ],
-    resource_jars = ["//plugins/checks/gr-checks:checks"],
+    resource_jars = ["//plugins/checks/web:checks"],
     resource_strip_prefix = "plugins/checks/resources",
     resources = glob(["resources/**/*"]),
     deps = ["//plugins/checks/proto:cache_java_proto"],
