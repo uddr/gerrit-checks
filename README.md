@@ -9,6 +9,15 @@ When upgrading the plugin, please use init:
 
 More details about "init" in https://gerrit-review.googlesource.com/Documentation/pgm-init.html
 
+## Enable e-mail notifications
+
+To enable sending email notifications for "checks" status updates, you'll need to create the email
+templates in `<your-site-path>/etc/mail`. In the simplest form, simply rename the example templates:
+
+    cd "<your-site-path>"
+    mv etc/mail/CombinedCheckStateUpdated.soy{.example,}
+    mv etc/mail/CombinedCheckStateUpdatedHtml.soy{.example,}
+
 ## JavaScript Plugin
 
 For running unit tests execute:
@@ -29,4 +38,3 @@ build the JavaScript bundle and copy it to the `plugins/` folder:
 
 and let the Dev Helper redirect from `.+/plugins/checks/static/checks.js` to
 `http://localhost:8081/plugins_/checks.js`.
-
