@@ -74,7 +74,13 @@ class ChecksFetcher {
     if (check.started) run.startedTimestamp = new Date(check.started);
     if (check.finished) run.finishedTimestamp = new Date(check.finished);
     if (status === 'RUNNING') {
-      run.statusDescription = check.message;
+      if (check.message) {
+        run.statusDescription = check.message;
+      } else {
+        if (check.state === 'SCHEDULED') {
+          run.statusDescription = 'scheduled only, not yet running';
+        }
+      }
       if (check.url) {
         run.statusLink = check.url;
       }
