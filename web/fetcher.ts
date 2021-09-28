@@ -83,6 +83,16 @@ export class ChecksFetcher implements ChecksProvider {
     );
   }
 
+  convertToLabelName(checkerName: string) {
+    if (checkerName === 'Code Style') {
+      return 'Code-Style';
+    }
+    if (checkerName === 'PolyGerrit UI Tests') {
+      return 'Verified';
+    }
+    return checkerName;
+  }
+
   /**
    * Converts a Checks Plugin CheckInfo object into a Checks API Run object.
    */
@@ -93,6 +103,7 @@ export class ChecksFetcher implements ChecksProvider {
       checkDescription: check.checker_description,
       externalId: check.checker_uuid,
       status,
+      labelName: this.convertToLabelName(check.checker_name),
     };
     if (check.started) run.startedTimestamp = new Date(check.started);
     if (check.finished) run.finishedTimestamp = new Date(check.finished);
