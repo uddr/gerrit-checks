@@ -29,7 +29,7 @@ declare global {
  */
 @customElement('gr-repo-chip')
 export class GrRepoChip extends LitElement {
-  static styles = css`
+  static override styles = css`
     :host {
       display: inline-block;
     }
@@ -46,7 +46,7 @@ export class GrRepoChip extends LitElement {
   @property()
   repo = '';
 
-  render() {
+  override render() {
     return html`
       <span>${this.repo}</span>
       <gr-button

@@ -100,14 +100,14 @@ export class GrCreateCheckersDialog extends LitElement {
     this.initCheckerValues();
   }
 
-  update(changedProperties: PropertyValues) {
+  override update(changedProperties: PropertyValues) {
     if (changedProperties.has('checker')) {
       this.initCheckerValues();
     }
     super.update(changedProperties);
   }
 
-  static styles = [
+  static override styles = [
     window.Gerrit.styles.form as CSSResult,
     css`
       :host {

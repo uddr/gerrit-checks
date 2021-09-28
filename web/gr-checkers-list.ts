@@ -90,7 +90,7 @@ export class GrCheckersList extends LitElement {
     this.loadCheckers();
   }
 
-  static styles = [
+  static override styles = [
     window.Gerrit.styles.table as CSSResult,
     css`
       #container {
