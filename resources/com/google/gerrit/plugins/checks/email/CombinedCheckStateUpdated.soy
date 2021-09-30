@@ -85,8 +85,8 @@
   {@param checkers: ?}
   {if length($checkers) > 0}
     {$state}:{sp}
-    {for $checker in $checkers}
-      {$checker.name}{if not isLast($checker)},{sp}{/if}
+    {for $checker, $index in $checkers}
+      {$checker.name}{if $index < length($checkers) - 1},{sp}{/if}
     {/for}
     {\n}
   {/if}

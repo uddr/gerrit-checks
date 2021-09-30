@@ -103,13 +103,13 @@ import * as mailTemplate from 'com/google/gerrit/server/mail/Private.soy';
   {@param checkers: ?}
   {if length($checkers) > 0}
     <strong>{$state}:</strong>{sp}
-    {for $checker in $checkers}
+    {for $checker, $index in $checkers}
       {if $checker.check.url}
         <a href="{$checker.check.url}">{$checker.name}</a>
       {else}
         {$checker.name}
       {/if}
-      {if not isLast($checker)},{sp}{/if}
+      {if $index < length($checkers) - 1},{sp}{/if}
     {/for}
     <br>
   {/if}
