@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-export interface Check {
+/** `declare` is required for preventing property renaming. */
+export declare interface Check {
   state: string;
   checker_name: string;
   checker_description: string;
@@ -26,7 +27,8 @@ export interface Check {
   finished?: number;
 }
 
-export interface Checker {
+/** `declare` is required for preventing property renaming. */
+export declare interface Checker {
   repository?: string;
   blocking?: string[];
   query?: string;
