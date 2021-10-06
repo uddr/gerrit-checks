@@ -34,7 +34,7 @@ export class GrRepoChip extends LitElement {
       display: inline-block;
     }
     gr-button {
-      --padding: 0;
+      --gr-button-padding: 0;
       vertical-align: top;
     }
     iron-icon {
