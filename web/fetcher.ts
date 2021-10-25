@@ -87,7 +87,11 @@ export class ChecksFetcher implements ChecksProvider {
     if (checkerName === 'Code Style') {
       return 'Code-Style';
     }
-    if (checkerName === 'PolyGerrit UI Tests') {
+    if (
+      checkerName === 'PolyGerrit UI Tests' ||
+      checkerName === 'Build/Tests' ||
+      checkerName === 'RBE Build/Tests'
+    ) {
       return 'Verified';
     }
     return checkerName;
