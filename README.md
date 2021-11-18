@@ -1,4 +1,12 @@
-# Gerrit Code Review Checks Plugin
+# DEPRECATION NOTICE
+
+The Gerrit team at Google has decided to discontinue work on the
+checks plugin. The recommended solution is
+[https://gerrit-review.googlesource.com/Documentation/pg-plugin-checks-api.html](Checks
+UI) which surfaces results from an external CI/analysis system.
+
+
+# Gerrit Code Review Checks Plugin (DEPRECATED)
 
 This plugin provides a unified experience for checkers (CI systems, static
 analyzers, etc.) to integrate with Gerrit Code Review.
