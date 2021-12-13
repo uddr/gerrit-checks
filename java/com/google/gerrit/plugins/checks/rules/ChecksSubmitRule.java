@@ -75,6 +75,9 @@ public class ChecksSubmitRule implements SubmitRule {
 
     boolean areAllRequiredCheckersPassing;
     try {
+      if (checks.areAllCheckersOptionalForSubmit(project, currentPatchSetId)) {
+        return Optional.empty();
+      }
       areAllRequiredCheckersPassing =
           checks.areAllRequiredCheckersPassing(project, currentPatchSetId);
     } catch (IOException e) {

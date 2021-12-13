@@ -92,6 +92,20 @@ public interface Checks {
       throws IOException, StorageException;
 
   /**
+   * Returns true if all checkers for the project are optional for submitting the change identified
+   * by the {@code patchSetId} parameter, that is all checkers are either disabled or not required
+   * for submission.
+   *
+   * @param projectName the name of the project.
+   * @param patchSetId the ID of the patch set.
+   * @return
+   * @throws IOException if failed to check if all required checks have passed.
+   * @throws StorageException if failed to check if all required checks have passed.
+   */
+  boolean areAllCheckersOptionalForSubmit(Project.NameKey projectName, PatchSet.Id patchSetId)
+      throws IOException, StorageException;
+
+  /**
    * Computes an ETag for the checks of the given change.
    *
    * @param projectName the name of the project that contains the change

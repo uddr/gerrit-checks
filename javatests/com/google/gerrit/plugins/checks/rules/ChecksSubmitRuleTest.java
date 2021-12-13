@@ -52,6 +52,7 @@ public class ChecksSubmitRuleTest {
     Checks checks = mock(Checks.class);
     when(checks.areAllRequiredCheckersPassing(any(), any()))
         .thenThrow(new IOException("Fail for test"));
+    when(checks.areAllCheckersOptionalForSubmit(any(), any())).thenReturn(false);
 
     ChecksSubmitRule checksSubmitRule = new ChecksSubmitRule(checks);
 
@@ -70,6 +71,30 @@ public class ChecksSubmitRuleTest {
 
     Optional<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
     assertErrorRecord(submitRecords, "failed to evaluate check states for change 1");
+  }
+
+  @Test
+  public void returnsEmptyOptionalIfAllCheckersAreOptional() throws Exception {
+    Checks checks = mock(Checks.class);
+    when(checks.areAllCheckersOptionalForSubmit(any(), any())).thenReturn(true);
+
+    ChecksSubmitRule checksSubmitRule = new ChecksSubmitRule(checks);
+
+    ChangeData cd = mock(ChangeData.class);
+    Change.Id changeId = Change.id(1);
+    when(cd.project()).thenReturn(Project.nameKey("My-Project"));
+    when(cd.getId()).thenReturn(Change.id(1));
+    when(cd.currentPatchSet())
+        .thenReturn(
+            PatchSet.builder()
+                .id(PatchSet.id(changeId, 1))
+                .commitId(ObjectId.zeroId())
+                .uploader(Account.id(1000))
+                .createdOn(TimeUtil.nowTs())
+                .build());
+
+    Optional<SubmitRecord> submitRecord = checksSubmitRule.evaluate(cd);
+    assertThat(submitRecord).isEmpty();
   }
 
   private static void assertErrorRecord(
