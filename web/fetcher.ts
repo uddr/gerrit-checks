@@ -111,21 +111,16 @@ export class ChecksFetcher implements ChecksProvider {
     };
     if (check.started) run.startedTimestamp = new Date(check.started);
     if (check.finished) run.finishedTimestamp = new Date(check.finished);
+    if (check.url) run.statusLink = check.url;
     if (status === 'RUNNING') {
       if (check.message) {
         run.statusDescription = check.message;
       } else if (check.state === 'SCHEDULED') {
         run.statusDescription = 'scheduled only, not yet running';
       }
-      if (check.url) {
-        run.statusLink = check.url;
-      }
     } else if (check.state === 'SUCCESSFUL') {
       run.statusDescription =
         check.message || `Passed (${computeDuration(check)})`;
-      if (check.url) {
-        run.statusLink = check.url;
-      }
     } else if (check.state === 'FAILED') {
       run.results = [
         {

@@ -123,6 +123,7 @@ suite('ChecksFetcher tests', () => {
     assert.equal(converted.status, RunStatus.COMPLETED);
     assert.equal(converted.actions?.length, 1);
     assert.equal(converted.results?.length, 1);
+    assert.equal(converted.statusLink, check3.url);
     const result = converted.results?.[0];
     assert.equal(result?.category, Category.ERROR);
     assert.equal(result?.summary, check3.message);
