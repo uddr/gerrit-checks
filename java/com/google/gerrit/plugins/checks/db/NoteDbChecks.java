@@ -157,6 +157,13 @@ class NoteDbChecks implements Checks {
   }
 
   @Override
+  public boolean areAllCheckersOptionalForSubmit(
+      Project.NameKey projectName, PatchSet.Id patchSetId) throws IOException, StorageException {
+    return checkers.checkersOf(projectName).stream()
+        .allMatch(checker -> !isRequiredForSubmit(checker, patchSetId.changeId()));
+  }
+
+  @Override
   public String getETag(Project.NameKey projectName, Change.Id changeId) throws IOException {
     try (Repository repo = repoManager.openRepository(projectName);
         RevWalk rw = new RevWalk(repo)) {
