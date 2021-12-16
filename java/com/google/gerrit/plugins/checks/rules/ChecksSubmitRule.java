@@ -69,7 +69,7 @@ public class ChecksSubmitRule implements SubmitRule {
     } catch (RuntimeException e) {
       String errorMessage =
           String.format("failed to load the current patch set of change %s", changeId);
-      logger.atSevere().withCause(e).log(errorMessage);
+      logger.atSevere().withCause(e).log("%s", errorMessage);
       return recordForRuleError(errorMessage);
     }
 
@@ -83,7 +83,7 @@ public class ChecksSubmitRule implements SubmitRule {
     } catch (IOException e) {
       String errorMessage =
           String.format("failed to evaluate check states for change %s", changeId);
-      logger.atSevere().withCause(e).log(errorMessage);
+      logger.atSevere().withCause(e).log("%s", errorMessage);
       return recordForRuleError(errorMessage);
     }
 
