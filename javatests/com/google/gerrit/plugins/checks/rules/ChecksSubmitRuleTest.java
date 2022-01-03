@@ -66,7 +66,7 @@ public class ChecksSubmitRuleTest {
                 .id(PatchSet.id(changeId, 1))
                 .commitId(ObjectId.zeroId())
                 .uploader(Account.id(1000))
-                .createdOn(TimeUtil.nowTs())
+                .createdOn(TimeUtil.now())
                 .build());
 
     Optional<SubmitRecord> submitRecords = checksSubmitRule.evaluate(cd);
@@ -90,7 +90,7 @@ public class ChecksSubmitRuleTest {
                 .id(PatchSet.id(changeId, 1))
                 .commitId(ObjectId.zeroId())
                 .uploader(Account.id(1000))
-                .createdOn(TimeUtil.nowTs())
+                .createdOn(TimeUtil.now())
                 .build());
 
     Optional<SubmitRecord> submitRecord = checksSubmitRule.evaluate(cd);

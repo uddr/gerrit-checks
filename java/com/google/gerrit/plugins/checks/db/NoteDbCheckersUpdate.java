@@ -203,8 +203,7 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
       PersonIdent authorIdent;
       if (currentUser.isPresent()) {
         metaDataUpdate.setAuthor(currentUser.get());
-        authorIdent =
-            currentUser.get().newCommitterIdent(serverIdent.getWhen(), serverIdent.getTimeZone());
+        authorIdent = currentUser.get().newCommitterIdent(serverIdent);
       } else {
         authorIdent = serverIdent;
       }

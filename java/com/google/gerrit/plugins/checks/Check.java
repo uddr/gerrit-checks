@@ -26,8 +26,8 @@ public abstract class Check {
   public static Check newBackfilledCheck(Project.NameKey project, PatchSet ps, Checker checker) {
     return Check.builder(CheckKey.create(project, ps.id(), checker.getUuid()))
         .setState(CheckState.NOT_STARTED)
-        .setCreated(ps.createdOn())
-        .setUpdated(ps.createdOn())
+        .setCreated(Timestamp.from(ps.createdOn()))
+        .setUpdated(Timestamp.from(ps.createdOn()))
         .build();
   }
 
