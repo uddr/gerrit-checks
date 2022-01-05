@@ -9,8 +9,8 @@ import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.CheckUpdate;
 import com.google.gerrit.plugins.checks.CheckerUuid;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.server.util.time.TimeUtil;
 import java.sql.Timestamp;
+import java.time.Instant;
 
 /** Representation of {@link Check} that can be serialized with GSON. */
 class NoteDbCheck {
@@ -75,7 +75,7 @@ class NoteDbCheck {
       modified = true;
     }
     if (update.started().isPresent() && !update.started().get().equals(started)) {
-      if (update.started().get().equals(TimeUtil.never())) {
+      if (update.started().get().toInstant().equals(Instant.EPOCH)) {
         started = null;
       } else {
         started = update.started().get();
@@ -83,7 +83,7 @@ class NoteDbCheck {
       modified = true;
     }
     if (update.finished().isPresent() && !update.finished().get().equals(finished)) {
-      if (update.finished().get().equals(TimeUtil.never())) {
+      if (update.finished().get().toInstant().equals(Instant.EPOCH)) {
         finished = null;
       } else {
         finished = update.finished().get();
