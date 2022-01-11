@@ -26,6 +26,7 @@ import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.util.time.TimeUtil;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.TimeZone;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepositoryDescription;
 import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
@@ -312,7 +313,10 @@ public class CheckersByRepositoryNotesTest {
   private MetaDataUpdate createMetaDataUpdate() {
     PersonIdent serverIdent =
         new PersonIdent(
-            "Gerrit Server", "noreply@gerritcodereview.com", TimeUtil.nowTs(), timeZone);
+            "Gerrit Server",
+            "noreply@gerritcodereview.com",
+            new Timestamp(TimeUtil.nowMs()),
+            timeZone);
 
     MetaDataUpdate metaDataUpdate =
         new MetaDataUpdate(

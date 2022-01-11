@@ -22,6 +22,7 @@ import com.google.gerrit.entities.Project;
 import com.google.gerrit.plugins.checks.api.BlockingCondition;
 import com.google.gerrit.plugins.checks.api.CheckerStatus;
 import com.google.gerrit.server.util.time.TimeUtil;
+import java.sql.Timestamp;
 import java.util.EnumSet;
 import org.eclipse.jgit.lib.ObjectId;
 import org.junit.Test;
@@ -54,8 +55,8 @@ public class CheckerDefinitionTest {
         .setRepository(Project.nameKey("test-repo"))
         .setStatus(CheckerStatus.ENABLED)
         .setUuid(CheckerUuid.parse("schema:any-id"))
-        .setCreated(TimeUtil.nowTs())
-        .setUpdated(TimeUtil.nowTs())
+        .setCreated(new Timestamp(TimeUtil.nowMs()))
+        .setUpdated(new Timestamp(TimeUtil.nowMs()))
         .setRefState(ObjectId.zeroId());
   }
 }

@@ -56,8 +56,8 @@ public class RerunCheckIT extends AbstractCheckersTest {
     checkOperations
         .newCheck(checkKey)
         .state(CheckState.FAILED)
-        .started(TimeUtil.nowTs())
-        .finished(TimeUtil.nowTs())
+        .started(new Timestamp(TimeUtil.nowMs()))
+        .finished(new Timestamp(TimeUtil.nowMs()))
         .message("message")
         .url("url.com")
         .upsert();

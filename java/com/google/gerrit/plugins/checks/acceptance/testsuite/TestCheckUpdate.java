@@ -18,8 +18,8 @@ import com.google.auto.value.AutoValue;
 import com.google.gerrit.acceptance.testsuite.ThrowingConsumer;
 import com.google.gerrit.plugins.checks.CheckKey;
 import com.google.gerrit.plugins.checks.api.CheckState;
-import com.google.gerrit.server.util.time.TimeUtil;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 @AutoValue
@@ -67,11 +67,11 @@ public abstract class TestCheckUpdate {
     public abstract Builder finished(Timestamp finished);
 
     public Builder clearStarted() {
-      return started(TimeUtil.never());
+      return started(Timestamp.from(Instant.EPOCH));
     }
 
     public Builder clearFinished() {
-      return finished(TimeUtil.never());
+      return finished(Timestamp.from(Instant.EPOCH));
     }
 
     abstract Builder checkUpdater(ThrowingConsumer<TestCheckUpdate> checkUpdate);

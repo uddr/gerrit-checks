@@ -38,6 +38,7 @@ import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.testing.TestTimeUtil;
 import com.google.inject.Inject;
 import java.sql.Timestamp;
+import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -169,7 +170,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   @Test
   public void updateStarted() throws Exception {
     CheckInput input = new CheckInput();
-    input.started = TimeUtil.nowTs();
+    input.started = new Timestamp(TimeUtil.nowMs());
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.started).isEqualTo(input.started);
@@ -177,10 +178,10 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void unsetStarted() throws Exception {
-    checkOperations.check(checkKey).forUpdate().started(TimeUtil.nowTs()).upsert();
+    checkOperations.check(checkKey).forUpdate().started(new Timestamp(TimeUtil.nowMs())).upsert();
 
     CheckInput input = new CheckInput();
-    input.started = TimeUtil.never();
+    input.started = Timestamp.from(Instant.EPOCH);
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.started).isNull();
   }
@@ -188,7 +189,7 @@ public class UpdateCheckIT extends AbstractCheckersTest {
   @Test
   public void updateFinished() throws Exception {
     CheckInput input = new CheckInput();
-    input.finished = TimeUtil.nowTs();
+    input.finished = new Timestamp(TimeUtil.nowMs());
 
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.finished).isEqualTo(input.finished);
@@ -196,10 +197,10 @@ public class UpdateCheckIT extends AbstractCheckersTest {
 
   @Test
   public void unsetFinished() throws Exception {
-    checkOperations.check(checkKey).forUpdate().finished(TimeUtil.nowTs()).upsert();
+    checkOperations.check(checkKey).forUpdate().finished(new Timestamp(TimeUtil.nowMs())).upsert();
 
     CheckInput input = new CheckInput();
-    input.finished = TimeUtil.never();
+    input.finished = Timestamp.from(Instant.EPOCH);
     CheckInfo info = checksApiFactory.revision(patchSetId).id(checkKey.checkerUuid()).update(input);
     assertThat(info.finished).isNull();
   }

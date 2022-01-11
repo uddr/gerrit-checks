@@ -484,7 +484,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void startedCanBeCleared() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).started(TimeUtil.nowTs()).upsert();
+    checkOperations.newCheck(checkKey).started(new Timestamp(TimeUtil.nowMs())).upsert();
 
     checkOperations.check(checkKey).forUpdate().clearStarted().upsert();
 
@@ -509,7 +509,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
   public void finishedCanBeCleared() throws Exception {
     CheckerUuid checkerUuid = checkerOperations.newChecker().repository(project).create();
     CheckKey checkKey = CheckKey.create(project, createChange().getPatchSetId(), checkerUuid);
-    checkOperations.newCheck(checkKey).finished(TimeUtil.nowTs()).upsert();
+    checkOperations.newCheck(checkKey).finished(new Timestamp(TimeUtil.nowMs())).upsert();
 
     checkOperations.check(checkKey).forUpdate().clearFinished().upsert();
 
@@ -581,7 +581,7 @@ public class CheckOperationsImplTest extends AbstractCheckersTest {
     checkInput.state = CheckState.SCHEDULED;
     checkInput.message = "some message";
     checkInput.url = "http://example.com/my-check";
-    checkInput.started = TimeUtil.nowTs();
+    checkInput.started = new Timestamp(TimeUtil.nowMs());
     return checkInput;
   }
 

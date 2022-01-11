@@ -251,7 +251,7 @@ public class CheckerConfigTest {
   @Test
   public void createdDefaultsToNow() throws Exception {
     // Git timestamps are only precise to the second.
-    Timestamp testStart = TimeUtil.truncateToSecond(TimeUtil.nowTs());
+    Timestamp testStart = Timestamp.from(TimeUtil.truncateToSecond(TimeUtil.now()));
 
     createArbitraryChecker(checkerUuid);
     CheckerConfig checkerConfig = loadChecker(checkerUuid);
@@ -619,7 +619,10 @@ public class CheckerConfigTest {
   private MetaDataUpdate createMetaDataUpdate() {
     PersonIdent serverIdent =
         new PersonIdent(
-            "Gerrit Server", "noreply@gerritcodereview.com", TimeUtil.nowTs(), timeZone);
+            "Gerrit Server",
+            "noreply@gerritcodereview.com",
+            new Timestamp(TimeUtil.nowMs()),
+            timeZone);
 
     MetaDataUpdate metaDataUpdate =
         new MetaDataUpdate(

@@ -173,7 +173,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.get();
-    input.started = TimeUtil.nowTs();
+    input.started = new Timestamp(TimeUtil.nowMs());
 
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(info.started).isEqualTo(input.started);
@@ -186,7 +186,7 @@ public class CreateCheckIT extends AbstractCheckersTest {
 
     CheckInput input = new CheckInput();
     input.checkerUuid = checkerUuid.get();
-    input.finished = TimeUtil.nowTs();
+    input.finished = new Timestamp(TimeUtil.nowMs());
 
     CheckInfo info = checksApiFactory.revision(patchSetId).create(input).get();
     assertThat(info.finished).isEqualTo(input.finished);
