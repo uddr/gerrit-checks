@@ -108,12 +108,9 @@ public class PostCheck
     Check updatedCheck;
     CheckUpdate checkUpdate = toCheckUpdate(input);
     if (!check.isPresent()) {
-      checkers
-          .getChecker(checkerUuid)
-          .orElseThrow(
-              () ->
-                  new UnprocessableEntityException(
-                      String.format("checker %s not found", checkerUuid)));
+      if (!checkers.getChecker(checkerUuid).isPresent()) {
+        throw new UnprocessableEntityException(String.format("checker %s not found", checkerUuid));
+      }
       updatedCheck =
           checksUpdate.get().createCheck(key, checkUpdate, input.notify, input.notifyDetails);
     } else {

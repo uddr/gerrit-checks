@@ -215,9 +215,9 @@ public class NoteDbChecksUpdate implements ChecksStorageUpdate {
 
   private void assertCheckerIsPresent(CheckerUuid checkerUuid)
       throws ConfigInvalidException, IOException {
-    checkers
-        .getChecker(checkerUuid)
-        .orElseThrow(() -> new IOException(String.format("checker %s not found", checkerUuid)));
+    if (!checkers.getChecker(checkerUuid).isPresent()) {
+      throw new IOException(String.format("checker %s not found", checkerUuid));
+    }
   }
 
   private boolean updateNotesMap(
