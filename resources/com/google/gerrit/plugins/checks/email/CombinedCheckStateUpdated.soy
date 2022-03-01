@@ -17,10 +17,10 @@
 {namespace com.google.gerrit.server.mail.template.CombinedCheckStateUpdated}
 
 /**
- * The .CombinedCheckStateUpdated template will determine the contents of the email related to a
+ * The CombinedCheckStateUpdated template will determine the contents of the email related to a
  * change for which the combined check state was updated.
  */
-{template .CombinedCheckStateUpdated kind="text"}
+{template CombinedCheckStateUpdated kind="text"}
   {@param email: ?}
   {@param change: ?}
   {@param patchSet: ?}
@@ -50,27 +50,27 @@
   {\n}
   {if $allCheckers}
     All checks:{\n}
-    {call .PrintCheckers_Text}
+    {call PrintCheckers_Text}
       {param state: 'Successful' /}
       {param checkers: $allCheckers.successful /}
     {/call}
-    {call .PrintCheckers_Text}
+    {call PrintCheckers_Text}
       {param state: 'Not Relevant' /}
       {param checkers: $allCheckers.notRelevant /}
     {/call}
-    {call .PrintCheckers_Text}
+    {call PrintCheckers_Text}
       {param state: 'Failed' /}
       {param checkers: $allCheckers.failed /}
     {/call}
-    {call .PrintCheckers_Text}
+    {call PrintCheckers_Text}
       {param state: 'Running' /}
       {param checkers: $allCheckers.running /}
     {/call}
-    {call .PrintCheckers_Text}
+    {call PrintCheckers_Text}
       {param state: 'Scheduled' /}
       {param checkers: $allCheckers.scheduled /}
     {/call}
-    {call .PrintCheckers_Text}
+    {call PrintCheckers_Text}
       {param state: 'Not Started' /}
       {param checkers: $allCheckers.notStarted /}
     {/call}
@@ -80,7 +80,7 @@
   ......................................................................{\n}
 {/template}
 
-{template .PrintCheckers_Text kind="text"}
+{template PrintCheckers_Text kind="text"}
   {@param state: ?}
   {@param checkers: ?}
   {if length($checkers) > 0}

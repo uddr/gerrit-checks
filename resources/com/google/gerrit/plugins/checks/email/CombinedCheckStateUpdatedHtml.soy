@@ -19,10 +19,10 @@
 import * as mailTemplate from 'com/google/gerrit/server/mail/Private.soy';
 
 /**
- * The .CombinedCheckStateUpdatedHtml template will determine the contents of the email related to
+ * The CombinedCheckStateUpdatedHtml template will determine the contents of the email related to
  * a change for which the combined check state was updated.
  */
-{template .CombinedCheckStateUpdatedHtml}
+{template CombinedCheckStateUpdatedHtml}
   {@param email: ?}
   {@param patchSet: ?}
   {@param checker: ?}
@@ -64,27 +64,27 @@ import * as mailTemplate from 'com/google/gerrit/server/mail/Private.soy';
 
   {if $allCheckers}
     <p><u><strong>All checks:</strong></u><br>
-    {call .PrintCheckers}
+    {call PrintCheckers}
       {param state: 'Successful' /}
       {param checkers: $allCheckers.successful /}
     {/call}
-    {call .PrintCheckers}
+    {call PrintCheckers}
       {param state: 'Not Relevant' /}
       {param checkers: $allCheckers.notRelevant /}
     {/call}
-    {call .PrintCheckers}
+    {call PrintCheckers}
       {param state: 'Failed' /}
       {param checkers: $allCheckers.failed /}
     {/call}
-    {call .PrintCheckers}
+    {call PrintCheckers}
       {param state: 'Running' /}
       {param checkers: $allCheckers.running /}
     {/call}
-    {call .PrintCheckers}
+    {call PrintCheckers}
       {param state: 'Scheduled' /}
       {param checkers: $allCheckers.scheduled /}
     {/call}
-    {call .PrintCheckers}
+    {call PrintCheckers}
       {param state: 'Not Started' /}
       {param checkers: $allCheckers.notStarted /}
     {/call}
@@ -98,7 +98,7 @@ import * as mailTemplate from 'com/google/gerrit/server/mail/Private.soy';
   {/if}
 {/template}
 
-{template .PrintCheckers}
+{template PrintCheckers}
   {@param state: ?}
   {@param checkers: ?}
   {if length($checkers) > 0}
