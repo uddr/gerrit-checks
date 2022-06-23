@@ -22,8 +22,8 @@ export function pluralize(count: number, noun: string) {
 }
 
 export function generateDurationString(startTime: Date, endTime: Date) {
-  const secondsAgo = Math.round(
-    (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000
+  const secondsAgo = Math.floor(
+    (endTime.valueOf() - startTime.valueOf()) / 1000
   );
   if (secondsAgo === 0) {
     return '0 sec';

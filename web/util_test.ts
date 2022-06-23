@@ -15,12 +15,36 @@
  * limitations under the License.
  */
 import './test/test-setup';
-import {pluralize} from './util';
+import {pluralize, generateDurationString} from './util';
 
 suite('util tests', () => {
   test('pluralize', () => {
     assert.equal(pluralize(0, 'bag'), '');
     assert.equal(pluralize(1, 'bag'), '1 bag');
     assert.equal(pluralize(2, 'bag'), '2 bags');
+  });
+
+  test('generateDurationString', () => {
+    assert.equal(
+      generateDurationString(
+        new Date('1995-12-17T03:24:00'),
+        new Date('1995-12-17T03:24:01')
+      ),
+      '1 sec'
+    );
+    assert.equal(
+      generateDurationString(
+        new Date('1995-12-17T03:24:00'),
+        new Date('1995-12-17T03:25:00')
+      ),
+      '1 min'
+    );
+    assert.equal(
+      generateDurationString(
+        new Date('1995-12-17T03:24:00'),
+        new Date('1995-12-17T04:24:00')
+      ),
+      '1 hour'
+    );
   });
 });
