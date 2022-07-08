@@ -1212,7 +1212,7 @@ public class ChecksEmailIT extends AbstractCheckersTest {
   }
 
   private String changeUrl(Change change) {
-    return canonicalWebUrl.get() + "c/" + change.getProject().get() + "/+/" + change.getChangeId();
+    return canonicalWebUrl.get() + "c/" + change.getProject().get() + "/+/" + change.getChangeId() + "?usp=email";
   }
 
   private CombinedCheckState getCombinedCheckState() throws RestApiException {
