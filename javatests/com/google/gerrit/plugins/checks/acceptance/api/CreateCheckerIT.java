@@ -426,7 +426,7 @@ public class CreateCheckerIT extends AbstractCheckersTest {
                 + input.uuid
                 + " is invalid: "
                 + input.query
-                + " (too many terms in query)");
+                + " (too many terms in query: 42 terms (max = 10))");
   }
 
   @Test

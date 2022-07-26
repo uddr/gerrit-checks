@@ -524,7 +524,7 @@ public class UpdateCheckerIT extends AbstractCheckersTest {
                 + checkerUuid
                 + " is invalid: "
                 + input.query
-                + " (too many terms in query)");
+                + " (too many terms in query: 42 terms (max = 10))");
 
     assertThat(checkerOperations.checker(checkerUuid).get().getQuery()).isEqualTo(oldQuery);
   }
