@@ -64,7 +64,6 @@ public class CombinedCheckStateUpdatedSender extends ReplyToChangeSender {
     ccAllApprovals();
     bccStarredBy();
     includeWatchers(NotifyType.ALL_COMMENTS);
-    removeUsersThatIgnoredTheChange();
   }
 
   public void setCombinedCheckState(

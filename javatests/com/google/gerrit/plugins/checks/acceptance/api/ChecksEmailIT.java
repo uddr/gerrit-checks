@@ -69,7 +69,6 @@ public class ChecksEmailIT extends AbstractCheckersTest {
 
   private TestAccount bot;
   private TestAccount owner;
-  private TestAccount ignoringReviewer;
   private TestAccount reviewer;
   private TestAccount starrer;
   private TestAccount watcher;
@@ -126,13 +125,6 @@ public class ChecksEmailIT extends AbstractCheckersTest {
     projectWatchInfo.filter = "*";
     projectWatchInfo.notifyNewChanges = true;
     gApi.accounts().self().setWatchedProjects(ImmutableList.of(projectWatchInfo));
-
-    // Add a reviewer that ignores the change --> user doesn't get notified by checks plugin.
-    ignoringReviewer = accountCreator.create("ignorer", "ignorer@example.com", "Ignorer", null);
-    requestScopeOperations.setApiUser(admin.id());
-    gApi.changes().id(patchSetId.changeId().get()).addReviewer(ignoringReviewer.username());
-    requestScopeOperations.setApiUser(ignoringReviewer.id());
-    gApi.changes().id(patchSetId.changeId().get()).ignore(true);
 
     // Reset request scope to admin.
     requestScopeOperations.setApiUser(admin.id());
