@@ -314,7 +314,7 @@ public class CheckerQuery {
       return ((IndexPredicate<ChangeData>) predicate)
           .getField()
           .getName()
-          .equals(ChangeField.STATUS.getName());
+          .equals(ChangeField.STATUS_SPEC.getName());
     }
     return predicate.getChildren().stream().anyMatch(CheckerQuery::hasStatusPredicate);
   }
