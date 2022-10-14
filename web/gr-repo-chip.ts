@@ -21,6 +21,7 @@ import {fire} from './util';
 declare global {
   interface HTMLElementTagNameMap {
     'gr-repo-chip': GrRepoChip;
+    'gr-icon': HTMLElement; // Known to exist from Polygerrit
   }
 }
 
@@ -37,9 +38,8 @@ export class GrRepoChip extends LitElement {
       --gr-button-padding: 0;
       vertical-align: top;
     }
-    iron-icon {
-      height: var(--line-height-normal);
-      width: var(--line-height-normal);
+    gr-icon {
+      font-size: var(--line-height-normal);
     }
   `;
 
@@ -55,7 +55,7 @@ export class GrRepoChip extends LitElement {
         aria-label="Remove"
         @click="${this.handleRemove}"
       >
-        <iron-icon icon="gr-icons:close"></iron-icon>
+        <gr-icon icon="close"></gr-icon>
       </gr-button>
     `;
   }

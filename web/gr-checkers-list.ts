@@ -98,7 +98,7 @@ export class GrCheckersList extends LitElement {
         height: 80vh;
         overflow: auto;
       }
-      iron-icon {
+      gr-icon {
         cursor: pointer;
       }
       #filter {
@@ -130,13 +130,12 @@ export class GrCheckersList extends LitElement {
         margin-right: 20px;
       }
       nav,
-      iron-icon {
+      gr-icon {
         color: var(--deemphasized-text-color);
       }
-      .nav-iron-icon {
-        height: 1.85rem;
+      .nav-gr-icon {
+        font-size: 1.85rem;
         margin-left: 16px;
-        width: 1.85rem;
       }
       .nav-buttons:hover {
         text-decoration: underline;
@@ -233,10 +232,7 @@ export class GrCheckersList extends LitElement {
     };
     return html`
       <a class="nav-buttons" @click="${handleClick}">
-        <iron-icon
-          class="nav-iron-icon"
-          icon="gr-icons:chevron-left"
-        ></iron-icon>
+        <gr-icon class="nav-gr-icon" icon="chevron_left"></gr-icon>
       </a>
     `;
   }
@@ -251,10 +247,7 @@ export class GrCheckersList extends LitElement {
     };
     return html`
       <a class="nav-buttons" @click="${handleClick}">
-        <iron-icon
-          class="nav-iron-icon"
-          icon="gr-icons:chevron-right"
-        ></iron-icon>
+        <gr-icon class="nav-gr-icon" icon="chevron_right"></gr-icon>
       </a>
     `;
   }
@@ -274,7 +267,7 @@ export class GrCheckersList extends LitElement {
         <td class="name">${checker?.blocking?.length ? 'YES' : 'NO'}</td>
         <td class="description">${checker.description}</td>
         <td @click="${edit}">
-          <iron-icon icon="gr-icons:edit"></iron-icon>
+          <gr-icon icon="edit" filled></gr-icon>
         </td>
       </tr>
     `;
