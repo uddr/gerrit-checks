@@ -88,7 +88,6 @@ public class CheckerQuery {
           "added",
           "after",
           "age",
-          "assignee",
           "author",
           "before",
           "branch",
