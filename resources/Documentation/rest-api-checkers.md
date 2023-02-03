@@ -257,7 +257,7 @@ restrictions on which operators can be supported in checker queries:
 
 Currently, the set of allowed query operators is:
 
-`added, after, age, assignee, author, before, branch, committer, deleted, delta,
+`added, after, age, author, before, branch, committer, deleted, delta,
 destination, dir, directory, ext, extension, f, file, footer, hashtag, intopic,
 label, onlyextensions, onlyexts, ownerin, path, r, ref, reviewer, reviewerin,
 size, status, submittable, topic, unresolved, wip`
