@@ -25,15 +25,6 @@ import {PluginApi} from '@gerritcodereview/typescript-api/plugin';
 
 const CHECKERS_PER_PAGE = 15;
 const GET_CHECKERS_URL = '/plugins/checks/checkers/';
-
-// TODO: This should be defined and exposed by @gerritcodereview/typescript-api
-// export for testing
-export type GrOverlay = Element & {
-  open(): void;
-  close(): void;
-  refit(): void;
-};
-
 function matches(target: string, keyword: string) {
   return target.toLowerCase().includes(keyword.toLowerCase().trim());
 }
@@ -53,13 +44,13 @@ export class GrCheckersList extends LitElement {
   editModal?: GrCreateCheckersDialog;
 
   @query('#editOverlay')
-  editOverlay?: GrOverlay;
+  editOverlay?: HTMLDialogElement;
 
   @query('#createNewModal')
   createNewModal?: GrCreateCheckersDialog;
 
   @query('#createOverlay')
-  createOverlay?: GrOverlay;
+  createOverlay?: HTMLDialogElement;
 
   /** Guaranteed to be provided by the plugin endpoint. */
   @property()
@@ -92,6 +83,7 @@ export class GrCheckersList extends LitElement {
 
   static override styles = [
     window.Gerrit.styles.table as CSSResult,
+    window.Gerrit.styles.modal as CSSResult,
     css`
       #container {
         width: 80vw;
@@ -175,7 +167,7 @@ export class GrCheckersList extends LitElement {
         </table>
         <nav>${this.renderPrevButton()}${this.renderNextButton()}</nav>
       </div>
-      <gr-overlay id="createOverlay">
+      <dialog id="createOverlay" tabindex="-1">
         <gr-dialog
           .confirmLabel="Create"
           @confirm="${() => this.createNewModal?.handleCreateChecker()}"
@@ -191,8 +183,8 @@ export class GrCheckersList extends LitElement {
             </gr-create-checkers-dialog>
           </div>
         </gr-dialog>
-      </gr-overlay>
-      <gr-overlay id="editOverlay">
+      </dialog>
+      <dialog id="editOverlay" tabindex="-1">
         <gr-dialog
           .confirmLabel="Save"
           @confirm="${() => this.editModal?.handleEditChecker()}"
@@ -209,14 +201,18 @@ export class GrCheckersList extends LitElement {
             </gr-create-checkers-dialog>
           </div>
         </gr-dialog>
-      </gr-overlay>
+      </dialog>
     `;
   }
 
   private renderCreateNewButton() {
     return html`
       <div id="createNewContainer">
-        <gr-button primary link @click="${() => this.createOverlay?.open()}">
+        <gr-button
+          primary
+          link
+          @click="${() => this.createOverlay?.showModal()}"
+        >
           Create New
         </gr-button>
       </div>
@@ -255,7 +251,7 @@ export class GrCheckersList extends LitElement {
   private renderCheckerRow(checker: Checker) {
     const edit = () => {
       this.checker = checker;
-      this.editOverlay?.open();
+      this.editOverlay?.showModal();
     };
     return html`
       <tr class="table">
