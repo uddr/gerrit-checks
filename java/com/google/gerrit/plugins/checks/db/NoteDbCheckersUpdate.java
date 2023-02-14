@@ -14,6 +14,9 @@
 
 package com.google.gerrit.plugins.checks.db;
 
+import static com.google.gerrit.server.update.context.RefUpdateContext.RefUpdateType.PLUGIN;
+import static com.google.gerrit.server.update.context.RefUpdateContext.RefUpdateType.VERSIONED_META_DATA_CHANGE;
+
 import com.google.common.base.Throwables;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.exceptions.DuplicateKeyException;
@@ -32,6 +35,7 @@ import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.meta.MetaDataUpdate;
 import com.google.gerrit.server.update.RetryHelper;
+import com.google.gerrit.server.update.context.RefUpdateContext;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import java.io.IOException;
@@ -181,12 +185,16 @@ class NoteDbCheckersUpdate implements CheckersUpdate {
       CheckersByRepositoryNotes checkersByRepositoryNotes)
       throws IOException {
     BatchRefUpdate batchRefUpdate = allProjectsRepo.getRefDatabase().newBatchUpdate();
-    try (MetaDataUpdate metaDataUpdate =
-        metaDataUpdateFactory.create(allProjectsName, allProjectsRepo, batchRefUpdate)) {
-      checkerConfig.commit(metaDataUpdate);
-      checkersByRepositoryNotes.commit(metaDataUpdate);
+    try (RefUpdateContext pluginCtx = RefUpdateContext.open(PLUGIN)) {
+      try (RefUpdateContext ctx = RefUpdateContext.open(VERSIONED_META_DATA_CHANGE)) {
+        try (MetaDataUpdate metaDataUpdate =
+            metaDataUpdateFactory.create(allProjectsName, allProjectsRepo, batchRefUpdate)) {
+          checkerConfig.commit(metaDataUpdate);
+          checkersByRepositoryNotes.commit(metaDataUpdate);
+        }
+        RefUpdateUtil.executeChecked(batchRefUpdate, allProjectsRepo);
+      }
     }
-    RefUpdateUtil.executeChecked(batchRefUpdate, allProjectsRepo);
 
     gitRefUpdated.fire(
         allProjectsName, batchRefUpdate, currentUser.map(user -> user.state()).orElse(null));

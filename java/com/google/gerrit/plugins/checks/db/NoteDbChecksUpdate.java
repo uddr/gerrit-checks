@@ -15,6 +15,8 @@
 package com.google.gerrit.plugins.checks.db;
 
 import static com.google.gerrit.plugins.checks.CheckerRef.checksRef;
+import static com.google.gerrit.server.update.context.RefUpdateContext.RefUpdateType.CHANGE_MODIFICATION;
+import static com.google.gerrit.server.update.context.RefUpdateContext.RefUpdateType.PLUGIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
 
@@ -36,6 +38,7 @@ import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.notedb.ChangeNoteUtil;
 import com.google.gerrit.server.update.RetryHelper;
+import com.google.gerrit.server.update.context.RefUpdateContext;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import java.io.ByteArrayOutputStream;
@@ -171,45 +174,49 @@ public class NoteDbChecksUpdate implements ChecksStorageUpdate {
     if (operation == Operation.CREATE) {
       assertCheckerIsPresent(checkKey.checkerUuid());
     }
+    try (RefUpdateContext pluginCtx = RefUpdateContext.open(PLUGIN)) {
+      try (RefUpdateContext ctx = RefUpdateContext.open(CHANGE_MODIFICATION)) {
+        try (Repository repo = repoManager.openRepository(checkKey.repository());
+            ObjectInserter objectInserter = repo.newObjectInserter();
+            RevWalk rw = new RevWalk(repo)) {
+          Ref checkRef = repo.getRefDatabase().exactRef(checksRef(checkKey.patchSet().changeId()));
+          ObjectId parent = checkRef == null ? ObjectId.zeroId() : checkRef.getObjectId();
+          CommitBuilder cb;
+          String message;
+          if (operation == Operation.CREATE) {
+            message = "Insert check " + checkKey.checkerUuid();
+            cb = commitBuilder(message, parent);
+          } else {
+            message = "Update check " + checkKey.checkerUuid();
+            cb = commitBuilder(message, parent);
+          }
 
-    try (Repository repo = repoManager.openRepository(checkKey.repository());
-        ObjectInserter objectInserter = repo.newObjectInserter();
-        RevWalk rw = new RevWalk(repo)) {
-      Ref checkRef = repo.getRefDatabase().exactRef(checksRef(checkKey.patchSet().changeId()));
-      ObjectId parent = checkRef == null ? ObjectId.zeroId() : checkRef.getObjectId();
-      CommitBuilder cb;
-      String message;
-      if (operation == Operation.CREATE) {
-        message = "Insert check " + checkKey.checkerUuid();
-        cb = commitBuilder(message, parent);
-      } else {
-        message = "Update check " + checkKey.checkerUuid();
-        cb = commitBuilder(message, parent);
+          boolean dirty =
+              updateNotesMap(
+                  checkKey, checkUpdate, repo, rw, objectInserter, parent, cb, operation);
+          if (!dirty) {
+            // This update is a NoOp, so omit writing a commit with the same tree.
+            return readSingleCheck(checkKey, repo, rw, checkRef.getObjectId());
+          }
+
+          ObjectId newCommitId = objectInserter.insert(cb);
+          objectInserter.flush();
+
+          String refName = CheckerRef.checksRef(checkKey.patchSet().changeId());
+          RefUpdate refUpdate = repo.updateRef(refName);
+          refUpdate.setExpectedOldObjectId(parent);
+          refUpdate.setNewObjectId(newCommitId);
+          refUpdate.setRefLogIdent(personIdent);
+          refUpdate.setRefLogMessage(message, false);
+          refUpdate.update();
+          RefUpdateUtil.checkResult(refUpdate);
+
+          combinedCheckStateCache.updateIfNecessary(checkKey.repository(), checkKey.patchSet());
+          gitRefUpdated.fire(
+              checkKey.repository(), refUpdate, currentUser.map(user -> user.state()).orElse(null));
+          return readSingleCheck(checkKey, repo, rw, newCommitId);
+        }
       }
-
-      boolean dirty =
-          updateNotesMap(checkKey, checkUpdate, repo, rw, objectInserter, parent, cb, operation);
-      if (!dirty) {
-        // This update is a NoOp, so omit writing a commit with the same tree.
-        return readSingleCheck(checkKey, repo, rw, checkRef.getObjectId());
-      }
-
-      ObjectId newCommitId = objectInserter.insert(cb);
-      objectInserter.flush();
-
-      String refName = CheckerRef.checksRef(checkKey.patchSet().changeId());
-      RefUpdate refUpdate = repo.updateRef(refName);
-      refUpdate.setExpectedOldObjectId(parent);
-      refUpdate.setNewObjectId(newCommitId);
-      refUpdate.setRefLogIdent(personIdent);
-      refUpdate.setRefLogMessage(message, false);
-      refUpdate.update();
-      RefUpdateUtil.checkResult(refUpdate);
-
-      combinedCheckStateCache.updateIfNecessary(checkKey.repository(), checkKey.patchSet());
-      gitRefUpdated.fire(
-          checkKey.repository(), refUpdate, currentUser.map(user -> user.state()).orElse(null));
-      return readSingleCheck(checkKey, repo, rw, newCommitId);
     }
   }
 

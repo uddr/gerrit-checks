@@ -13,11 +13,15 @@
 // limitations under the License.
 package com.google.gerrit.plugins.checks.db;
 
+import static com.google.gerrit.server.update.context.RefUpdateContext.RefUpdateType.OFFLINE_OPERATION;
+import static com.google.gerrit.server.update.context.RefUpdateContext.RefUpdateType.PLUGIN;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.pgm.init.api.AllProjectsNameOnInitProvider;
 import com.google.gerrit.plugins.checks.CheckerRef;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.update.context.RefUpdateContext;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -49,7 +53,9 @@ public class CheckerRefMigration {
   }
 
   public void migrate() throws Exception {
-    try (Repository repo = repoManager.openRepository(allProjectsName)) {
+    try (Repository repo = repoManager.openRepository(allProjectsName);
+        RefUpdateContext pluginCtx = RefUpdateContext.open(PLUGIN);
+        RefUpdateContext ctx = RefUpdateContext.open(OFFLINE_OPERATION)) {
 
       // This part is specifically for cases where the rename failed half-way last time.
       Ref ref = repo.exactRef(TMP_REF);
@@ -68,7 +74,8 @@ public class CheckerRefMigration {
           ex.getMessage()
               + " Ensure that refs/tmp/checker-migration doesn't exist. Also,"
               + "ensure that refs/meta/checkers/ (with trailing '/') has been migrated to refs/meta/checkers (without "
-              + "trailing '/'). Consider documentation for updating refs manually: https://git-scm.com/docs/git-update-ref");
+              + "trailing '/'). Consider documentation for updating refs manually: https://git-scm.com/docs/git-update-ref",
+          ex);
     }
   }
 

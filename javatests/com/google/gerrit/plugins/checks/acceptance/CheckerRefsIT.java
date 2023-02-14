@@ -21,6 +21,7 @@ import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.a
 import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.allowLabel;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
 import static com.google.gerrit.testing.GerritJUnit.assertThrows;
+import static com.google.gerrit.testing.TestActionRefUpdateContext.testRefAction;
 
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.SkipProjectClone;
@@ -329,7 +330,7 @@ public class CheckerRefsIT extends AbstractCheckersTest {
           updateFactory.create(project, identifiedUserFactory.create(admin.id()), TimeUtil.now())) {
         bu.setRepository(git, rw, oi);
         bu.insertChange(ins);
-        bu.execute();
+        testRefAction(() -> bu.execute());
       }
       return changeId.toString();
     }

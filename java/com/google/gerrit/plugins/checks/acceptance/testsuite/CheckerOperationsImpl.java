@@ -16,6 +16,7 @@ package com.google.gerrit.plugins.checks.acceptance.testsuite;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.gerrit.testing.TestActionRefUpdateContext.testRefAction;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
@@ -301,7 +302,7 @@ public class CheckerOperationsImpl implements CheckerOperations {
             TestRepository<Repository> testRepo = new TestRepository<>(repo)) {
           RefUpdate ru = testRepo.getRepository().updateRef(checkerUuid.toRefName(), true);
           ru.setForceUpdate(true);
-          ru.delete();
+          testRefAction(() -> ru.delete());
         }
       }
     }
