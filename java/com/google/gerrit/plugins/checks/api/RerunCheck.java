@@ -15,6 +15,7 @@
 package com.google.gerrit.plugins.checks.api;
 
 import com.google.gerrit.extensions.restapi.AuthException;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.Response;
@@ -36,6 +37,10 @@ import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Optional;
 import javax.inject.Provider;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -99,15 +104,69 @@ public class RerunCheck implements RestModifyView<CheckResource, RerunInput> {
               checker);
     } else {
       CheckUpdate.Builder builder = CheckUpdate.builder();
+
+      Check realCheck =
+	         check
+	         .orElseThrow(
+	                () ->
+	                    new ResourceNotFoundException(
+	                        String.format("check %s not found", checkerUuid)));
+      String url =
+	      realCheck
+	         .url()
+	         .orElseThrow(
+	                () ->
+	                    new ResourceNotFoundException(
+	                        String.format("check url %s not found", checkerUuid)));
+      String readyUrl = url.replace("/#", "/api/v2/");
+      makeRestCall(readyUrl);
+
       builder
           .setState(CheckState.NOT_STARTED)
           .unsetFinished()
           .unsetStarted()
           .setMessage("")
           .setUrl("");
+
       updatedCheck =
           checksUpdate.get().updateCheck(key, builder.build(), input.notify, input.notifyDetails);
     }
     return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
+  }
+
+  private void makeRestCall(String url) throws IOException {
+      try {
+          String[] parts = url.split("/");
+          String lastValue = parts[parts.length - 1];
+
+	  URL url_obj = new URL(url);
+          HttpURLConnection connection = (HttpURLConnection) url_obj.openConnection();
+          connection.setRequestMethod("POST");
+          connection.setRequestProperty("Content-Type", "application/json");
+          connection.setDoInput(true);
+          connection.setDoOutput(true);
+
+          String jsonData = "{\"method\":\"rebuild\",\"jsonrpc\":\"2.0\",\"id\":" + lastValue + ",\"params\":{}}";
+
+          OutputStream os = connection.getOutputStream();
+          OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+          osw.write(jsonData);
+          osw.flush();
+          osw.close();
+
+          int responseCode = connection.getResponseCode();
+          connection.disconnect();
+          if (responseCode != HttpURLConnection.HTTP_OK) {
+              throw new BadRequestException(
+                  String.format(
+                      "Can not rerun the check %s:\n"
+                          + "jsonData is %s"
+                          + "the responce code is %d,",
+                      url, jsonData, responseCode));
+          }
+
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
   }
 }
