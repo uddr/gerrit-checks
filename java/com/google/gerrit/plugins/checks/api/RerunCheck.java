@@ -36,6 +36,10 @@ import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Optional;
 import javax.inject.Provider;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -99,15 +103,56 @@ public class RerunCheck implements RestModifyView<CheckResource, RerunInput> {
               checker);
     } else {
       CheckUpdate.Builder builder = CheckUpdate.builder();
+
+      makeRestCall(checkResource);
+
       builder
           .setState(CheckState.NOT_STARTED)
           .unsetFinished()
           .unsetStarted()
           .setMessage("")
           .setUrl("");
+
       updatedCheck =
           checksUpdate.get().updateCheck(key, builder.build(), input.notify, input.notifyDetails);
     }
     return Response.ok(checkJsonFactory.noOptions().format(updatedCheck));
+  }
+
+  private void makeRestCall(CheckResource checkResource) throws IOException {
+      try {
+          // Create the URL object using the URL from CheckResource
+          URL url = new URL(checkResource.getUrl().replace("/#", "/api/v2/"));
+          String[] parts = url.split("/");
+          String lastValue = parts[parts.length - 1];
+
+          HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+          connection.setRequestMethod("POST");
+          connection.setRequestProperty("Content-Type", "application/json");
+          connection.setDoInput(true);
+          connection.setDoOutput(true);
+
+          String jsonData = "{\"method\":\"rebuild\",\"jsonrpc\":\"2.0\",\"id\":" + lastValue + ",\"params\":{}}";
+
+          OutputStream os = connection.getOutputStream();
+          OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+          osw.write(jsonData);
+          osw.flush();
+          osw.close();
+
+          int responseCode = connection.getResponseCode();
+          connection.disconnect();
+          if (!responseCode == HttpURLConnection.HTTP_OK) {
+              throw new BadRequestException(
+                  String.format(
+                      "Can not rerun the check %s:\n"
+                          + "jsonData is %s"
+                          + "the responce code is %i,",
+                      url, jsonData, responseCode));
+          }
+
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
   }
 }
