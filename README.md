@@ -1,12 +1,9 @@
-# DEPRECATION NOTICE
+# Fork notice
 
-The Gerrit team at Google has decided to discontinue work on the
-checks plugin. The recommended solution is
-[https://gerrit-review.googlesource.com/Documentation/pg-plugin-checks-api.html](Checks
-UI) which surfaces results from an external CI/analysis system.
+Fork of https://gerrit.googlesource.com/plugins/checks/
+Some integraitions with specific CI tool
 
-
-# Gerrit Code Review Checks Plugin (DEPRECATED)
+# Gerrit Code Review Checks Plugin
 
 This plugin provides a unified experience for checkers (CI systems, static
 analyzers, etc.) to integrate with Gerrit Code Review.
@@ -16,6 +13,31 @@ When upgrading the plugin, please use init:
     java -jar gerrit.war init -d site_path
 
 More details about "init" in https://gerrit-review.googlesource.com/Documentation/pgm-init.html
+
+## Build in local (Ubuntu 20.04)
+
+    apt update
+    apt install -y apt-transport-https curl gnupg vim openjdk-11-jdk zip
+    curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg
+    mv bazel-archive-keyring.gpg /usr/share/keyrings
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+    apt update
+    apt install bazel-4.0.0
+    git clone https://gerrit.googlesource.com/gerrit
+    cd gerrit/
+    git fetch
+    git checkout v3.8.1
+    git submodule update -f --init --recursive
+    #bazel-4.0.0 clean --expunge
+    #bazel-4.0.0 build gerrit
+    cd plugins/
+    git clone https://github.com/uddr/gerrit-checks.git checks
+    cd checks
+    git checkout stable-3.8
+    cd ../..
+    cp plugins/checks/gerrit_uddr.patch ./
+    git apply gerrit_uddr.patch
+    bazel-4.0.0 build --javacopt="-source 11 -target 11" plugins/checks
 
 ## Enable e-mail notifications
 

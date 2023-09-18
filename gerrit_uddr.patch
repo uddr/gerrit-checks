@@ -1,0 +1,15 @@
+diff --git a/WORKSPACE b/WORKSPACE
+index 047da6a480..f2fcfc2eb3 100644
+--- a/WORKSPACE
++++ b/WORKSPACE
+@@ -99,10 +99,6 @@ browser_repositories(
+     firefox = True,
+ )
+ 
+-register_toolchains("//tools:error_prone_warnings_toolchain_java11_definition")
+-
+-register_toolchains("//tools:error_prone_warnings_toolchain_java17_definition")
+-
+ # JGit external repository consumed from git submodule
+ local_repository(
+     name = "jgit",
