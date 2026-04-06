@@ -215,6 +215,13 @@ export class GrCheckersList extends LitElement {
         >
           Create New
         </gr-button>
+        <gr-button
+          primary
+          link
+          @click=${this.handlePopupClose}
+        >
+          Close
+        </gr-button>
       </div>
     `;
   }
@@ -305,4 +312,11 @@ export class GrCheckersList extends LitElement {
     if (e.detail?.reload) this.loadCheckers();
     this.createOverlay?.close();
   }
+
+  private handlePopupClose() {
+    this.dispatchEvent(
+      new CustomEvent('close-popup', {bubbles: true, composed: true})
+    );
+  }
+
 }

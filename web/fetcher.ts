@@ -17,6 +17,7 @@
 import './gr-checkers-list';
 import {computeDuration} from './util';
 import {PluginApi} from '@gerritcodereview/typescript-api/plugin';
+import {PopupPluginApi} from '@gerritcodereview/typescript-api/popup';
 import {RestPluginApi} from '@gerritcodereview/typescript-api/rest';
 import {
   Category,
@@ -46,6 +47,9 @@ export class ChecksFetcher implements ChecksProvider {
 
   private patchsetNumber?: number;
 
+  // This is used to trigger .close() in an event.
+  private popup?: PopupPluginApi;
+
   constructor(private readonly plugin: PluginApi) {
     this.restApi = plugin.restApi();
   }
@@ -62,7 +66,16 @@ export class ChecksFetcher implements ChecksProvider {
           name: 'Configure Checkers',
           primary: true,
           callback: () => {
-            this.plugin.popup('gr-checkers-list');
+            this.plugin.popup('gr-checkers-list').then(popup => {
+              this.popup = popup;
+
+              const handler = () => {
+                this.popup?.close();
+                document.removeEventListener('close-popup', handler);
+              };
+
+              document.addEventListener('close-popup', handler);
+            });
             return undefined;
           },
         },
