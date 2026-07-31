@@ -19,6 +19,7 @@ import './gr-repo-chip';
 import {queryAndAssert} from './test/test-util';
 import {GrRepoChip} from './gr-repo-chip';
 import {fixture, html, assert} from '@open-wc/testing';
+import sinon from 'sinon';
 
 suite('gr-repo-chip tests', () => {
   let element: GrRepoChip;

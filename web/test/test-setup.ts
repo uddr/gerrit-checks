@@ -22,7 +22,6 @@ declare global {
   interface Window {
     sinon: typeof sinon;
   }
-  let sinon: typeof sinon;
 }
 window.sinon = sinon;
 
@@ -31,7 +30,7 @@ window.Gerrit = {
   styles: {
     font: css``,
     form: css``,
-    icon: css``,
+    material: css``,
     menuPage: css``,
     spinner: css``,
     subPage: css``,

@@ -21,6 +21,7 @@ import {Checker} from './types';
 import {queryAll, queryAndAssert} from './test/test-util';
 import {PluginApi} from '@gerritcodereview/typescript-api/plugin';
 import {assert} from '@open-wc/testing';
+import sinon from 'sinon';
 
 const CHECKERS = [
   {
@@ -190,7 +191,7 @@ suite('gr-checkers-list tests', () => {
   test('create new checker button renders corrrectly', () => {
     const div = queryAndAssert<HTMLElement>(element, '#createNewContainer');
     const button = queryAndAssert<HTMLElement>(div, 'gr-button');
-    assert.equal(button.innerText, 'Create New');
+    assert.equal(button.innerText.trim(), 'Create New');
   });
 
   test('table of checkers renders correctly', async () => {
