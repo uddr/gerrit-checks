@@ -1,7 +1,8 @@
 {
   "extends": "../../tsconfig-plugins-base.json",
   "compilerOptions": {
-    "rootDir": "."
+    /* outDir for IDE (overridden by Bazel rule arg) */
+    "outDir": "../../../.ts-out/plugins/checks/web"
   },
   "include": [
     "**/*"
